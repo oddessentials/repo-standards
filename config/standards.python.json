@@ -1,0 +1,480 @@
+{
+  "version": 1,
+  "stack": "python",
+  "stackLabel": "Python",
+  "ciSystems": [
+    "azure-devops",
+    "github-actions"
+  ],
+  "meta": {
+    "defaultCoverageThreshold": 0.8,
+    "complexityChecks": {
+      "enabledByDefault": true,
+      "description": "When supported by the stack, run cyclomatic complexity or similar metrics in CI as a warning-only check initially."
+    },
+    "qualityGatePolicy": {
+      "preferSoftFailOnLegacy": true,
+      "description": "New quality checks should warn on existing code and fail CI only for violations introduced in new or changed commits, to reduce friction on legacy codebases."
+    },
+    "migrationGuide": [
+      {
+        "step": 1,
+        "title": "Establish Local Safety Nets First",
+        "description": "Start by adding pre-commit hooks and core formatting/linting so developers get fast feedback without touching CI.",
+        "focusIds": [
+          "pre-commit-hooks",
+          "linting",
+          "code-formatter"
+        ],
+        "notes": "Keep hooks fast and focused on changed files to avoid slowing down day-to-day work."
+      },
+      {
+        "step": 2,
+        "title": "Mirror Local Checks in CI (Soft-Fail on Legacy)",
+        "description": "Introduce CI quality gates that mirror local checks, but treat existing violations as warnings wherever possible.",
+        "focusIds": [
+          "ci-quality-gates",
+          "linting",
+          "code-formatter",
+          "commit-linting"
+        ],
+        "notes": "Use diff-based tools or baselines so only new violations break builds; legacy issues remain visible but non-blocking."
+      },
+      {
+        "step": 3,
+        "title": "Add Type Safety, Coverage, and Dependency Security",
+        "description": "Enable type-checking, coverage thresholds, and dependency/vulnerability scanning with gradual enforcement.",
+        "focusIds": [
+          "type-checking",
+          "unit-test-runner",
+          "unit-test-reporter",
+          "dependency-security"
+        ],
+        "notes": "Pin tool and runtime versions in CI and containers to avoid flaky differences across environments."
+      },
+      {
+        "step": 4,
+        "title": "Layer in Docs, Governance, and Recommended Checks",
+        "description": "Add documentation standards, governance files, integration testing, performance baselines, complexity analysis, accessibility auditing, and (optionally) ML-specific practices for data-heavy Python repos.",
+        "focusIds": [
+          "documentation",
+          "repository-governance",
+          "integration-testing",
+          "performance-baselining",
+          "complexity-analysis",
+          "accessibility-auditing"
+        ],
+        "notes": "Tackle recommended items in order of business value; backend-only repos can skip web-focused checks like accessibility. For AI/ML-heavy Python teams, consider extending containerization with data versioning (DVC) and unit tests with data quality checks (e.g., Great Expectations) as part of this step."
+      }
+    ]
+  },
+  "checklist": {
+    "core": [
+      {
+        "id": "linting",
+        "label": "Linting",
+        "description": "Run static code linting to enforce consistency and catch common issues early.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "ruff",
+            "flake8"
+          ],
+          "exampleConfigFiles": [
+            "pyproject.toml",
+            ".flake8"
+          ],
+          "notes": "Run linting as part of pre-commit and CI; progressively tighten rules as the codebase improves."
+        }
+      },
+      {
+        "id": "unit-test-runner",
+        "label": "Unit Test Runner",
+        "description": "Provide a deterministic unit test framework with a single command to run all tests.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "test"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "pytest"
+          ],
+          "exampleConfigFiles": [
+            "pytest.ini",
+            "pyproject.toml"
+          ],
+          "notes": "Use pytest markers to separate fast unit tests from slower integration tests. For ML workflows, consider pairing standard tests with data-quality checks (e.g., Great Expectations) for critical datasets and pipelines."
+        }
+      },
+      {
+        "id": "containerization",
+        "label": "Containerization (Docker / Docker Compose)",
+        "description": "Provide a Dockerfile and, if applicable, a docker-compose file for local dev and CI parity.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "build"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleConfigFiles": [
+            "Dockerfile",
+            "docker-compose.yml"
+          ],
+          "notes": "Pin Python version (e.g., python:3.11-slim) and ensure requirements are installed from locked files for reproducible builds. For ML workflows, consider integrating data versioning tools like DVC alongside your container setup so data and model artifacts are as reproducible as code."
+        }
+      },
+      {
+        "id": "semantic-versioning",
+        "label": "Semantic Versioning",
+        "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "release"
+          },
+          "github-actions": {
+            "job": "release"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "towncrier",
+            "bumpversion",
+            "setuptools_scm"
+          ],
+          "exampleConfigFiles": [
+            ".bumpversion.cfg",
+            "pyproject.toml"
+          ],
+          "notes": "Use fragment-based changelog (towncrier) and tag releases consistently with package versions; consider protecting main/release branches and requiring green status checks before publishing."
+        }
+      },
+      {
+        "id": "commit-linting",
+        "label": "Commit Linting",
+        "description": "Enforce structured commit messages such as Conventional Commits.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "commitizen"
+          ],
+          "exampleConfigFiles": [
+            ".cz.toml"
+          ],
+          "notes": "Encourage contributors to use `cz commit` for guided, consistent commit messages."
+        }
+      },
+      {
+        "id": "unit-test-reporter",
+        "label": "Unit Test Reporter / Coverage",
+        "description": "Generate readable unit test and coverage reports and enforce a minimum coverage threshold (around 80%) for new or changed code.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "test"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "pytest-cov",
+            "coverage.py"
+          ],
+          "exampleConfigFiles": [
+            ".coveragerc",
+            "pyproject.toml"
+          ],
+          "notes": "Configure coverage minimums (~80%) and report per-PR coverage; fail only when new changes drop below target."
+        }
+      },
+      {
+        "id": "ci-quality-gates",
+        "label": "CI Quality Gates",
+        "description": "Single CI pipeline that runs linting, formatting, type checking, tests, coverage, build, and containerization.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "ci"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "notes": "Prefer a Makefile or task runner that wraps lint, format-check, type-check, tests, and coverage under a single target."
+        }
+      },
+      {
+        "id": "code-formatter",
+        "label": "Code Formatter",
+        "description": "Automatic code formatting to maintain a consistent style across all contributors.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "black"
+          ],
+          "exampleConfigFiles": [
+            "pyproject.toml"
+          ],
+          "notes": "Run black --check in CI; auto-format locally to reduce noisy diffs."
+        }
+      },
+      {
+        "id": "pre-commit-hooks",
+        "label": "Pre-Commit Hooks",
+        "description": "Use git hooks to run linting, formatting, tests, and commit linting before changes are committed.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "pre-commit"
+          ],
+          "exampleConfigFiles": [
+            ".pre-commit-config.yaml"
+          ],
+          "notes": "Use pre-commit to run ruff, black, and mypy on changed files for fast feedback."
+        }
+      },
+      {
+        "id": "type-checking",
+        "label": "Type Checking",
+        "description": "Use static type checking to catch errors before runtime and enforce strictness on new code.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "mypy"
+          ],
+          "exampleConfigFiles": [
+            "mypy.ini",
+            "pyproject.toml"
+          ],
+          "notes": "Use strict mypy options for new modules; slowly broaden coverage of type checking across the codebase."
+        }
+      },
+      {
+        "id": "dependency-security",
+        "label": "Dependency Management & Vulnerability Scanning",
+        "description": "Lock dependencies and scan regularly for known vulnerabilities; fail CI on newly introduced high-severity issues.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "pip-audit",
+            "pip-tools",
+            "Dependabot"
+          ],
+          "exampleConfigFiles": [
+            "requirements.txt",
+            "Pipfile.lock",
+            "poetry.lock"
+          ],
+          "notes": "Pin dependencies with lockfiles and run pip-audit in CI; fail on new critical vulnerabilities while gradually addressing historical ones. For ML-heavy repos, be especially mindful of vulnerabilities in large ML frameworks and GPU-related packages."
+        }
+      },
+      {
+        "id": "documentation",
+        "label": "Documentation Standards",
+        "description": "Maintain a comprehensive README and, where applicable, auto-generated API docs to support onboarding and maintainability.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "docs"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "Sphinx",
+            "MkDocs"
+          ],
+          "exampleConfigFiles": [
+            "README.md",
+            "docs/conf.py",
+            "mkdocs.yml"
+          ],
+          "notes": "Generate API docs from docstrings; ensure README covers core workflows for contributors. For ML projects, document data sources, preprocessing steps, and model lifecycle alongside code APIs."
+        }
+      },
+      {
+        "id": "repository-governance",
+        "label": "Repository Governance",
+        "description": "Include standard governance files (LICENSE, CODE_OF_CONDUCT.md, CONTRIBUTING.md), branch protection rules, and review standards to define legal, ethical, and workflow expectations.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "governance"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": [
+            "LICENSE",
+            "CODE_OF_CONDUCT.md",
+            "CONTRIBUTING.md"
+          ],
+          "notes": "Set license metadata in pyproject.toml and keep governance docs visible in the root directory. Use branch protection rules to require approvals and passing checks before merging to main/release branches, and spell out review guidelines (including data/ML-specific checks where relevant) in CONTRIBUTING.md."
+        }
+      }
+    ],
+    "recommended": [
+      {
+        "id": "integration-testing",
+        "label": "Integration Testing",
+        "description": "Test how components interact with each other and external systems, running after unit tests with more relaxed coverage thresholds.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "test"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "pytest with fixtures",
+            "httpx",
+            "requests"
+          ],
+          "exampleConfigFiles": [
+            "pytest.ini"
+          ],
+          "notes": "Use fixtures to manage test databases and external services; keep tests deterministic and idempotent."
+        }
+      },
+      {
+        "id": "performance-baselining",
+        "label": "Performance Baselines",
+        "description": "Establish performance baselines and monitor for regressions using lightweight benchmarks or audits in CI.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "performance"
+          },
+          "github-actions": {
+            "job": "performance"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "pytest-benchmark",
+            "cProfile"
+          ],
+          "exampleConfigFiles": [],
+          "notes": "Focus on core algorithms and bottlenecks; compare benchmarks across commits to spot regressions. For ML systems, consider tracking model latency and throughput as part of performance baselines."
+        }
+      },
+      {
+        "id": "complexity-analysis",
+        "label": "Complexity Analysis",
+        "description": "Measure cyclomatic complexity or similar metrics to keep code maintainable, starting as a warning-only check.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "radon"
+          ],
+          "exampleConfigFiles": [],
+          "notes": "Track complexity trends and focus on reducing complexity in high-churn or business-critical modules."
+        }
+      },
+      {
+        "id": "accessibility-auditing",
+        "label": "Accessibility Auditing",
+        "description": "Run accessibility checks on web-facing components to detect critical issues and improve inclusive UX.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "pa11y",
+            "axe via headless browsers"
+          ],
+          "exampleConfigFiles": [],
+          "notes": "Use pa11y or similar tools against rendered HTML pages; prioritize checks for core user flows."
+        }
+      }
+    ],
+    "optionalEnhancements": [
+      {
+        "id": "observability",
+        "label": "Observability (Logging & Error Handling)",
+        "description": "Standardize error handling and structured logging to make debugging and production monitoring easier.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "observability"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "structlog",
+            "loguru"
+          ],
+          "exampleConfigFiles": [],
+          "notes": "Standardize error handling and logging formats; add log assertions in tests for key failure scenarios when appropriate. For ML systems, consider logging model version, data hash, and key metrics for each inference."
+        }
+      }
+    ]
+  }
+}

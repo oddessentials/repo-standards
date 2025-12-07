@@ -1,0 +1,467 @@
+{
+  "version": 1,
+  "stack": "csharp-dotnet",
+  "stackLabel": "C# / .NET",
+  "ciSystems": [
+    "azure-devops",
+    "github-actions"
+  ],
+  "meta": {
+    "defaultCoverageThreshold": 0.8,
+    "complexityChecks": {
+      "enabledByDefault": true,
+      "description": "When supported by the stack, run cyclomatic complexity or similar metrics in CI as a warning-only check initially."
+    },
+    "qualityGatePolicy": {
+      "preferSoftFailOnLegacy": true,
+      "description": "New quality checks should warn on existing code and fail CI only for violations introduced in new or changed commits, to reduce friction on legacy codebases."
+    },
+    "migrationGuide": [
+      {
+        "step": 1,
+        "title": "Establish Local Safety Nets First",
+        "description": "Start by adding pre-commit hooks and core formatting/linting so developers get fast feedback without touching CI.",
+        "focusIds": [
+          "pre-commit-hooks",
+          "linting",
+          "code-formatter"
+        ],
+        "notes": "Keep hooks fast and focused on changed files to avoid slowing down day-to-day work."
+      },
+      {
+        "step": 2,
+        "title": "Mirror Local Checks in CI (Soft-Fail on Legacy)",
+        "description": "Introduce CI quality gates that mirror local checks, but treat existing violations as warnings wherever possible.",
+        "focusIds": [
+          "ci-quality-gates",
+          "linting",
+          "code-formatter",
+          "commit-linting"
+        ],
+        "notes": "Use diff-based tools or baselines so only new violations break builds; legacy issues remain visible but non-blocking."
+      },
+      {
+        "step": 3,
+        "title": "Add Type Safety, Coverage, and Dependency Security",
+        "description": "Enable type-checking, coverage thresholds, and dependency/vulnerability scanning with gradual enforcement.",
+        "focusIds": [
+          "type-checking",
+          "unit-test-runner",
+          "unit-test-reporter",
+          "dependency-security"
+        ],
+        "notes": "Pin tool and runtime versions in CI and containers to avoid flaky differences across environments."
+      },
+      {
+        "step": 4,
+        "title": "Layer in Docs, Governance, and Recommended Checks",
+        "description": "Add documentation standards, governance files, integration testing, performance baselines, complexity analysis, accessibility auditing, and (optionally) ML-specific practices for data-heavy Python repos.",
+        "focusIds": [
+          "documentation",
+          "repository-governance",
+          "integration-testing",
+          "performance-baselining",
+          "complexity-analysis",
+          "accessibility-auditing"
+        ],
+        "notes": "Tackle recommended items in order of business value; backend-only repos can skip web-focused checks like accessibility."
+      }
+    ]
+  },
+  "checklist": {
+    "core": [
+      {
+        "id": "linting",
+        "label": "Linting",
+        "description": "Run static code linting to enforce consistency and catch common issues early.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "dotnet-format",
+            "StyleCop.Analyzers"
+          ],
+          "exampleConfigFiles": [
+            ".editorconfig"
+          ],
+          "notes": "Use analyzers to enforce style and basic correctness; adopt new rules in warning-only mode for legacy code."
+        }
+      },
+      {
+        "id": "unit-test-runner",
+        "label": "Unit Test Runner",
+        "description": "Provide a deterministic unit test framework with a single command to run all tests.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "test"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "xUnit",
+            "NUnit",
+            "MSTest"
+          ],
+          "exampleConfigFiles": [],
+          "notes": "Prefer a single test framework per repo; avoid mixing MSTest, NUnit, and xUnit in one codebase."
+        }
+      },
+      {
+        "id": "containerization",
+        "label": "Containerization (Docker / Docker Compose)",
+        "description": "Provide a Dockerfile and, if applicable, a docker-compose file for local dev and CI parity.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "build"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleConfigFiles": [
+            "Dockerfile",
+            "docker-compose.yml"
+          ],
+          "notes": "Pin .NET SDK and ASP.NET runtime image tags (e.g., mcr.microsoft.com/dotnet/sdk:8.0) and keep them aligned with CI."
+        }
+      },
+      {
+        "id": "semantic-versioning",
+        "label": "Semantic Versioning",
+        "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "release"
+          },
+          "github-actions": {
+            "job": "release"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "GitVersion",
+            "GitReleaseManager"
+          ],
+          "exampleConfigFiles": [
+            "GitVersion.yml"
+          ],
+          "notes": "Derive SemVer from git history and generate release notes; keep assembly and package versions in sync. Use protected branches and required status checks for release lines."
+        }
+      },
+      {
+        "id": "commit-linting",
+        "label": "Commit Linting",
+        "description": "Enforce structured commit messages such as Conventional Commits.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "commitlint"
+          ],
+          "exampleConfigFiles": [
+            "commitlint.config.*"
+          ],
+          "notes": "Commit message linting is language-agnostic; use the same conventions across all repos."
+        }
+      },
+      {
+        "id": "unit-test-reporter",
+        "label": "Unit Test Reporter / Coverage",
+        "description": "Generate readable unit test and coverage reports and enforce a minimum coverage threshold (around 80%) for new or changed code.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "test"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "coverlet"
+          ],
+          "exampleConfigFiles": [],
+          "notes": "Output coverage in Cobertura or JaCoCo formats for CI dashboards; enforce thresholds on new code where possible."
+        }
+      },
+      {
+        "id": "ci-quality-gates",
+        "label": "CI Quality Gates",
+        "description": "Single CI pipeline that runs linting, formatting, type checking, tests, coverage, build, and containerization.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "ci"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "notes": "Use a Makefile or script that chains format, build, test, coverage, and packaging into one command."
+        }
+      },
+      {
+        "id": "code-formatter",
+        "label": "Code Formatter",
+        "description": "Automatic code formatting to maintain a consistent style across all contributors.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "dotnet-format"
+          ],
+          "exampleConfigFiles": [
+            ".editorconfig"
+          ],
+          "notes": "Use .editorconfig as the single source of formatting truth across the solution."
+        }
+      },
+      {
+        "id": "pre-commit-hooks",
+        "label": "Pre-Commit Hooks",
+        "description": "Use git hooks to run linting, formatting, tests, and commit linting before changes are committed.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "lefthook"
+          ],
+          "exampleConfigFiles": [
+            "lefthook.yml"
+          ],
+          "notes": "Wire dotnet-format and tests into pre-commit or pre-push hooks to catch issues before CI."
+        }
+      },
+      {
+        "id": "type-checking",
+        "label": "Type Checking",
+        "description": "Use static type checking to catch errors before runtime and enforce strictness on new code.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "Roslyn analyzers"
+          ],
+          "exampleConfigFiles": [
+            ".editorconfig",
+            "Directory.Build.props"
+          ],
+          "notes": "Turn on nullable reference types and treat relevant warnings as errors for new code paths."
+        }
+      },
+      {
+        "id": "dependency-security",
+        "label": "Dependency Management & Vulnerability Scanning",
+        "description": "Lock dependencies and scan regularly for known vulnerabilities; fail CI on newly introduced high-severity issues.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "dotnet list package --vulnerable",
+            "Dependabot"
+          ],
+          "exampleConfigFiles": [
+            "packages.lock.json",
+            "nuget.config"
+          ],
+          "notes": "Use package lock files and regular vulnerability scans; align .NET SDK versions across CI, containers, and developer machines."
+        }
+      },
+      {
+        "id": "documentation",
+        "label": "Documentation Standards",
+        "description": "Maintain a comprehensive README and, where applicable, auto-generated API docs to support onboarding and maintainability.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "docs"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "DocFX"
+          ],
+          "exampleConfigFiles": [
+            "README.md",
+            "docfx.json"
+          ],
+          "notes": "Use XML comments and DocFX for public APIs; keep README as the primary onboarding doc."
+        }
+      },
+      {
+        "id": "repository-governance",
+        "label": "Repository Governance",
+        "description": "Include standard governance files (LICENSE, CODE_OF_CONDUCT.md, CONTRIBUTING.md), branch protection rules, and review standards to define legal, ethical, and workflow expectations.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "governance"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": [
+            "LICENSE",
+            "CODE_OF_CONDUCT.md",
+            "CONTRIBUTING.md"
+          ],
+          "notes": "Ensure governance files live at the repo root and are referenced in project documentation. Configure branch policies in Azure DevOps or GitHub (required reviewers, status checks, no direct pushes to main). Document review expectations (tests, docs, code quality) in CONTRIBUTING.md."
+        }
+      }
+    ],
+    "recommended": [
+      {
+        "id": "integration-testing",
+        "label": "Integration Testing",
+        "description": "Test how components interact with each other and external systems, running after unit tests with more relaxed coverage thresholds.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "test"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "ASP.NET Core TestServer",
+            "WebApplicationFactory"
+          ],
+          "exampleConfigFiles": [],
+          "notes": "Spin up in-memory servers for API testing to avoid reliance on external infrastructure."
+        }
+      },
+      {
+        "id": "performance-baselining",
+        "label": "Performance Baselines",
+        "description": "Establish performance baselines and monitor for regressions using lightweight benchmarks or audits in CI.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "performance"
+          },
+          "github-actions": {
+            "job": "performance"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "BenchmarkDotNet"
+          ],
+          "exampleConfigFiles": [],
+          "notes": "Benchmark hot paths and track changes over time; consider scheduled performance runs rather than every PR."
+        }
+      },
+      {
+        "id": "complexity-analysis",
+        "label": "Complexity Analysis",
+        "description": "Measure cyclomatic complexity or similar metrics to keep code maintainable, starting as a warning-only check.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "SonarQube",
+            "Visual Studio Code Metrics"
+          ],
+          "exampleConfigFiles": [
+            "sonar-project.properties"
+          ],
+          "notes": "Use complexity metrics to identify refactoring targets rather than as hard gates at first."
+        }
+      },
+      {
+        "id": "accessibility-auditing",
+        "label": "Accessibility Auditing",
+        "description": "Run accessibility checks on web-facing components to detect critical issues and improve inclusive UX.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "Accessibility Insights",
+            "axe for .NET web apps"
+          ],
+          "exampleConfigFiles": [],
+          "notes": "Focus on public, user-facing endpoints; integrate accessibility checks into existing UI or integration test pipelines."
+        }
+      }
+    ],
+    "optionalEnhancements": [
+      {
+        "id": "observability",
+        "label": "Observability (Logging & Error Handling)",
+        "description": "Standardize error handling and structured logging to make debugging and production monitoring easier.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "observability"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "Serilog",
+            "NLog"
+          ],
+          "exampleConfigFiles": [],
+          "notes": "Use enriched, structured logs and centralize sinks; ensure unhandled exceptions are logged consistently."
+        }
+      }
+    ]
+  }
+}
