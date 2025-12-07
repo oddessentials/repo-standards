@@ -1,0 +1,113 @@
+# -----------------------------------------------------
+# Node / TypeScript
+# -----------------------------------------------------
+node_modules/
+dist/
+build/
+coverage/
+.nyc_output/
+lib/
+tsconfig.tsbuildinfo
+
+# Ignore any generated standards files if desired:
+# config/standards.*.json
+# (Comment out if you want them versioned.)
+
+# -----------------------------------------------------
+# Logs & OS Artifacts
+# -----------------------------------------------------
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux temporary files
+*~
+
+# -----------------------------------------------------
+# Env Files
+# -----------------------------------------------------
+.env
+.env.*
+!.env.example
+
+# -----------------------------------------------------
+# Editor / IDE
+# -----------------------------------------------------
+.vscode/
+.vscode-test/
+.idea/
+*.swp
+*.swo
+
+# JetBrains IDEs (WebStorm, IntelliJ)
+*.iml
+*.ipr
+*.iws
+out/
+
+# -----------------------------------------------------
+# Git / Diff Tools
+# -----------------------------------------------------
+*.orig
+*.rej
+
+# -----------------------------------------------------
+# TypeScript Diagnostics
+# -----------------------------------------------------
+*.tsbuildinfo
+*.tsbuildinfo.*
+
+# -----------------------------------------------------
+# Docker / Containers
+# -----------------------------------------------------
+# Local docker layers, build artifacts
+docker-compose.override.yml
+docker-compose.local.yml
+*.tar
+
+# -----------------------------------------------------
+# Jest / Testing
+# -----------------------------------------------------
+jest-cache/
+jest-coverage/
+*.ts.snap
+*.snap
+
+# -----------------------------------------------------
+# Cache directories
+# -----------------------------------------------------
+.cache/
+.eslintcache
+.stylelintcache
+.prettier-cache
+.cache-loader/
+.tmp/
+temp/
+
+# Turbo / Nx / Bun / pnpm etc.
+.turbo/
+.nx/
+.bun/
+.pnpm-store/
+
+# -----------------------------------------------------
+# Misc build or tool output
+# -----------------------------------------------------
+logs/
+tmp/
+temp/
+uploads/
+generated/

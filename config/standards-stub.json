@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "meta": {
+    "defaultCoverageThreshold": 0.8
+  },
+  "ciSystems": ["azure-devops", "github-actions"],
+  "stacks": {
+    "typescript-js": { "label": "TypeScript / JavaScript", "languageFamily": "js" },
+    "csharp-dotnet": { "label": "C# / .NET", "languageFamily": "dotnet" },
+    "python": { "label": "Python", "languageFamily": "python" }
+  },
+  "checklist": {
+    "core": [],
+    "recommended": [],
+    "optionalEnhancements": []
+  }
+}

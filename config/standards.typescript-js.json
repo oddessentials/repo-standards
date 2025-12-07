@@ -1,0 +1,485 @@
+{
+  "version": 1,
+  "stack": "typescript-js",
+  "stackLabel": "TypeScript / JavaScript",
+  "ciSystems": [
+    "azure-devops",
+    "github-actions"
+  ],
+  "meta": {
+    "defaultCoverageThreshold": 0.8,
+    "complexityChecks": {
+      "enabledByDefault": true,
+      "description": "When supported by the stack, run cyclomatic complexity or similar metrics in CI as a warning-only check initially."
+    },
+    "qualityGatePolicy": {
+      "preferSoftFailOnLegacy": true,
+      "description": "New quality checks should warn on existing code and fail CI only for violations introduced in new or changed commits, to reduce friction on legacy codebases."
+    },
+    "migrationGuide": [
+      {
+        "step": 1,
+        "title": "Establish Local Safety Nets First",
+        "description": "Start by adding pre-commit hooks and core formatting/linting so developers get fast feedback without touching CI.",
+        "focusIds": [
+          "pre-commit-hooks",
+          "linting",
+          "code-formatter"
+        ],
+        "notes": "Keep hooks fast and focused on changed files to avoid slowing down day-to-day work."
+      },
+      {
+        "step": 2,
+        "title": "Mirror Local Checks in CI (Soft-Fail on Legacy)",
+        "description": "Introduce CI quality gates that mirror local checks, but treat existing violations as warnings wherever possible.",
+        "focusIds": [
+          "ci-quality-gates",
+          "linting",
+          "code-formatter",
+          "commit-linting"
+        ],
+        "notes": "Use diff-based tools or baselines so only new violations break builds; legacy issues remain visible but non-blocking."
+      },
+      {
+        "step": 3,
+        "title": "Add Type Safety, Coverage, and Dependency Security",
+        "description": "Enable type-checking, coverage thresholds, and dependency/vulnerability scanning with gradual enforcement.",
+        "focusIds": [
+          "type-checking",
+          "unit-test-runner",
+          "unit-test-reporter",
+          "dependency-security"
+        ],
+        "notes": "Pin tool and runtime versions in CI and containers to avoid flaky differences across environments."
+      },
+      {
+        "step": 4,
+        "title": "Layer in Docs, Governance, and Recommended Checks",
+        "description": "Add documentation standards, governance files, integration testing, performance baselines, complexity analysis, accessibility auditing, and (optionally) ML-specific practices for data-heavy Python repos.",
+        "focusIds": [
+          "documentation",
+          "repository-governance",
+          "integration-testing",
+          "performance-baselining",
+          "complexity-analysis",
+          "accessibility-auditing"
+        ],
+        "notes": "Tackle recommended items in order of business value; backend-only repos can skip web-focused checks like accessibility. For AI/ML-heavy Python teams, consider extending containerization with data versioning (DVC) and unit tests with data quality checks (e.g., Great Expectations) as part of this step."
+      }
+    ]
+  },
+  "checklist": {
+    "core": [
+      {
+        "id": "linting",
+        "label": "Linting",
+        "description": "Run static code linting to enforce consistency and catch common issues early.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "eslint"
+          ],
+          "exampleConfigFiles": [
+            ".eslintrc.*"
+          ],
+          "notes": "Treat new lint errors as CI failures; keep existing issues as warnings until addressed."
+        }
+      },
+      {
+        "id": "unit-test-runner",
+        "label": "Unit Test Runner",
+        "description": "Provide a deterministic unit test framework with a single command to run all tests.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "test"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "jest"
+          ],
+          "exampleConfigFiles": [
+            "jest.config.*"
+          ],
+          "notes": "Keep unit tests fast and deterministic; move slow or flaky tests into integration or E2E suites."
+        }
+      },
+      {
+        "id": "containerization",
+        "label": "Containerization (Docker / Docker Compose)",
+        "description": "Provide a Dockerfile and, if applicable, a docker-compose file for local dev and CI parity.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "build"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleConfigFiles": [
+            "Dockerfile",
+            "docker-compose.yml"
+          ],
+          "notes": "Use multi-stage builds and pin Node.js and base image versions in the Dockerfile to match CI (e.g., node:22-alpine)."
+        }
+      },
+      {
+        "id": "semantic-versioning",
+        "label": "Semantic Versioning",
+        "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "release"
+          },
+          "github-actions": {
+            "job": "release"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "semantic-release",
+            "standard-version"
+          ],
+          "exampleConfigFiles": [
+            ".releaserc",
+            "package.json"
+          ],
+          "notes": "Drive versions and changelog from Conventional Commits; publish changelog as part of the release artifacts. Protect release branches (e.g., main, release/*) and ensure semantic-release only runs on these protected branches."
+        }
+      },
+      {
+        "id": "commit-linting",
+        "label": "Commit Linting",
+        "description": "Enforce structured commit messages such as Conventional Commits.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "@commitlint/cli",
+            "@commitlint/config-conventional"
+          ],
+          "exampleConfigFiles": [
+            "commitlint.config.*"
+          ],
+          "notes": "Enforce commit message format via commit-msg hook (e.g., Husky) before CI."
+        }
+      },
+      {
+        "id": "unit-test-reporter",
+        "label": "Unit Test Reporter / Coverage",
+        "description": "Generate readable unit test and coverage reports and enforce a minimum coverage threshold (around 80%) for new or changed code.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "test"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "jest",
+            "nyc"
+          ],
+          "exampleConfigFiles": [
+            "jest.config.*"
+          ],
+          "notes": "Collect coverage in lcov or similar format; use diff coverage so legacy gaps are visible but non-blocking."
+        }
+      },
+      {
+        "id": "ci-quality-gates",
+        "label": "CI Quality Gates",
+        "description": "Single CI pipeline that runs linting, formatting, type checking, tests, coverage, build, and containerization.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "ci"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "notes": "Expose a single npm script (e.g., `npm run ci`) that mirrors the CI pipeline so contributors can reproduce failures locally."
+        }
+      },
+      {
+        "id": "code-formatter",
+        "label": "Code Formatter",
+        "description": "Automatic code formatting to maintain a consistent style across all contributors.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "prettier"
+          ],
+          "exampleConfigFiles": [
+            ".prettierrc.*",
+            ".prettierignore"
+          ],
+          "notes": "Run Prettier in check mode in CI; auto-fix locally via pre-commit hooks or editor integration."
+        }
+      },
+      {
+        "id": "pre-commit-hooks",
+        "label": "Pre-Commit Hooks",
+        "description": "Use git hooks to run linting, formatting, tests, and commit linting before changes are committed.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "husky",
+            "lint-staged"
+          ],
+          "exampleConfigFiles": [
+            ".husky/",
+            "package.json"
+          ],
+          "notes": "Run ESLint and Prettier on staged files and enforce commit message format via commit-msg hooks."
+        }
+      },
+      {
+        "id": "type-checking",
+        "label": "Type Checking",
+        "description": "Use static type checking to catch errors before runtime and enforce strictness on new code.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "TypeScript compiler (tsc)"
+          ],
+          "exampleConfigFiles": [
+            "tsconfig.json"
+          ],
+          "notes": "Enable strict mode (\"strict\": true) and treat type-check failures as CI failures for new code; gradually expand strictness into legacy modules."
+        }
+      },
+      {
+        "id": "dependency-security",
+        "label": "Dependency Management & Vulnerability Scanning",
+        "description": "Lock dependencies and scan regularly for known vulnerabilities; fail CI on newly introduced high-severity issues.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "npm audit",
+            "pnpm audit",
+            "Snyk"
+          ],
+          "exampleConfigFiles": [
+            "package-lock.json",
+            "pnpm-lock.yaml",
+            "yarn.lock"
+          ],
+          "notes": "Require a lockfile for reproducible installs and pin Node.js/tooling versions; block merges on new high-severity vulnerabilities."
+        }
+      },
+      {
+        "id": "documentation",
+        "label": "Documentation Standards",
+        "description": "Maintain a comprehensive README and, where applicable, auto-generated API docs to support onboarding and maintainability.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "docs"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "JSDoc",
+            "TypeDoc"
+          ],
+          "exampleConfigFiles": [
+            "README.md",
+            "docs/"
+          ],
+          "notes": "README should describe setup, scripts, and architecture; generate API docs from TypeScript types and JSDoc where helpful."
+        }
+      },
+      {
+        "id": "repository-governance",
+        "label": "Repository Governance",
+        "description": "Include standard governance files (LICENSE, CODE_OF_CONDUCT.md, CONTRIBUTING.md), branch protection rules, and review standards to define legal, ethical, and workflow expectations.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "governance"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": [
+            "LICENSE",
+            "CODE_OF_CONDUCT.md",
+            "CONTRIBUTING.md"
+          ],
+          "notes": "Use an SPDX license identifier in package.json (e.g., \"license\": \"MIT\"). Define branch protection rules (e.g., required status checks, 1–2 approvals, linear history) for main/release branches, and describe a simple review rubric in CONTRIBUTING.md (tests updated, docs updated, CI green). Integrate semantic-release with these protected branches so releases only occur from approved, green builds."
+        }
+      }
+    ],
+    "recommended": [
+      {
+        "id": "integration-testing",
+        "label": "Integration Testing",
+        "description": "Test how components interact with each other and external systems, running after unit tests with more relaxed coverage thresholds.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "test"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "Jest",
+            "Supertest",
+            "Playwright"
+          ],
+          "exampleConfigFiles": [
+            "jest.config.*",
+            "playwright.config.*"
+          ],
+          "notes": "Use Supertest for HTTP APIs and Playwright for end-to-end flows; expect slower tests and lower coverage than unit suites."
+        }
+      },
+      {
+        "id": "performance-baselining",
+        "label": "Performance Baselines",
+        "description": "Establish performance baselines and monitor for regressions using lightweight benchmarks or audits in CI.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "performance"
+          },
+          "github-actions": {
+            "job": "performance"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "Lighthouse CI",
+            "custom Node.js benchmarks"
+          ],
+          "exampleConfigFiles": [
+            "lighthouserc.json"
+          ],
+          "notes": "Run Lighthouse CI for web apps and basic Node benchmarks on critical endpoints; schedule runs or limit to key branches to keep CI fast."
+        }
+      },
+      {
+        "id": "complexity-analysis",
+        "label": "Complexity Analysis",
+        "description": "Measure cyclomatic complexity or similar metrics to keep code maintainable, starting as a warning-only check.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "ESLint complexity rules",
+            "SonarQube"
+          ],
+          "exampleConfigFiles": [
+            ".eslintrc.*",
+            "sonar-project.properties"
+          ],
+          "notes": "Warn on overly complex functions and methods; fail CI only when new or modified code exceeds thresholds."
+        }
+      },
+      {
+        "id": "accessibility-auditing",
+        "label": "Accessibility Auditing",
+        "description": "Run accessibility checks on web-facing components to detect critical issues and improve inclusive UX.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "axe-core",
+            "axe CLI",
+            "Lighthouse accessibility audits"
+          ],
+          "exampleConfigFiles": [],
+          "notes": "Run accessibility checks against key pages or components in CI; fail on critical violations while treating minor issues as warnings initially."
+        }
+      }
+    ],
+    "optionalEnhancements": [
+      {
+        "id": "observability",
+        "label": "Observability (Logging & Error Handling)",
+        "description": "Standardize error handling and structured logging to make debugging and production monitoring easier.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "observability"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "Winston",
+            "Pino"
+          ],
+          "exampleConfigFiles": [],
+          "notes": "Adopt structured JSON logging with correlation IDs; consider asserting log output in tests for critical paths."
+        }
+      }
+    ]
+  }
+}

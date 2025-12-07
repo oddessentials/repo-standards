@@ -1,17 +1,598 @@
 {
   "version": 1,
   "meta": {
-    "defaultCoverageThreshold": 0.8
+    "defaultCoverageThreshold": 0.8,
+    "complexityChecks": {
+      "enabledByDefault": true,
+      "description": "When supported by the stack, run cyclomatic complexity or similar metrics in CI as a warning-only check initially."
+    },
+    "qualityGatePolicy": {
+      "preferSoftFailOnLegacy": true,
+      "description": "New quality checks should warn on existing code and fail CI only for violations introduced in new or changed commits, to reduce friction on legacy codebases."
+    },
+    "migrationGuide": [
+      {
+        "step": 1,
+        "title": "Establish Local Safety Nets First",
+        "description": "Start by adding pre-commit hooks and core formatting/linting so developers get fast feedback without touching CI.",
+        "focusIds": ["pre-commit-hooks", "linting", "code-formatter"],
+        "notes": "Keep hooks fast and focused on changed files to avoid slowing down day-to-day work."
+      },
+      {
+        "step": 2,
+        "title": "Mirror Local Checks in CI (Soft-Fail on Legacy)",
+        "description": "Introduce CI quality gates that mirror local checks, but treat existing violations as warnings wherever possible.",
+        "focusIds": ["ci-quality-gates", "linting", "code-formatter", "commit-linting"],
+        "notes": "Use diff-based tools or baselines so only new violations break builds; legacy issues remain visible but non-blocking."
+      },
+      {
+        "step": 3,
+        "title": "Add Type Safety, Coverage, and Dependency Security",
+        "description": "Enable type-checking, coverage thresholds, and dependency/vulnerability scanning with gradual enforcement.",
+        "focusIds": ["type-checking", "unit-test-runner", "unit-test-reporter", "dependency-security"],
+        "notes": "Pin tool and runtime versions in CI and containers to avoid flaky differences across environments."
+      },
+      {
+        "step": 4,
+        "title": "Layer in Docs, Governance, and Recommended Checks",
+        "description": "Add documentation standards, governance files, integration testing, performance baselines, complexity analysis, accessibility auditing, and (optionally) ML-specific practices for data-heavy Python repos.",
+        "focusIds": ["documentation", "repository-governance", "integration-testing", "performance-baselining", "complexity-analysis", "accessibility-auditing"],
+        "notes": "Tackle recommended items in order of business value; backend-only repos can skip web-focused checks like accessibility. For AI/ML-heavy Python teams, consider extending containerization with data versioning (DVC) and unit tests with data quality checks (e.g., Great Expectations) as part of this step."
+      }
+    ]
   },
   "ciSystems": ["azure-devops", "github-actions"],
   "stacks": {
-    "typescript-js": { "label": "TypeScript / JavaScript", "languageFamily": "js" },
-    "csharp-dotnet": { "label": "C# / .NET", "languageFamily": "dotnet" },
-    "python": { "label": "Python", "languageFamily": "python" }
+    "typescript-js": {
+      "label": "TypeScript / JavaScript",
+      "languageFamily": "js"
+    },
+    "csharp-dotnet": {
+      "label": "C# / .NET",
+      "languageFamily": "dotnet"
+    },
+    "python": {
+      "label": "Python",
+      "languageFamily": "python"
+    }
   },
   "checklist": {
-    "core": [],
-    "recommended": [],
-    "optionalEnhancements": []
+    "core": [
+      {
+        "id": "linting",
+        "label": "Linting",
+        "description": "Run static code linting to enforce consistency and catch common issues early.",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python"],
+          "ciSystems": ["azure-devops", "github-actions"]
+        },
+        "ciHints": {
+          "azure-devops": { "stage": "quality" },
+          "github-actions": { "job": "ci" }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": ["eslint"],
+            "exampleConfigFiles": [".eslintrc.*"],
+            "notes": "Treat new lint errors as CI failures; keep existing issues as warnings until addressed."
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["dotnet-format", "StyleCop.Analyzers"],
+            "exampleConfigFiles": [".editorconfig"],
+            "notes": "Use analyzers to enforce style and basic correctness; adopt new rules in warning-only mode for legacy code."
+          },
+          "python": {
+            "exampleTools": ["ruff", "flake8"],
+            "exampleConfigFiles": ["pyproject.toml", ".flake8"],
+            "notes": "Run linting as part of pre-commit and CI; progressively tighten rules as the codebase improves."
+          }
+        }
+      },
+      {
+        "id": "unit-test-runner",
+        "label": "Unit Test Runner",
+        "description": "Provide a deterministic unit test framework with a single command to run all tests.",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python"],
+          "ciSystems": ["azure-devops", "github-actions"]
+        },
+        "ciHints": {
+          "azure-devops": { "stage": "test" },
+          "github-actions": { "job": "ci" }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": ["jest"],
+            "exampleConfigFiles": ["jest.config.*"],
+            "notes": "Keep unit tests fast and deterministic; move slow or flaky tests into integration or E2E suites."
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["xUnit", "NUnit", "MSTest"],
+            "exampleConfigFiles": [],
+            "notes": "Prefer a single test framework per repo; avoid mixing MSTest, NUnit, and xUnit in one codebase."
+          },
+          "python": {
+            "exampleTools": ["pytest"],
+            "exampleConfigFiles": ["pytest.ini", "pyproject.toml"],
+            "notes": "Use pytest markers to separate fast unit tests from slower integration tests. For ML workflows, consider pairing standard tests with data-quality checks (e.g., Great Expectations) for critical datasets and pipelines."
+          }
+        }
+      },
+      {
+        "id": "containerization",
+        "label": "Containerization (Docker / Docker Compose)",
+        "description": "Provide a Dockerfile and, if applicable, a docker-compose file for local dev and CI parity.",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python"],
+          "ciSystems": ["azure-devops", "github-actions"]
+        },
+        "ciHints": {
+          "azure-devops": { "stage": "build" },
+          "github-actions": { "job": "ci" }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleConfigFiles": ["Dockerfile", "docker-compose.yml"],
+            "notes": "Use multi-stage builds and pin Node.js and base image versions in the Dockerfile to match CI (e.g., node:22-alpine)."
+          },
+          "csharp-dotnet": {
+            "exampleConfigFiles": ["Dockerfile", "docker-compose.yml"],
+            "notes": "Pin .NET SDK and ASP.NET runtime image tags (e.g., mcr.microsoft.com/dotnet/sdk:8.0) and keep them aligned with CI."
+          },
+          "python": {
+            "exampleConfigFiles": ["Dockerfile", "docker-compose.yml"],
+            "notes": "Pin Python version (e.g., python:3.11-slim) and ensure requirements are installed from locked files for reproducible builds. For ML workflows, consider integrating data versioning tools like DVC alongside your container setup so data and model artifacts are as reproducible as code."
+          }
+        }
+      },
+      {
+        "id": "semantic-versioning",
+        "label": "Semantic Versioning",
+        "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history.",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python"],
+          "ciSystems": ["azure-devops", "github-actions"]
+        },
+        "ciHints": {
+          "azure-devops": { "stage": "release" },
+          "github-actions": { "job": "release" }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": ["semantic-release", "standard-version"],
+            "exampleConfigFiles": [".releaserc", "package.json"],
+            "notes": "Drive versions and changelog from Conventional Commits; publish changelog as part of the release artifacts. Protect release branches (e.g., main, release/*) and ensure semantic-release only runs on these protected branches."
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["GitVersion", "GitReleaseManager"],
+            "exampleConfigFiles": ["GitVersion.yml"],
+            "notes": "Derive SemVer from git history and generate release notes; keep assembly and package versions in sync. Use protected branches and required status checks for release lines."
+          },
+          "python": {
+            "exampleTools": ["towncrier", "bumpversion", "setuptools_scm"],
+            "exampleConfigFiles": [".bumpversion.cfg", "pyproject.toml"],
+            "notes": "Use fragment-based changelog (towncrier) and tag releases consistently with package versions; consider protecting main/release branches and requiring green status checks before publishing."
+          }
+        }
+      },
+      {
+        "id": "commit-linting",
+        "label": "Commit Linting",
+        "description": "Enforce structured commit messages such as Conventional Commits.",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python"],
+          "ciSystems": ["azure-devops", "github-actions"]
+        },
+        "ciHints": {
+          "azure-devops": { "stage": "quality" },
+          "github-actions": { "job": "ci" }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": ["@commitlint/cli", "@commitlint/config-conventional"],
+            "exampleConfigFiles": ["commitlint.config.*"],
+            "notes": "Enforce commit message format via commit-msg hook (e.g., Husky) before CI."
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["commitlint"],
+            "exampleConfigFiles": ["commitlint.config.*"],
+            "notes": "Commit message linting is language-agnostic; use the same conventions across all repos."
+          },
+          "python": {
+            "exampleTools": ["commitizen"],
+            "exampleConfigFiles": [".cz.toml"],
+            "notes": "Encourage contributors to use `cz commit` for guided, consistent commit messages."
+          }
+        }
+      },
+      {
+        "id": "unit-test-reporter",
+        "label": "Unit Test Reporter / Coverage",
+        "description": "Generate readable unit test and coverage reports and enforce a minimum coverage threshold (around 80%) for new or changed code.",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python"],
+          "ciSystems": ["azure-devops", "github-actions"]
+        },
+        "ciHints": {
+          "azure-devops": { "stage": "test" },
+          "github-actions": { "job": "ci" }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": ["jest", "nyc"],
+            "exampleConfigFiles": ["jest.config.*"],
+            "notes": "Collect coverage in lcov or similar format; use diff coverage so legacy gaps are visible but non-blocking."
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["coverlet"],
+            "exampleConfigFiles": [],
+            "notes": "Output coverage in Cobertura or JaCoCo formats for CI dashboards; enforce thresholds on new code where possible."
+          },
+          "python": {
+            "exampleTools": ["pytest-cov", "coverage.py"],
+            "exampleConfigFiles": [".coveragerc", "pyproject.toml"],
+            "notes": "Configure coverage minimums (~80%) and report per-PR coverage; fail only when new changes drop below target."
+          }
+        }
+      },
+      {
+        "id": "ci-quality-gates",
+        "label": "CI Quality Gates",
+        "description": "Single CI pipeline that runs linting, formatting, type checking, tests, coverage, build, and containerization.",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python"],
+          "ciSystems": ["azure-devops", "github-actions"]
+        },
+        "ciHints": {
+          "azure-devops": { "stage": "ci" },
+          "github-actions": { "job": "ci" }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "notes": "Expose a single npm script (e.g., `npm run ci`) that mirrors the CI pipeline so contributors can reproduce failures locally."
+          },
+          "csharp-dotnet": {
+            "notes": "Use a Makefile or script that chains format, build, test, coverage, and packaging into one command."
+          },
+          "python": {
+            "notes": "Prefer a Makefile or task runner that wraps lint, format-check, type-check, tests, and coverage under a single target."
+          }
+        }
+      },
+      {
+        "id": "code-formatter",
+        "label": "Code Formatter",
+        "description": "Automatic code formatting to maintain a consistent style across all contributors.",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python"],
+          "ciSystems": ["azure-devops", "github-actions"]
+        },
+        "ciHints": {
+          "azure-devops": { "stage": "quality" },
+          "github-actions": { "job": "ci" }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": ["prettier"],
+            "exampleConfigFiles": [".prettierrc.*", ".prettierignore"],
+            "notes": "Run Prettier in check mode in CI; auto-fix locally via pre-commit hooks or editor integration."
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["dotnet-format"],
+            "exampleConfigFiles": [".editorconfig"],
+            "notes": "Use .editorconfig as the single source of formatting truth across the solution."
+          },
+          "python": {
+            "exampleTools": ["black"],
+            "exampleConfigFiles": ["pyproject.toml"],
+            "notes": "Run black --check in CI; auto-format locally to reduce noisy diffs."
+          }
+        }
+      },
+      {
+        "id": "pre-commit-hooks",
+        "label": "Pre-Commit Hooks",
+        "description": "Use git hooks to run linting, formatting, tests, and commit linting before changes are committed.",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python"],
+          "ciSystems": ["azure-devops", "github-actions"]
+        },
+        "ciHints": {
+          "azure-devops": { "stage": "quality" },
+          "github-actions": { "job": "ci" }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": ["husky", "lint-staged"],
+            "exampleConfigFiles": [".husky/", "package.json"],
+            "notes": "Run ESLint and Prettier on staged files and enforce commit message format via commit-msg hooks."
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["lefthook"],
+            "exampleConfigFiles": ["lefthook.yml"],
+            "notes": "Wire dotnet-format and tests into pre-commit or pre-push hooks to catch issues before CI."
+          },
+          "python": {
+            "exampleTools": ["pre-commit"],
+            "exampleConfigFiles": [".pre-commit-config.yaml"],
+            "notes": "Use pre-commit to run ruff, black, and mypy on changed files for fast feedback."
+          }
+        }
+      },
+      {
+        "id": "type-checking",
+        "label": "Type Checking",
+        "description": "Use static type checking to catch errors before runtime and enforce strictness on new code.",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python"],
+          "ciSystems": ["azure-devops", "github-actions"]
+        },
+        "ciHints": {
+          "azure-devops": { "stage": "quality" },
+          "github-actions": { "job": "ci" }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": ["TypeScript compiler (tsc)"],
+            "exampleConfigFiles": ["tsconfig.json"],
+            "notes": "Enable strict mode (\"strict\": true) and treat type-check failures as CI failures for new code; gradually expand strictness into legacy modules."
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["Roslyn analyzers"],
+            "exampleConfigFiles": [".editorconfig", "Directory.Build.props"],
+            "notes": "Turn on nullable reference types and treat relevant warnings as errors for new code paths."
+          },
+          "python": {
+            "exampleTools": ["mypy"],
+            "exampleConfigFiles": ["mypy.ini", "pyproject.toml"],
+            "notes": "Use strict mypy options for new modules; slowly broaden coverage of type checking across the codebase."
+          }
+        }
+      },
+      {
+        "id": "dependency-security",
+        "label": "Dependency Management & Vulnerability Scanning",
+        "description": "Lock dependencies and scan regularly for known vulnerabilities; fail CI on newly introduced high-severity issues.",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python"],
+          "ciSystems": ["azure-devops", "github-actions"]
+        },
+        "ciHints": {
+          "azure-devops": { "stage": "quality" },
+          "github-actions": { "job": "ci" }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": ["npm audit", "pnpm audit", "Snyk"],
+            "exampleConfigFiles": ["package-lock.json", "pnpm-lock.yaml", "yarn.lock"],
+            "notes": "Require a lockfile for reproducible installs and pin Node.js/tooling versions; block merges on new high-severity vulnerabilities."
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["dotnet list package --vulnerable", "Dependabot"],
+            "exampleConfigFiles": ["packages.lock.json", "nuget.config"],
+            "notes": "Use package lock files and regular vulnerability scans; align .NET SDK versions across CI, containers, and developer machines."
+          },
+          "python": {
+            "exampleTools": ["pip-audit", "pip-tools", "Dependabot"],
+            "exampleConfigFiles": ["requirements.txt", "Pipfile.lock", "poetry.lock"],
+            "notes": "Pin dependencies with lockfiles and run pip-audit in CI; fail on new critical vulnerabilities while gradually addressing historical ones. For ML-heavy repos, be especially mindful of vulnerabilities in large ML frameworks and GPU-related packages."
+          }
+        }
+      },
+      {
+        "id": "documentation",
+        "label": "Documentation Standards",
+        "description": "Maintain a comprehensive README and, where applicable, auto-generated API docs to support onboarding and maintainability.",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python"],
+          "ciSystems": ["azure-devops", "github-actions"]
+        },
+        "ciHints": {
+          "azure-devops": { "stage": "docs" },
+          "github-actions": { "job": "ci" }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": ["JSDoc", "TypeDoc"],
+            "exampleConfigFiles": ["README.md", "docs/"],
+            "notes": "README should describe setup, scripts, and architecture; generate API docs from TypeScript types and JSDoc where helpful."
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["DocFX"],
+            "exampleConfigFiles": ["README.md", "docfx.json"],
+            "notes": "Use XML comments and DocFX for public APIs; keep README as the primary onboarding doc."
+          },
+          "python": {
+            "exampleTools": ["Sphinx", "MkDocs"],
+            "exampleConfigFiles": ["README.md", "docs/conf.py", "mkdocs.yml"],
+            "notes": "Generate API docs from docstrings; ensure README covers core workflows for contributors. For ML projects, document data sources, preprocessing steps, and model lifecycle alongside code APIs."
+          }
+        }
+      },
+      {
+        "id": "repository-governance",
+        "label": "Repository Governance",
+        "description": "Include standard governance files (LICENSE, CODE_OF_CONDUCT.md, CONTRIBUTING.md), branch protection rules, and review standards to define legal, ethical, and workflow expectations.",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python"],
+          "ciSystems": ["azure-devops", "github-actions"]
+        },
+        "ciHints": {
+          "azure-devops": { "stage": "governance" },
+          "github-actions": { "job": "ci" }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": [],
+            "exampleConfigFiles": ["LICENSE", "CODE_OF_CONDUCT.md", "CONTRIBUTING.md"],
+            "notes": "Use an SPDX license identifier in package.json (e.g., \"license\": \"MIT\"). Define branch protection rules (e.g., required status checks, 1–2 approvals, linear history) for main/release branches, and describe a simple review rubric in CONTRIBUTING.md (tests updated, docs updated, CI green). Integrate semantic-release with these protected branches so releases only occur from approved, green builds."
+          },
+          "csharp-dotnet": {
+            "exampleTools": [],
+            "exampleConfigFiles": ["LICENSE", "CODE_OF_CONDUCT.md", "CONTRIBUTING.md"],
+            "notes": "Ensure governance files live at the repo root and are referenced in project documentation. Configure branch policies in Azure DevOps or GitHub (required reviewers, status checks, no direct pushes to main). Document review expectations (tests, docs, code quality) in CONTRIBUTING.md."
+          },
+          "python": {
+            "exampleTools": [],
+            "exampleConfigFiles": ["LICENSE", "CODE_OF_CONDUCT.md", "CONTRIBUTING.md"],
+            "notes": "Set license metadata in pyproject.toml and keep governance docs visible in the root directory. Use branch protection rules to require approvals and passing checks before merging to main/release branches, and spell out review guidelines (including data/ML-specific checks where relevant) in CONTRIBUTING.md."
+          }
+        }
+      }
+    ],
+    "recommended": [
+      {
+        "id": "integration-testing",
+        "label": "Integration Testing",
+        "description": "Test how components interact with each other and external systems, running after unit tests with more relaxed coverage thresholds.",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python"],
+          "ciSystems": ["azure-devops", "github-actions"]
+        },
+        "ciHints": {
+          "azure-devops": { "stage": "test" },
+          "github-actions": { "job": "ci" }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": ["Jest", "Supertest", "Playwright"],
+            "exampleConfigFiles": ["jest.config.*", "playwright.config.*"],
+            "notes": "Use Supertest for HTTP APIs and Playwright for end-to-end flows; expect slower tests and lower coverage than unit suites."
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["ASP.NET Core TestServer", "WebApplicationFactory"],
+            "exampleConfigFiles": [],
+            "notes": "Spin up in-memory servers for API testing to avoid reliance on external infrastructure."
+          },
+          "python": {
+            "exampleTools": ["pytest with fixtures", "httpx", "requests"],
+            "exampleConfigFiles": ["pytest.ini"],
+            "notes": "Use fixtures to manage test databases and external services; keep tests deterministic and idempotent."
+          }
+        }
+      },
+      {
+        "id": "performance-baselining",
+        "label": "Performance Baselines",
+        "description": "Establish performance baselines and monitor for regressions using lightweight benchmarks or audits in CI.",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python"],
+          "ciSystems": ["azure-devops", "github-actions"]
+        },
+        "ciHints": {
+          "azure-devops": { "stage": "performance" },
+          "github-actions": { "job": "performance" }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": ["Lighthouse CI", "custom Node.js benchmarks"],
+            "exampleConfigFiles": ["lighthouserc.json"],
+            "notes": "Run Lighthouse CI for web apps and basic Node benchmarks on critical endpoints; schedule runs or limit to key branches to keep CI fast."
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["BenchmarkDotNet"],
+            "exampleConfigFiles": [],
+            "notes": "Benchmark hot paths and track changes over time; consider scheduled performance runs rather than every PR."
+          },
+          "python": {
+            "exampleTools": ["pytest-benchmark", "cProfile"],
+            "exampleConfigFiles": [],
+            "notes": "Focus on core algorithms and bottlenecks; compare benchmarks across commits to spot regressions. For ML systems, consider tracking model latency and throughput as part of performance baselines."
+          }
+        }
+      },
+      {
+        "id": "complexity-analysis",
+        "label": "Complexity Analysis",
+        "description": "Measure cyclomatic complexity or similar metrics to keep code maintainable, starting as a warning-only check.",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python"],
+          "ciSystems": ["azure-devops", "github-actions"]
+        },
+        "ciHints": {
+          "azure-devops": { "stage": "quality" },
+          "github-actions": { "job": "ci" }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": ["ESLint complexity rules", "SonarQube"],
+            "exampleConfigFiles": [".eslintrc.*", "sonar-project.properties"],
+            "notes": "Warn on overly complex functions and methods; fail CI only when new or modified code exceeds thresholds."
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["SonarQube", "Visual Studio Code Metrics"],
+            "exampleConfigFiles": ["sonar-project.properties"],
+            "notes": "Use complexity metrics to identify refactoring targets rather than as hard gates at first."
+          },
+          "python": {
+            "exampleTools": ["radon"],
+            "exampleConfigFiles": [],
+            "notes": "Track complexity trends and focus on reducing complexity in high-churn or business-critical modules."
+          }
+        }
+      },
+      {
+        "id": "accessibility-auditing",
+        "label": "Accessibility Auditing",
+        "description": "Run accessibility checks on web-facing components to detect critical issues and improve inclusive UX.",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python"],
+          "ciSystems": ["azure-devops", "github-actions"]
+        },
+        "ciHints": {
+          "azure-devops": { "stage": "quality" },
+          "github-actions": { "job": "ci" }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": ["axe-core", "axe CLI", "Lighthouse accessibility audits"],
+            "exampleConfigFiles": [],
+            "notes": "Run accessibility checks against key pages or components in CI; fail on critical violations while treating minor issues as warnings initially."
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["Accessibility Insights", "axe for .NET web apps"],
+            "exampleConfigFiles": [],
+            "notes": "Focus on public, user-facing endpoints; integrate accessibility checks into existing UI or integration test pipelines."
+          },
+          "python": {
+            "exampleTools": ["pa11y", "axe via headless browsers"],
+            "exampleConfigFiles": [],
+            "notes": "Use pa11y or similar tools against rendered HTML pages; prioritize checks for core user flows."
+          }
+        }
+      }
+    ],
+    "optionalEnhancements": [
+      {
+        "id": "observability",
+        "label": "Observability (Logging & Error Handling)",
+        "description": "Standardize error handling and structured logging to make debugging and production monitoring easier.",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python"],
+          "ciSystems": ["azure-devops", "github-actions"]
+        },
+        "ciHints": {
+          "azure-devops": { "stage": "observability" },
+          "github-actions": { "job": "ci" }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": ["Winston", "Pino"],
+            "exampleConfigFiles": [],
+            "notes": "Adopt structured JSON logging with correlation IDs; consider asserting log output in tests for critical paths."
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["Serilog", "NLog"],
+            "exampleConfigFiles": [],
+            "notes": "Use enriched, structured logs and centralize sinks; ensure unhandled exceptions are logged consistently."
+          },
+          "python": {
+            "exampleTools": ["structlog", "loguru"],
+            "exampleConfigFiles": [],
+            "notes": "Standardize error handling and logging formats; add log assertions in tests for key failure scenarios when appropriate. For ML systems, consider logging model version, data hash, and key metrics for each inference."
+          }
+        }
+      }
+    ]
   }
 }
