@@ -275,21 +275,33 @@
         "stackHints": {
           "typescript-js": {
             "exampleTools": ["semantic-release", "standard-version"],
-            "exampleConfigFiles": [".releaserc", "package.json"],
-            "notes": "Drive versions and changelog from Conventional Commits; publish changelog as part of the release artifacts. Protect release branches and ensure release tooling only runs there.",
-            "verification": "Check that the version field follows SemVer, and trigger the configured release workflow (for example, a dry run of semantic-release or standard-version) to confirm it generates the expected next version and changelog entries."
+            "exampleConfigFiles": [
+              ".releaserc",
+              "package.json",
+              "CHANGELOG.md"
+            ],
+            "notes": "Automate version bumping and changelog generation from Conventional Commits using semantic-release or standard-version. Configure CI to automatically bump package.json version, generate/update CHANGELOG.md, create git tags, and publish release artifacts. Protect release branches and ensure release tooling only runs there.",
+            "verification": "Check that the version field follows SemVer, and trigger the configured release workflow (for example, a dry run of semantic-release or standard-version) to confirm it automatically generates the expected next version, updates package.json, and creates/updates CHANGELOG.md with commit-based entries."
           },
           "csharp-dotnet": {
             "exampleTools": ["GitVersion"],
-            "exampleConfigFiles": ["GitVersion.yml", "*.csproj"],
-            "notes": "Use GitVersion or similar to compute SemVer from git history and feed it into assembly/package versions.",
-            "verification": "Check that versioning is driven by a SemVer-aware tool (for example, GitVersion) and verify that running the release/versioning step locally or in CI produces the expected version metadata."
+            "exampleConfigFiles": [
+              "GitVersion.yml",
+              "*.csproj",
+              "CHANGELOG.md"
+            ],
+            "notes": "Use GitVersion to automatically compute SemVer from git history and feed it into assembly/package versions. Configure CI to auto-generate or update CHANGELOG.md from commit messages and git tags. Integrate with release pipeline to automatically version assemblies, NuGet packages, and create release notes.",
+            "verification": "Check that versioning is driven by a SemVer-aware tool (for example, GitVersion) and verify that running the release/versioning step locally or in CI automatically produces the expected version metadata, updates project files, and generates changelog entries from commit history."
           },
           "python": {
             "exampleTools": ["bumpversion", "setuptools_scm", "towncrier"],
-            "exampleConfigFiles": ["pyproject.toml", "setup.cfg"],
-            "notes": "Use a single source of truth for the package version and keep it aligned with SemVer and your release notes.",
-            "verification": "Check that the package version in pyproject or setup configuration follows SemVer and verify that the configured tool (for example, bumpversion or setuptools_scm) can compute or bump the version as expected."
+            "exampleConfigFiles": [
+              "pyproject.toml",
+              "setup.cfg",
+              "CHANGELOG.md"
+            ],
+            "notes": "Automate version bumping and changelog generation using setuptools_scm (git-tag based) or bumpversion with towncrier for changelog fragments. Configure CI to automatically update version in pyproject.toml, generate/update CHANGELOG.md from commit messages or changelog fragments, and create git tags. Maintain a single source of truth for versioning.",
+            "verification": "Check that the package version in pyproject or setup configuration follows SemVer and verify that the configured tool (for example, setuptools_scm or bumpversion) automatically computes or bumps the version and generates changelog entries from commit history or fragments."
           }
         }
       },

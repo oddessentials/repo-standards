@@ -160,9 +160,9 @@
         },
         "stack": {
           "exampleTools": ["GitVersion"],
-          "exampleConfigFiles": ["GitVersion.yml", "*.csproj"],
-          "notes": "Use GitVersion or similar to compute SemVer from git history and feed it into assembly/package versions.",
-          "verification": "Check that versioning is driven by a SemVer-aware tool (for example, GitVersion) and verify that running the release/versioning step locally or in CI produces the expected version metadata."
+          "exampleConfigFiles": ["GitVersion.yml", "*.csproj", "CHANGELOG.md"],
+          "notes": "Use GitVersion to automatically compute SemVer from git history and feed it into assembly/package versions. Configure CI to auto-generate or update CHANGELOG.md from commit messages and git tags. Integrate with release pipeline to automatically version assemblies, NuGet packages, and create release notes.",
+          "verification": "Check that versioning is driven by a SemVer-aware tool (for example, GitVersion) and verify that running the release/versioning step locally or in CI automatically produces the expected version metadata, updates project files, and generates changelog entries from commit history."
         }
       },
       {

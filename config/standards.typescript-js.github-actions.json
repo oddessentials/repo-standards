@@ -161,9 +161,9 @@
         },
         "stack": {
           "exampleTools": ["semantic-release", "standard-version"],
-          "exampleConfigFiles": [".releaserc", "package.json"],
-          "notes": "Drive versions and changelog from Conventional Commits; publish changelog as part of the release artifacts. Protect release branches and ensure release tooling only runs there.",
-          "verification": "Check that the version field follows SemVer, and trigger the configured release workflow (for example, a dry run of semantic-release or standard-version) to confirm it generates the expected next version and changelog entries."
+          "exampleConfigFiles": [".releaserc", "package.json", "CHANGELOG.md"],
+          "notes": "Automate version bumping and changelog generation from Conventional Commits using semantic-release or standard-version. Configure CI to automatically bump package.json version, generate/update CHANGELOG.md, create git tags, and publish release artifacts. Protect release branches and ensure release tooling only runs there.",
+          "verification": "Check that the version field follows SemVer, and trigger the configured release workflow (for example, a dry run of semantic-release or standard-version) to confirm it automatically generates the expected next version, updates package.json, and creates/updates CHANGELOG.md with commit-based entries."
         }
       },
       {
