@@ -126,8 +126,3 @@ These generated files are **artifacts**, not hand-edited. Treat `config/standard
    * Mirror checks in CI (soft-fail legacy).
    * Add type safety, coverage, dependency security.
    * Layer in docs, governance, integration/perf/accessibility, and ML-specific practices if applicable.
-
----
-
-# To-Do:
-- ensure .gitignore and .dockerignore are created accordingly for repos.
