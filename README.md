@@ -126,3 +126,17 @@ These generated files are **artifacts**, not hand-edited. Treat `config/standard
    * Mirror checks in CI (soft-fail legacy).
    * Add type safety, coverage, dependency security.
    * Layer in docs, governance, integration/perf/accessibility, and ML-specific practices if applicable.
+
+## Instruction generation
+
+### Default (TypeScript + GitHub Actions)
+
+`npm run generate:instructions`
+
+### Python stack
+
+`npm run generate:instructions -- standards.python.json`
+
+### C#/.NET with Azure DevOps
+
+`npm run generate:instructions -- standards.csharp-dotnet.azure-devops.json`

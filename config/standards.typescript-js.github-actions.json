@@ -3,7 +3,6 @@
   "stack": "typescript-js",
   "stackLabel": "TypeScript / JavaScript",
   "ciSystems": [
-    "azure-devops",
     "github-actions"
   ],
   "meta": {
@@ -75,9 +74,6 @@
         "label": "Git and Docker Ignore Files",
         "description": "Maintain proper .gitignore and .dockerignore files to prevent committing secrets, build artifacts, or unnecessary files.",
         "ciHints": {
-          "azure-devops": {
-            "stage": "quality"
-          },
           "github-actions": {
             "job": "ci"
           }
@@ -102,9 +98,6 @@
         "label": "Linting",
         "description": "Run static code linting to enforce consistency and catch common issues early.",
         "ciHints": {
-          "azure-devops": {
-            "stage": "quality"
-          },
           "github-actions": {
             "job": "ci"
           }
@@ -142,9 +135,6 @@
         "label": "Unit Test Runner",
         "description": "Provide a deterministic unit test framework with a single command to run all tests.",
         "ciHints": {
-          "azure-devops": {
-            "stage": "test"
-          },
           "github-actions": {
             "job": "ci"
           }
@@ -174,9 +164,6 @@
         "label": "Containerization (Docker / Docker Compose)",
         "description": "Provide a Dockerfile and, if applicable, a docker-compose file for local dev and CI parity.",
         "ciHints": {
-          "azure-devops": {
-            "stage": "build"
-          },
           "github-actions": {
             "job": "ci"
           }
@@ -202,9 +189,6 @@
         "label": "Semantic Versioning",
         "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history.",
         "ciHints": {
-          "azure-devops": {
-            "stage": "release"
-          },
           "github-actions": {
             "job": "release"
           }
@@ -227,9 +211,6 @@
         "label": "Commit Linting",
         "description": "Enforce structured commit messages such as Conventional Commits.",
         "ciHints": {
-          "azure-devops": {
-            "stage": "quality"
-          },
           "github-actions": {
             "job": "ci"
           }
@@ -251,9 +232,6 @@
         "label": "Unit Test Reporter / Coverage",
         "description": "Generate readable unit test and coverage reports and enforce a minimum coverage threshold (around 80%) for new or changed code.",
         "ciHints": {
-          "azure-devops": {
-            "stage": "test"
-          },
           "github-actions": {
             "job": "ci"
           }
@@ -275,9 +253,6 @@
         "label": "CI Quality Gates",
         "description": "Single CI pipeline that runs linting, formatting, type checking, tests, coverage, build, and containerization.",
         "ciHints": {
-          "azure-devops": {
-            "stage": "ci"
-          },
           "github-actions": {
             "job": "ci"
           }
@@ -297,9 +272,6 @@
         "label": "Code Formatter",
         "description": "Automatic code formatting to maintain a consistent style across all contributors.",
         "ciHints": {
-          "azure-devops": {
-            "stage": "quality"
-          },
           "github-actions": {
             "job": "ci"
           }
@@ -321,9 +293,6 @@
         "label": "Pre-Commit Hooks",
         "description": "Use git hooks to run linting, formatting, tests, and commit linting before changes are committed.",
         "ciHints": {
-          "azure-devops": {
-            "stage": "quality"
-          },
           "github-actions": {
             "job": "ci"
           }
@@ -346,9 +315,6 @@
         "label": "Type Checking",
         "description": "Use static type checking to catch errors before runtime and enforce strictness on new code.",
         "ciHints": {
-          "azure-devops": {
-            "stage": "quality"
-          },
           "github-actions": {
             "job": "ci"
           }
@@ -375,9 +341,6 @@
         "label": "Dependency Management & Vulnerability Scanning",
         "description": "Lock dependencies and scan regularly for known vulnerabilities; fail CI on newly introduced high-severity issues.",
         "ciHints": {
-          "azure-devops": {
-            "stage": "quality"
-          },
           "github-actions": {
             "job": "ci"
           }
@@ -406,9 +369,6 @@
         "label": "Documentation Standards",
         "description": "Maintain a comprehensive README and, where applicable, auto-generated API docs to support onboarding and maintainability.",
         "ciHints": {
-          "azure-devops": {
-            "stage": "docs"
-          },
           "github-actions": {
             "job": "ci"
           }
@@ -438,9 +398,6 @@
         "label": "Repository Governance",
         "description": "Include standard governance files (LICENSE, CODE_OF_CONDUCT.md, CONTRIBUTING.md), branch protection rules, and review standards to define legal, ethical, and workflow expectations.",
         "ciHints": {
-          "azure-devops": {
-            "stage": "governance"
-          },
           "github-actions": {
             "job": "ci"
           }
@@ -470,9 +427,6 @@
         "label": "Integration Testing",
         "description": "Test how components interact with each other and external systems, running after unit tests with more relaxed coverage thresholds.",
         "ciHints": {
-          "azure-devops": {
-            "stage": "test"
-          },
           "github-actions": {
             "job": "ci"
           }
@@ -496,9 +450,6 @@
         "label": "Performance Baselines",
         "description": "Establish performance baselines and monitor for regressions using lightweight benchmarks or audits in CI.",
         "ciHints": {
-          "azure-devops": {
-            "stage": "performance"
-          },
           "github-actions": {
             "job": "performance"
           }
@@ -520,9 +471,6 @@
         "label": "Complexity Analysis",
         "description": "Measure cyclomatic complexity or similar metrics to keep code maintainable, starting as a warning-only check.",
         "ciHints": {
-          "azure-devops": {
-            "stage": "quality"
-          },
           "github-actions": {
             "job": "ci"
           }
@@ -545,9 +493,6 @@
         "label": "Accessibility Auditing",
         "description": "Run accessibility checks on web-facing components to detect critical issues and improve inclusive UX.",
         "ciHints": {
-          "azure-devops": {
-            "stage": "quality"
-          },
           "github-actions": {
             "job": "ci"
           }
@@ -569,9 +514,6 @@
         "label": "Observability (Logging & Error Handling)",
         "description": "Standardize error handling and structured logging to make debugging and production monitoring easier.",
         "ciHints": {
-          "azure-devops": {
-            "stage": "observability"
-          },
           "github-actions": {
             "job": "ci"
           }

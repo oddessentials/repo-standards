@@ -88,7 +88,13 @@
             ".dockerignore"
           ],
           "notes": "Use the official github/gitignore VisualStudio/.NET template. .dockerignore must exclude bin/, obj/, .vs/, *.user, and similar local/build artifacts.",
-          "verification": "Confirm .gitignore excludes bin/, obj/, .vs/, *.user, packages/ and that .dockerignore excludes .git and build output directories."
+          "verification": ".gitignore must exist; .dockerignore is recommended when containerizing or using Docker workflows.",
+          "requiredFiles": [
+            ".gitignore"
+          ],
+          "optionalFiles": [
+            ".dockerignore"
+          ]
         }
       },
       {
@@ -113,7 +119,16 @@
             "Directory.Build.props"
           ],
           "notes": "Enable analyzers or style rules for the solution and review warnings regularly; enforce stricter rules on new code.",
-          "verification": "Run the configured analyzer or formatting command (for example, `dotnet format` or an analyzer task) and confirm it exits successfully with no new violations."
+          "verification": ".editorconfig must exist to drive the .NET formatting and analysis tooling.",
+          "requiredFiles": [
+            ".editorconfig"
+          ],
+          "optionalFiles": [
+            "Directory.Build.props"
+          ],
+          "requiredScripts": [
+            "lint"
+          ]
         }
       },
       {
@@ -138,7 +153,10 @@
             "*.Tests.csproj"
           ],
           "notes": "Group unit tests into dedicated test projects and keep them independent from external services.",
-          "verification": "Run the test projects with `dotnet test` and confirm all unit tests pass without unexpected failures."
+          "verification": "Test projects are present in the solution; test configuration is defined.",
+          "optionalFiles": [
+            "*.Tests.csproj"
+          ]
         }
       },
       {
@@ -160,7 +178,13 @@
             "docker-compose.yml"
           ],
           "notes": "Use multi-stage builds for .NET publish output and pin the SDK/runtime image versions to match CI.",
-          "verification": "Inspect the Dockerfile (and docker-compose if present) to ensure the .NET service can be built and started in a container using the documented commands."
+          "verification": "Dockerfile must be present; docker-compose.yml is optional and indicates orchestration usage.",
+          "requiredFiles": [
+            "Dockerfile"
+          ],
+          "optionalFiles": [
+            "docker-compose.yml"
+          ]
         }
       },
       {
@@ -318,16 +342,24 @@
         },
         "stack": {
           "exampleTools": [
-            "Roslyn analyzers",
-            "nullable reference types"
+            "Roslyn analyzers"
           ],
           "exampleConfigFiles": [
             ".editorconfig",
             "Directory.Build.props",
             "*.csproj"
           ],
-          "notes": "Enable nullable reference types and relevant analyzers to catch type and nullability issues at compile time.",
-          "verification": "Confirm nullable reference types and relevant analyzers are enabled, then build the solution and ensure there are no unaddressed type-related warnings or errors in the target scope."
+          "notes": "Enable nullable reference types and relevant analyzers to catch type and nullability issues at compile time. C# project files (*.csproj) indicate the presence of projects that can be type-checked.",
+          "verification": ".editorconfig must exist; Directory.Build.props is optional for shared build configuration.",
+          "requiredFiles": [
+            ".editorconfig"
+          ],
+          "optionalFiles": [
+            "Directory.Build.props"
+          ],
+          "requiredScripts": [
+            "typecheck"
+          ]
         }
       },
       {
@@ -351,7 +383,10 @@
             "*.csproj"
           ],
           "notes": "Enable package lock files and use vulnerability scanning to track and remediate high-risk dependencies.",
-          "verification": "Run the configured security tooling (for example, `dotnet list package --vulnerable` or an external scanner) and ensure no newly introduced critical vulnerabilities appear in the report."
+          "verification": "Dependency lockfile or package reference is present; security scanning is configured.",
+          "optionalFiles": [
+            "packages.lock.json"
+          ]
         }
       },
       {
@@ -375,7 +410,14 @@
             "docfx.json"
           ],
           "notes": "Keep README and API docs in sync with the solution structure and public surface area.",
-          "verification": "Open README.md and confirm it covers setup, build/run commands, and architecture, and verify that any generated API/docs tooling (for example, DocFX) can be run as described."
+          "verification": "README.md is present in the repository root; docs/ directory or DocFX configuration exists if applicable.",
+          "requiredFiles": [
+            "README.md"
+          ],
+          "optionalFiles": [
+            "docs/",
+            "docfx.json"
+          ]
         }
       },
       {
@@ -398,7 +440,14 @@
             "CONTRIBUTING.md"
           ],
           "notes": "Document contribution expectations and ensure legal and code-of-conduct policies are easy to find.",
-          "verification": "Check that LICENSE, CODE_OF_CONDUCT.md, and CONTRIBUTING.md exist and that CONTRIBUTING.md documents testing, documentation, and review expectations aligned with your branch policies."
+          "verification": "LICENSE file is present in the repository root; CODE_OF_CONDUCT.md and CONTRIBUTING.md are present for contribution guidance.",
+          "requiredFiles": [
+            "LICENSE"
+          ],
+          "optionalFiles": [
+            "CODE_OF_CONDUCT.md",
+            "CONTRIBUTING.md"
+          ]
         }
       }
     ],

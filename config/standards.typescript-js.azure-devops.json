@@ -3,8 +3,7 @@
   "stack": "typescript-js",
   "stackLabel": "TypeScript / JavaScript",
   "ciSystems": [
-    "azure-devops",
-    "github-actions"
+    "azure-devops"
   ],
   "meta": {
     "defaultCoverageThreshold": 0.8,
@@ -77,9 +76,6 @@
         "ciHints": {
           "azure-devops": {
             "stage": "quality"
-          },
-          "github-actions": {
-            "job": "ci"
           }
         },
         "stack": {
@@ -104,9 +100,6 @@
         "ciHints": {
           "azure-devops": {
             "stage": "quality"
-          },
-          "github-actions": {
-            "job": "ci"
           }
         },
         "stack": {
@@ -144,9 +137,6 @@
         "ciHints": {
           "azure-devops": {
             "stage": "test"
-          },
-          "github-actions": {
-            "job": "ci"
           }
         },
         "stack": {
@@ -176,9 +166,6 @@
         "ciHints": {
           "azure-devops": {
             "stage": "build"
-          },
-          "github-actions": {
-            "job": "ci"
           }
         },
         "stack": {
@@ -204,9 +191,6 @@
         "ciHints": {
           "azure-devops": {
             "stage": "release"
-          },
-          "github-actions": {
-            "job": "release"
           }
         },
         "stack": {
@@ -229,9 +213,6 @@
         "ciHints": {
           "azure-devops": {
             "stage": "quality"
-          },
-          "github-actions": {
-            "job": "ci"
           }
         },
         "stack": {
@@ -253,9 +234,6 @@
         "ciHints": {
           "azure-devops": {
             "stage": "test"
-          },
-          "github-actions": {
-            "job": "ci"
           }
         },
         "stack": {
@@ -277,9 +255,6 @@
         "ciHints": {
           "azure-devops": {
             "stage": "ci"
-          },
-          "github-actions": {
-            "job": "ci"
           }
         },
         "stack": {
@@ -299,9 +274,6 @@
         "ciHints": {
           "azure-devops": {
             "stage": "quality"
-          },
-          "github-actions": {
-            "job": "ci"
           }
         },
         "stack": {
@@ -323,9 +295,6 @@
         "ciHints": {
           "azure-devops": {
             "stage": "quality"
-          },
-          "github-actions": {
-            "job": "ci"
           }
         },
         "stack": {
@@ -348,9 +317,6 @@
         "ciHints": {
           "azure-devops": {
             "stage": "quality"
-          },
-          "github-actions": {
-            "job": "ci"
           }
         },
         "stack": {
@@ -377,9 +343,6 @@
         "ciHints": {
           "azure-devops": {
             "stage": "quality"
-          },
-          "github-actions": {
-            "job": "ci"
           }
         },
         "stack": {
@@ -408,9 +371,6 @@
         "ciHints": {
           "azure-devops": {
             "stage": "docs"
-          },
-          "github-actions": {
-            "job": "ci"
           }
         },
         "stack": {
@@ -440,9 +400,6 @@
         "ciHints": {
           "azure-devops": {
             "stage": "governance"
-          },
-          "github-actions": {
-            "job": "ci"
           }
         },
         "stack": {
@@ -472,9 +429,6 @@
         "ciHints": {
           "azure-devops": {
             "stage": "test"
-          },
-          "github-actions": {
-            "job": "ci"
           }
         },
         "stack": {
@@ -498,9 +452,6 @@
         "ciHints": {
           "azure-devops": {
             "stage": "performance"
-          },
-          "github-actions": {
-            "job": "performance"
           }
         },
         "stack": {
@@ -522,9 +473,6 @@
         "ciHints": {
           "azure-devops": {
             "stage": "quality"
-          },
-          "github-actions": {
-            "job": "ci"
           }
         },
         "stack": {
@@ -547,9 +495,6 @@
         "ciHints": {
           "azure-devops": {
             "stage": "quality"
-          },
-          "github-actions": {
-            "job": "ci"
           }
         },
         "stack": {
@@ -571,9 +516,6 @@
         "ciHints": {
           "azure-devops": {
             "stage": "observability"
-          },
-          "github-actions": {
-            "job": "ci"
           }
         },
         "stack": {
