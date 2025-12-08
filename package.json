@@ -15,7 +15,8 @@
     "generate:ci": "ts-node-esm scripts/generate-standards.ts",
     "generate:ci:ts": "npm run generate:ci -- typescript-js",
     "generate:ci:python": "npm run generate:ci -- python",
-    "generate:ci:dotnet": "npm run generate:ci -- csharp-dotnet"
+    "generate:ci:dotnet": "npm run generate:ci -- csharp-dotnet",
+    "generate:ci:all": "npm run generate:ci:ts && npm run generate:ci:python && npm run generate:ci:dotnet"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",

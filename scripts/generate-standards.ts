@@ -1,3 +1,5 @@
+// scripts/generate-standards.ts
+
 import fs from "node:fs";
 import path from "node:path";
 
@@ -20,6 +22,8 @@ interface StackHints {
   exampleTools?: string[];
   exampleConfigFiles?: string[];
   notes?: string;
+  // NEW: per-stack human instructions for how to verify the item
+  verification?: string;
 }
 
 interface ChecklistItemMaster {
@@ -74,6 +78,7 @@ interface StackItem {
   label: string;
   description: string;
   ciHints?: CiHints;
+  // For the filtered file, this is the single stack’s hints including verification
   stack?: StackHints;
 }
 
@@ -125,6 +130,7 @@ function filterSectionForStackAndCi(
       }
 
       if (stackHint) {
+        // Includes exampleTools, exampleConfigFiles, notes, verification
         result.stack = stackHint;
       }
 
@@ -181,6 +187,6 @@ fs.mkdirSync(outDir, { recursive: true });
 const ciSuffix = targetCiSystem ? `.${targetCiSystem}` : "";
 const outPath = path.join(outDir, `standards.${targetStack}${ciSuffix}.json`);
 
-fs.writeFileSync(outPath, JSON.stringify(stackJson, null, 2));
+fs.writeFileSync(outPath, JSON.stringify(stackJson, null, 2) + "\n");
 
 console.log(`Wrote ${outPath}`);

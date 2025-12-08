@@ -14,7 +14,7 @@
     },
     "qualityGatePolicy": {
       "preferSoftFailOnLegacy": true,
-      "description": "New quality checks should warn on existing code and fail CI only for violations introduced in new or changed commits, to reduce friction on legacy codebases."
+      "description": "New quality checks should warn on existing code and fail CI only for violations introduced in new or changed code, to reduce friction on legacy codebases."
     },
     "migrationGuide": [
       {
@@ -71,6 +71,27 @@
   "checklist": {
     "core": [
       {
+        "id": "gitignore-and-dockerignore",
+        "label": "Git and Docker Ignore Files",
+        "description": "Maintain proper .gitignore and .dockerignore files to prevent committing secrets, build artifacts, or unnecessary files.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleConfigFiles": [
+            ".gitignore",
+            ".dockerignore"
+          ],
+          "notes": "Use the official github/gitignore Python template. Include **pycache**, .venv/, .pytest_cache, .env, and similar local-only files. .dockerignore must exclude .git, virtual environments, and caches.",
+          "verification": "Confirm .gitignore excludes **pycache**, .venv/, .env, .pytest_cache and that .dockerignore excludes .git and local env/cache directories."
+        }
+      },
+      {
         "id": "linting",
         "label": "Linting",
         "description": "Run static code linting to enforce consistency and catch common issues early.",
@@ -91,7 +112,8 @@
             "pyproject.toml",
             ".flake8"
           ],
-          "notes": "Run linting as part of pre-commit and CI; progressively tighten rules as the codebase improves."
+          "notes": "Configure a primary linter (such as ruff) and keep rules focused on catching real issues without overwhelming developers.",
+          "verification": "Run the configured linter (for example, `ruff check .` or `flake8`) and confirm it exits 0 with no new issues."
         }
       },
       {
@@ -114,7 +136,8 @@
             "pytest.ini",
             "pyproject.toml"
           ],
-          "notes": "Use pytest markers to separate fast unit tests from slower integration tests. For ML workflows, consider pairing standard tests with data-quality checks (e.g., Great Expectations) for critical datasets and pipelines."
+          "notes": "Organize unit tests under a tests/ directory and avoid real network or database calls in this layer.",
+          "verification": "Run the configured test runner (for example, `pytest`) and confirm all unit tests pass without unexpected failures."
         }
       },
       {
@@ -130,11 +153,13 @@
           }
         },
         "stack": {
+          "exampleTools": [],
           "exampleConfigFiles": [
             "Dockerfile",
             "docker-compose.yml"
           ],
-          "notes": "Pin Python version (e.g., python:3.11-slim) and ensure requirements are installed from locked files for reproducible builds. For ML workflows, consider integrating data versioning tools like DVC alongside your container setup so data and model artifacts are as reproducible as code."
+          "notes": "Choose a slim Python base image, pin the version, and clearly document how to start the service in a container.",
+          "verification": "Inspect the Dockerfile (and docker-compose if present) to ensure the Python service or app can be built and started in a container using the documented commands."
         }
       },
       {
@@ -151,15 +176,16 @@
         },
         "stack": {
           "exampleTools": [
-            "towncrier",
             "bumpversion",
-            "setuptools_scm"
+            "setuptools_scm",
+            "towncrier"
           ],
           "exampleConfigFiles": [
-            ".bumpversion.cfg",
-            "pyproject.toml"
+            "pyproject.toml",
+            "setup.cfg"
           ],
-          "notes": "Use fragment-based changelog (towncrier) and tag releases consistently with package versions; consider protecting main/release branches and requiring green status checks before publishing."
+          "notes": "Use a single source of truth for the package version and keep it aligned with SemVer and your release notes.",
+          "verification": "Check that the package version in pyproject or setup configuration follows SemVer and verify that the configured tool (for example, bumpversion or setuptools_scm) can compute or bump the version as expected."
         }
       },
       {
@@ -179,9 +205,11 @@
             "commitizen"
           ],
           "exampleConfigFiles": [
-            ".cz.toml"
+            ".cz.toml",
+            "pyproject.toml"
           ],
-          "notes": "Encourage contributors to use `cz commit` for guided, consistent commit messages."
+          "notes": "Standardize commit messages using commitizen or a similar helper and document the required types and scopes.",
+          "verification": "Use the configured commit helper (for example, commitizen) or hooks to create a test commit and confirm that non-conforming messages are rejected while valid ones are accepted."
         }
       },
       {
@@ -198,14 +226,16 @@
         },
         "stack": {
           "exampleTools": [
+            "pytest",
             "pytest-cov",
             "coverage.py"
           ],
           "exampleConfigFiles": [
-            ".coveragerc",
+            "pytest.ini",
             "pyproject.toml"
           ],
-          "notes": "Configure coverage minimums (~80%) and report per-PR coverage; fail only when new changes drop below target."
+          "notes": "Configure coverage reporting for your test suite and surface summary metrics in CI.",
+          "verification": "Run the unit tests with coverage (for example, pytest with pytest-cov) and confirm that coverage reports are generated and referenced in CI to enforce or track thresholds."
         }
       },
       {
@@ -221,7 +251,13 @@
           }
         },
         "stack": {
-          "notes": "Prefer a Makefile or task runner that wraps lint, format-check, type-check, tests, and coverage under a single target."
+          "exampleTools": [],
+          "exampleConfigFiles": [
+            ".github/workflows/*",
+            "azure-pipelines.yml"
+          ],
+          "notes": "Ensure CI runs linting, type checking (if used), tests, and packaging or container checks for Python services before merging.",
+          "verification": "Open the CI configuration and verify there is a job or stage that runs linting, type checking (if used), tests, and any packaging or container checks before merging to main."
         }
       },
       {
@@ -243,7 +279,8 @@
           "exampleConfigFiles": [
             "pyproject.toml"
           ],
-          "notes": "Run black --check in CI; auto-format locally to reduce noisy diffs."
+          "notes": "Use black (or an equivalent opinionated formatter) and treat its output as the single source of truth for code style.",
+          "verification": "Run the configured formatter (for example, `black .` or `black --check .`) and confirm it reports clean formatting on committed code and auto-fixes as expected locally."
         }
       },
       {
@@ -265,7 +302,8 @@
           "exampleConfigFiles": [
             ".pre-commit-config.yaml"
           ],
-          "notes": "Use pre-commit to run ruff, black, and mypy on changed files for fast feedback."
+          "notes": "Use pre-commit to run ruff, black, and optionally mypy on staged files before committing.",
+          "verification": "Inspect .pre-commit-config.yaml and confirm that hooks for linting, formatting, and optionally type checking are enabled and run on changed files before commits."
         }
       },
       {
@@ -288,7 +326,8 @@
             "mypy.ini",
             "pyproject.toml"
           ],
-          "notes": "Use strict mypy options for new modules; slowly broaden coverage of type checking across the codebase."
+          "notes": "Adopt gradual typing with type hints and mypy, focusing first on critical modules and new code paths.",
+          "verification": "Run the configured type checker (for example, `mypy`) and confirm it reports no new type errors in the modules you plan to change or merge."
         }
       },
       {
@@ -306,15 +345,15 @@
         "stack": {
           "exampleTools": [
             "pip-audit",
-            "pip-tools",
-            "Dependabot"
+            "safety"
           ],
           "exampleConfigFiles": [
             "requirements.txt",
             "Pipfile.lock",
             "poetry.lock"
           ],
-          "notes": "Pin dependencies with lockfiles and run pip-audit in CI; fail on new critical vulnerabilities while gradually addressing historical ones. For ML-heavy repos, be especially mindful of vulnerabilities in large ML frameworks and GPU-related packages."
+          "notes": "Pin dependency versions and routinely scan for vulnerabilities, prioritizing fixes for critical and high-severity issues.",
+          "verification": "Run the configured security tool (for example, `pip-audit` or a similar scanner) and verify that no new high-severity vulnerabilities have been introduced in the current dependency set."
         }
       },
       {
@@ -336,10 +375,10 @@
           ],
           "exampleConfigFiles": [
             "README.md",
-            "docs/conf.py",
-            "mkdocs.yml"
+            "docs/"
           ],
-          "notes": "Generate API docs from docstrings; ensure README covers core workflows for contributors. For ML projects, document data sources, preprocessing steps, and model lifecycle alongside code APIs."
+          "notes": "Ensure README explains environment setup and core commands, and generate API docs from docstrings where appropriate.",
+          "verification": "Open README.md and confirm it describes environment setup, run commands, and architecture, and verify that any documentation tooling (for example, Sphinx or MkDocs) can be run as described."
         }
       },
       {
@@ -361,7 +400,8 @@
             "CODE_OF_CONDUCT.md",
             "CONTRIBUTING.md"
           ],
-          "notes": "Set license metadata in pyproject.toml and keep governance docs visible in the root directory. Use branch protection rules to require approvals and passing checks before merging to main/release branches, and spell out review guidelines (including data/ML-specific checks where relevant) in CONTRIBUTING.md."
+          "notes": "Spell out contributor responsibilities for tests, documentation, and review so expectations are clear for Python-focused teams.",
+          "verification": "Check that LICENSE, CODE_OF_CONDUCT.md, and CONTRIBUTING.md exist and that CONTRIBUTING.md clearly describes how contributors should run checks, update docs, and satisfy review rules."
         }
       }
     ],
@@ -380,14 +420,13 @@
         },
         "stack": {
           "exampleTools": [
-            "pytest with fixtures",
-            "httpx",
-            "requests"
+            "pytest"
           ],
           "exampleConfigFiles": [
-            "pytest.ini"
+            "tests/integration/"
           ],
-          "notes": "Use fixtures to manage test databases and external services; keep tests deterministic and idempotent."
+          "notes": "Separate integration tests from unit tests, using fixtures to handle databases, services, or other external systems.",
+          "verification": "Confirm there is a separate integration or API test suite (for example, a dedicated tests/integration directory) and run it to verify interactions with databases, services, or external systems."
         }
       },
       {
@@ -407,8 +446,12 @@
             "pytest-benchmark",
             "cProfile"
           ],
-          "exampleConfigFiles": [],
-          "notes": "Focus on core algorithms and bottlenecks; compare benchmarks across commits to spot regressions. For ML systems, consider tracking model latency and throughput as part of performance baselines."
+          "exampleConfigFiles": [
+            "pytest.ini",
+            "pyproject.toml"
+          ],
+          "notes": "Use simple benchmarks or profiling runs to characterize bottlenecks and watch for regressions in critical workflows.",
+          "verification": "Identify and run the configured performance checks or benchmarks (for example, pytest-benchmark or cProfile-based scripts) and confirm that their results are recorded and compared over time."
         }
       },
       {
@@ -427,8 +470,11 @@
           "exampleTools": [
             "radon"
           ],
-          "exampleConfigFiles": [],
-          "notes": "Track complexity trends and focus on reducing complexity in high-churn or business-critical modules."
+          "exampleConfigFiles": [
+            "radon.cfg"
+          ],
+          "notes": "Use radon or similar tools to track complexity of Python functions and keep new code within acceptable limits.",
+          "verification": "Run the configured complexity tool (for example, radon) on the codebase and review the report to ensure new or heavily changed functions are not excessively complex."
         }
       },
       {
@@ -445,11 +491,11 @@
         },
         "stack": {
           "exampleTools": [
-            "pa11y",
-            "axe via headless browsers"
+            "pa11y"
           ],
           "exampleConfigFiles": [],
-          "notes": "Use pa11y or similar tools against rendered HTML pages; prioritize checks for core user flows."
+          "notes": "Use headless browser-based tools to scan Python-backed web UIs for accessibility issues on high-traffic routes.",
+          "verification": "For Python-backed web UIs, run the configured accessibility tooling (for example, pa11y or axe via a headless browser) against key routes and verify that critical issues are fixed or tracked."
         }
       }
     ],
@@ -471,8 +517,12 @@
             "structlog",
             "loguru"
           ],
-          "exampleConfigFiles": [],
-          "notes": "Standardize error handling and logging formats; add log assertions in tests for key failure scenarios when appropriate. For ML systems, consider logging model version, data hash, and key metrics for each inference."
+          "exampleConfigFiles": [
+            "logging configuration files",
+            "pyproject.toml"
+          ],
+          "notes": "Use structured logging for Python services and ensure critical paths record enough context to debug issues after the fact.",
+          "verification": "Confirm that a structured logging setup (such as structlog or configured logging with JSON formatting) is in place and that critical paths log enough information to debug failures in production."
         }
       }
     ]
