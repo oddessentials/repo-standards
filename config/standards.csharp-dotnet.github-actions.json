@@ -1,0 +1,416 @@
+{
+  "version": 1,
+  "stack": "csharp-dotnet",
+  "stackLabel": "C# / .NET",
+  "ciSystems": ["github-actions"],
+  "meta": {
+    "defaultCoverageThreshold": 0.8,
+    "complexityChecks": {
+      "enabledByDefault": true,
+      "description": "When supported by the stack, run cyclomatic complexity or similar metrics in CI as a warning-only check initially."
+    },
+    "qualityGatePolicy": {
+      "preferSoftFailOnLegacy": true,
+      "description": "New quality checks should warn on existing code and fail CI only for violations introduced in new or changed code, to reduce friction on legacy codebases."
+    },
+    "migrationGuide": [
+      {
+        "step": 1,
+        "title": "Establish Local Safety Nets First",
+        "description": "Start by adding pre-commit hooks and core formatting/linting so developers get fast feedback without touching CI.",
+        "focusIds": ["pre-commit-hooks", "linting", "code-formatter"],
+        "notes": "Keep hooks fast and focused on changed files to avoid slowing down day-to-day work."
+      },
+      {
+        "step": 2,
+        "title": "Mirror Local Checks in CI (Soft-Fail on Legacy)",
+        "description": "Introduce CI quality gates that mirror local checks, but treat existing violations as warnings wherever possible.",
+        "focusIds": [
+          "ci-quality-gates",
+          "linting",
+          "code-formatter",
+          "commit-linting"
+        ],
+        "notes": "Use diff-based tools or baselines so only new violations break builds; legacy issues remain visible but non-blocking."
+      },
+      {
+        "step": 3,
+        "title": "Add Type Safety, Coverage, and Dependency Security",
+        "description": "Enable type-checking, coverage thresholds, and dependency/vulnerability scanning with gradual enforcement.",
+        "focusIds": [
+          "type-checking",
+          "unit-test-runner",
+          "unit-test-reporter",
+          "dependency-security"
+        ],
+        "notes": "Pin tool and runtime versions in CI and containers to avoid flaky differences across environments."
+      },
+      {
+        "step": 4,
+        "title": "Layer in Docs, Governance, and Recommended Checks",
+        "description": "Add documentation standards, governance files, integration testing, performance baselines, complexity analysis, accessibility auditing, and (optionally) ML-specific practices for data-heavy Python repos.",
+        "focusIds": [
+          "documentation",
+          "repository-governance",
+          "integration-testing",
+          "performance-baselining",
+          "complexity-analysis",
+          "accessibility-auditing"
+        ],
+        "notes": "Tackle recommended items in order of business value; backend-only repos can skip web-focused checks like accessibility. For AI/ML-heavy Python teams, consider extending containerization with data versioning (DVC) and unit tests with data quality checks (e.g., Great Expectations) as part of this step."
+      }
+    ]
+  },
+  "checklist": {
+    "core": [
+      {
+        "id": "gitignore-and-dockerignore",
+        "label": "Git and Docker Ignore Files",
+        "description": "Maintain proper .gitignore and .dockerignore files to prevent committing secrets, build artifacts, or unnecessary files.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleConfigFiles": [".gitignore", ".dockerignore"],
+          "notes": "Use the official github/gitignore VisualStudio/.NET template. .dockerignore must exclude bin/, obj/, .vs/, *.user, and similar local/build artifacts.",
+          "verification": ".gitignore must exist; .dockerignore is recommended when containerizing or using Docker workflows.",
+          "requiredFiles": [".gitignore"],
+          "optionalFiles": [".dockerignore"]
+        }
+      },
+      {
+        "id": "linting",
+        "label": "Linting",
+        "description": "Run static code linting to enforce consistency and catch common issues early.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["Roslyn analyzers", "StyleCop"],
+          "exampleConfigFiles": [".editorconfig", "Directory.Build.props"],
+          "notes": "Enable analyzers or style rules for the solution and review warnings regularly; enforce stricter rules on new code.",
+          "verification": ".editorconfig must exist to drive the .NET formatting and analysis tooling.",
+          "requiredFiles": [".editorconfig"],
+          "optionalFiles": ["Directory.Build.props"],
+          "requiredScripts": ["lint"]
+        }
+      },
+      {
+        "id": "unit-test-runner",
+        "label": "Unit Test Runner",
+        "description": "Provide a deterministic unit test framework with a single command to run all tests.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["xUnit", "NUnit", "MSTest"],
+          "exampleConfigFiles": ["*.Tests.csproj"],
+          "notes": "Group unit tests into dedicated test projects and keep them independent from external services.",
+          "verification": "Test projects are present in the solution; test configuration is defined.",
+          "optionalFiles": ["*.Tests.csproj"]
+        }
+      },
+      {
+        "id": "containerization",
+        "label": "Containerization (Docker / Docker Compose)",
+        "description": "Provide a Dockerfile and, if applicable, a docker-compose file for local dev and CI parity.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": ["Dockerfile", "docker-compose.yml"],
+          "notes": "Use multi-stage builds for .NET publish output and pin the SDK/runtime image versions to match CI.",
+          "verification": "Dockerfile must be present; docker-compose.yml is optional and indicates orchestration usage.",
+          "requiredFiles": ["Dockerfile"],
+          "optionalFiles": ["docker-compose.yml"]
+        }
+      },
+      {
+        "id": "semantic-versioning",
+        "label": "Semantic Versioning",
+        "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history.",
+        "ciHints": {
+          "github-actions": {
+            "job": "release"
+          }
+        },
+        "stack": {
+          "exampleTools": ["GitVersion"],
+          "exampleConfigFiles": ["GitVersion.yml", "*.csproj", "CHANGELOG.md"],
+          "notes": "Use GitVersion to automatically compute SemVer from git history and feed it into assembly/package versions. Configure CI to auto-generate or update CHANGELOG.md from commit messages and git tags. Integrate with release pipeline to automatically version assemblies, NuGet packages, and create release notes.",
+          "verification": "Check that versioning is driven by a SemVer-aware tool (for example, GitVersion) and verify that running the release/versioning step locally or in CI automatically produces the expected version metadata, updates project files, and generates changelog entries from commit history."
+        }
+      },
+      {
+        "id": "commit-linting",
+        "label": "Commit Linting",
+        "description": "Enforce structured commit messages such as Conventional Commits.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["commitlint", "commitizen"],
+          "exampleConfigFiles": ["commitlint.config.*", ".cz.toml"],
+          "notes": "Document your commit convention and wire up a helper tool so contributors can easily follow it.",
+          "verification": "Create a test commit following the documented commit convention and confirm that any configured commit message checks (local hooks or CI) accept the message."
+        }
+      },
+      {
+        "id": "unit-test-reporter",
+        "label": "Unit Test Reporter / Coverage",
+        "description": "Generate readable unit test and coverage reports and enforce a minimum coverage threshold (around 80%) for new or changed code.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["coverlet", "ReportGenerator"],
+          "exampleConfigFiles": ["*.csproj"],
+          "notes": "Enable coverage collection for test projects and publish reports in a human-friendly format from CI.",
+          "verification": "Run the test suite with coverage enabled (for example, using coverlet or a similar tool) and verify that coverage reports are generated and used in CI to monitor thresholds."
+        }
+      },
+      {
+        "id": "ci-quality-gates",
+        "label": "CI Quality Gates",
+        "description": "Single CI pipeline that runs linting, formatting, type checking, tests, coverage, build, and containerization.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": [".github/workflows/*", "azure-pipelines.yml"],
+          "notes": "Ensure CI runs analyzers, tests, build, and packaging or container checks before changes can be merged.",
+          "verification": "Open the CI configuration and verify there is a job or stage that runs analyzers, tests, build, and any required packaging or container checks before merging to main."
+        }
+      },
+      {
+        "id": "code-formatter",
+        "label": "Code Formatter",
+        "description": "Automatic code formatting to maintain a consistent style across all contributors.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["dotnet format"],
+          "exampleConfigFiles": [".editorconfig"],
+          "notes": "Use .editorconfig and dotnet-format to keep C# style consistent across contributors.",
+          "verification": "Run the configured formatter or code style enforcement (for example, `dotnet format`) and confirm that code in the repository conforms to the defined rules."
+        }
+      },
+      {
+        "id": "pre-commit-hooks",
+        "label": "Pre-Commit Hooks",
+        "description": "Use git hooks to run linting, formatting, tests, and commit linting before changes are committed.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["Lefthook"],
+          "exampleConfigFiles": ["lefthook.yml"],
+          "notes": "Configure Lefthook or similar to run formatting and basic checks on staged files before commits.",
+          "verification": "Inspect the hook configuration (for example, Lefthook or similar) and confirm it runs at least formatting and basic checks on staged changes before commits or pushes."
+        }
+      },
+      {
+        "id": "type-checking",
+        "label": "Type Checking",
+        "description": "Use static type checking to catch errors before runtime and enforce strictness on new code.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["Roslyn analyzers"],
+          "exampleConfigFiles": [
+            ".editorconfig",
+            "Directory.Build.props",
+            "*.csproj"
+          ],
+          "notes": "Enable nullable reference types and relevant analyzers to catch type and nullability issues at compile time. C# project files (*.csproj) indicate the presence of projects that can be type-checked.",
+          "verification": ".editorconfig must exist; Directory.Build.props is optional for shared build configuration.",
+          "requiredFiles": [".editorconfig"],
+          "optionalFiles": ["Directory.Build.props"],
+          "requiredScripts": ["typecheck"]
+        }
+      },
+      {
+        "id": "dependency-security",
+        "label": "Dependency Management & Vulnerability Scanning",
+        "description": "Lock dependencies and scan regularly for known vulnerabilities; fail CI on newly introduced high-severity issues.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["dotnet list package --vulnerable"],
+          "exampleConfigFiles": ["packages.lock.json", "*.csproj"],
+          "notes": "Enable package lock files and use vulnerability scanning to track and remediate high-risk dependencies.",
+          "verification": "Dependency lockfile or package reference is present; security scanning is configured.",
+          "optionalFiles": ["packages.lock.json"]
+        }
+      },
+      {
+        "id": "runtime-version",
+        "label": "Runtime Version Specification",
+        "description": "Specify required runtime/engine versions in package manifests to ensure environment stability and prevent version-related issues across development teams.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": ["*.csproj", "global.json"],
+          "notes": "Specify TargetFramework in .csproj files (e.g., <TargetFramework>net8.0</TargetFramework>) and optionally use global.json to pin the SDK version (e.g., { \"sdk\": { \"version\": \"8.0.100\" } }) for consistent builds across the team.",
+          "verification": ".csproj files must specify TargetFramework; global.json is recommended to pin SDK version.",
+          "optionalFiles": ["global.json"]
+        }
+      },
+      {
+        "id": "documentation",
+        "label": "Documentation Standards",
+        "description": "Maintain a comprehensive README and, where applicable, auto-generated API docs to support onboarding and maintainability.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["DocFX"],
+          "exampleConfigFiles": ["README.md", "docfx.json"],
+          "notes": "Keep README and API docs in sync with the solution structure and public surface area.",
+          "verification": "README.md is present in the repository root; docs/ directory or DocFX configuration exists if applicable.",
+          "requiredFiles": ["README.md"],
+          "optionalFiles": ["docs/", "docfx.json"]
+        }
+      },
+      {
+        "id": "repository-governance",
+        "label": "Repository Governance",
+        "description": "Include standard governance files (LICENSE, CODE_OF_CONDUCT.md, CONTRIBUTING.md), branch protection rules, and review standards to define legal, ethical, and workflow expectations.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": [
+            "LICENSE",
+            "CODE_OF_CONDUCT.md",
+            "CONTRIBUTING.md"
+          ],
+          "notes": "Document contribution expectations and ensure legal and code-of-conduct policies are easy to find.",
+          "verification": "LICENSE file is present in the repository root; CODE_OF_CONDUCT.md and CONTRIBUTING.md are present for contribution guidance.",
+          "requiredFiles": ["LICENSE"],
+          "optionalFiles": ["CODE_OF_CONDUCT.md", "CONTRIBUTING.md"]
+        }
+      }
+    ],
+    "recommended": [
+      {
+        "id": "integration-testing",
+        "label": "Integration Testing",
+        "description": "Test how components interact with each other and external systems, running after unit tests with more relaxed coverage thresholds.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["xUnit", "NUnit", "MSTest"],
+          "exampleConfigFiles": ["*.IntegrationTests.csproj"],
+          "notes": "Create dedicated integration test projects that exercise real infrastructure or service boundaries where appropriate.",
+          "verification": "Confirm there is a test project or configuration dedicated to integration or API tests and run it to verify external or cross-service interactions behave as expected."
+        }
+      },
+      {
+        "id": "performance-baselining",
+        "label": "Performance Baselines",
+        "description": "Establish performance baselines and monitor for regressions using lightweight benchmarks or audits in CI.",
+        "ciHints": {
+          "github-actions": {
+            "job": "performance"
+          }
+        },
+        "stack": {
+          "exampleTools": ["BenchmarkDotNet"],
+          "exampleConfigFiles": ["*.csproj"],
+          "notes": "Use BenchmarkDotNet or similar to track performance of critical methods or endpoints over time.",
+          "verification": "Identify and run the configured performance or benchmarking suite (for example, BenchmarkDotNet) and review the output to ensure it is tracked against historical or target values."
+        }
+      },
+      {
+        "id": "complexity-analysis",
+        "label": "Complexity Analysis",
+        "description": "Measure cyclomatic complexity or similar metrics to keep code maintainable, starting as a warning-only check.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["SonarQube", "Visual Studio code metrics"],
+          "exampleConfigFiles": ["sonar-project.properties"],
+          "notes": "Use code metrics or Sonar analysis to flag overly complex methods and refactor them over time.",
+          "verification": "Run the configured code metrics or Sonar analysis and review complexity reports for key modules, ensuring that new or changed code stays within acceptable limits."
+        }
+      },
+      {
+        "id": "accessibility-auditing",
+        "label": "Accessibility Auditing",
+        "description": "Run accessibility checks on web-facing components to detect critical issues and improve inclusive UX.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["axe-core", "Accessibility Insights"],
+          "exampleConfigFiles": [],
+          "notes": "Apply accessibility tooling to ASP.NET or Blazor front-ends and review issues alongside functional testing.",
+          "verification": "For web-facing apps, run the configured accessibility checks or tools against your main UI endpoints and confirm that blocking accessibility issues are addressed."
+        }
+      }
+    ],
+    "optionalEnhancements": [
+      {
+        "id": "observability",
+        "label": "Observability (Logging & Error Handling)",
+        "description": "Standardize error handling and structured logging to make debugging and production monitoring easier.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["Serilog", "NLog"],
+          "exampleConfigFiles": ["appsettings.json"],
+          "notes": "Configure structured logging for your .NET services and ensure exceptions and key events are logged with useful context.",
+          "verification": "Confirm that a structured logging library (such as Serilog or NLog) is configured with an agreed sink and format, and that the application logs meaningful context for errors and key events."
+        }
+      }
+    ]
+  }
+}
