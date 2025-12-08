@@ -14,7 +14,7 @@
     },
     "qualityGatePolicy": {
       "preferSoftFailOnLegacy": true,
-      "description": "New quality checks should warn on existing code and fail CI only for violations introduced in new or changed commits, to reduce friction on legacy codebases."
+      "description": "New quality checks should warn on existing code and fail CI only for violations introduced in new or changed code, to reduce friction on legacy codebases."
     },
     "migrationGuide": [
       {
@@ -71,6 +71,27 @@
   "checklist": {
     "core": [
       {
+        "id": "gitignore-and-dockerignore",
+        "label": "Git and Docker Ignore Files",
+        "description": "Maintain proper .gitignore and .dockerignore files to prevent committing secrets, build artifacts, or unnecessary files.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleConfigFiles": [
+            ".gitignore",
+            ".dockerignore"
+          ],
+          "notes": "Use the official github/gitignore Node template as a base and add .env*, node_modules, dist/, coverage/, *.log, npm-debug.log*, etc. .dockerignore must exclude node_modules, .git, and local build output.",
+          "verification": "Confirm .gitignore excludes node_modules, dist, coverage, .env* and common logs, and that .dockerignore excludes .git, node_modules, and local build output."
+        }
+      },
+      {
         "id": "linting",
         "label": "Linting",
         "description": "Run static code linting to enforce consistency and catch common issues early.",
@@ -89,7 +110,8 @@
           "exampleConfigFiles": [
             ".eslintrc.*"
           ],
-          "notes": "Treat new lint errors as CI failures; keep existing issues as warnings until addressed."
+          "notes": "Treat new lint errors as CI failures; keep existing issues as warnings until addressed.",
+          "verification": "Run the configured lint command (for example, `npm run lint`) and confirm it exits 0 with no unexpected errors."
         }
       },
       {
@@ -111,7 +133,8 @@
           "exampleConfigFiles": [
             "jest.config.*"
           ],
-          "notes": "Keep unit tests fast and deterministic; move slow or flaky tests into integration or E2E suites."
+          "notes": "Keep unit tests fast and deterministic; move slow or flaky tests into integration or E2E suites.",
+          "verification": "Run the main unit test command (for example, `npm test`) and confirm all tests complete successfully without timeouts or flakiness."
         }
       },
       {
@@ -127,11 +150,13 @@
           }
         },
         "stack": {
+          "exampleTools": [],
           "exampleConfigFiles": [
             "Dockerfile",
             "docker-compose.yml"
           ],
-          "notes": "Use multi-stage builds and pin Node.js and base image versions in the Dockerfile to match CI (e.g., node:22-alpine)."
+          "notes": "Use multi-stage builds and pin Node.js and base image versions in the Dockerfile to match CI (e.g., node:22-alpine).",
+          "verification": "Inspect the Dockerfile (and docker-compose if present) to ensure the app can be built and started in a container using the documented commands."
         }
       },
       {
@@ -155,7 +180,8 @@
             ".releaserc",
             "package.json"
           ],
-          "notes": "Drive versions and changelog from Conventional Commits; publish changelog as part of the release artifacts. Protect release branches (e.g., main, release/*) and ensure semantic-release only runs on these protected branches."
+          "notes": "Drive versions and changelog from Conventional Commits; publish changelog as part of the release artifacts. Protect release branches and ensure release tooling only runs there.",
+          "verification": "Check that the version field follows SemVer, and trigger the configured release workflow (for example, a dry run of semantic-release or standard-version) to confirm it generates the expected next version and changelog entries."
         }
       },
       {
@@ -178,7 +204,8 @@
           "exampleConfigFiles": [
             "commitlint.config.*"
           ],
-          "notes": "Enforce commit message format via commit-msg hook (e.g., Husky) before CI."
+          "notes": "Enforce commit message format via commit-msg hooks (e.g., Husky) before CI.",
+          "verification": "Create a test commit using the documented convention and ensure the commit message passes the configured commit linting or wizard (for example, commitlint or commitizen)."
         }
       },
       {
@@ -201,7 +228,8 @@
           "exampleConfigFiles": [
             "jest.config.*"
           ],
-          "notes": "Collect coverage in lcov or similar format; use diff coverage so legacy gaps are visible but non-blocking."
+          "notes": "Collect coverage in lcov or similar format; use diff coverage so legacy gaps are visible but non-blocking.",
+          "verification": "Run the unit tests with coverage enabled and confirm that a coverage report is produced and that the configured threshold (around 80%) is enforced for new changes."
         }
       },
       {
@@ -217,7 +245,13 @@
           }
         },
         "stack": {
-          "notes": "Expose a single npm script (e.g., `npm run ci`) that mirrors the CI pipeline so contributors can reproduce failures locally."
+          "exampleTools": [],
+          "exampleConfigFiles": [
+            ".github/workflows/*",
+            "azure-pipelines.yml"
+          ],
+          "notes": "Expose a single npm script (e.g., `npm run ci`) that mirrors the CI pipeline so contributors can reproduce failures locally.",
+          "verification": "Open the CI configuration and verify there is a job or stage that runs linting, type checking, tests, build, and any required container checks before merging to main."
         }
       },
       {
@@ -240,7 +274,8 @@
             ".prettierrc.*",
             ".prettierignore"
           ],
-          "notes": "Run Prettier in check mode in CI; auto-fix locally via pre-commit hooks or editor integration."
+          "notes": "Run Prettier in check mode in CI; auto-fix locally via pre-commit hooks or editor integration.",
+          "verification": "Run the formatter in check mode (for example, `npm run format:check`) and confirm it reports clean formatting on committed code and auto-fixes as expected locally."
         }
       },
       {
@@ -264,7 +299,8 @@
             ".husky/",
             "package.json"
           ],
-          "notes": "Run ESLint and Prettier on staged files and enforce commit message format via commit-msg hooks."
+          "notes": "Run ESLint and Prettier on staged files and enforce commit message format via commit-msg hooks.",
+          "verification": "Inspect the pre-commit and commit-msg hooks (for example, files under .husky or other hook tooling) and confirm they run linting/formatting and commit linting on staged changes."
         }
       },
       {
@@ -286,7 +322,8 @@
           "exampleConfigFiles": [
             "tsconfig.json"
           ],
-          "notes": "Enable strict mode (\"strict\": true) and treat type-check failures as CI failures for new code; gradually expand strictness into legacy modules."
+          "notes": "Enable strict mode ('strict': true) and treat type-check failures as CI failures for new code; gradually expand strictness into legacy modules.",
+          "verification": "Run the strict type-check command (for example, `tsc --noEmit`) and confirm it completes without errors on the code you plan to merge."
         }
       },
       {
@@ -304,7 +341,6 @@
         "stack": {
           "exampleTools": [
             "npm audit",
-            "pnpm audit",
             "Snyk"
           ],
           "exampleConfigFiles": [
@@ -312,7 +348,8 @@
             "pnpm-lock.yaml",
             "yarn.lock"
           ],
-          "notes": "Require a lockfile for reproducible installs and pin Node.js/tooling versions; block merges on new high-severity vulnerabilities."
+          "notes": "Require a lockfile for reproducible installs and pin Node.js/tooling versions; block merges on new high-severity vulnerabilities.",
+          "verification": "Run the configured dependency security check (for example, `npm audit` or an external scanner) and verify there are no new high-severity vulnerabilities introduced by recent changes."
         }
       },
       {
@@ -336,7 +373,8 @@
             "README.md",
             "docs/"
           ],
-          "notes": "README should describe setup, scripts, and architecture; generate API docs from TypeScript types and JSDoc where helpful."
+          "notes": "README should describe setup, scripts, and architecture; generate API docs from TypeScript types and JSDoc where helpful.",
+          "verification": "Open README.md and confirm it accurately describes setup, main scripts, and architecture, and that any API docs (for example, TypeDoc output) are generated or referenced as documented."
         }
       },
       {
@@ -358,7 +396,8 @@
             "CODE_OF_CONDUCT.md",
             "CONTRIBUTING.md"
           ],
-          "notes": "Use an SPDX license identifier in package.json (e.g., \"license\": \"MIT\"). Define branch protection rules (e.g., required status checks, 1–2 approvals, linear history) for main/release branches, and describe a simple review rubric in CONTRIBUTING.md (tests updated, docs updated, CI green). Integrate semantic-release with these protected branches so releases only occur from approved, green builds."
+          "notes": "Use an SPDX license identifier in package.json and describe review expectations, tests, and docs requirements in CONTRIBUTING.md.",
+          "verification": "Check that LICENSE, CODE_OF_CONDUCT.md, and CONTRIBUTING.md exist and that CONTRIBUTING.md explains how to run tests, update docs, and follow code review and branch protection expectations."
         }
       }
     ],
@@ -385,7 +424,8 @@
             "jest.config.*",
             "playwright.config.*"
           ],
-          "notes": "Use Supertest for HTTP APIs and Playwright for end-to-end flows; expect slower tests and lower coverage than unit suites."
+          "notes": "Use Supertest for HTTP APIs and Playwright or similar tools for end-to-end flows; keep integration suites slower but reliable.",
+          "verification": "Confirm there is a separate integration or end-to-end test command or configuration and run it to verify that cross-component flows behave as expected."
         }
       },
       {
@@ -408,7 +448,8 @@
           "exampleConfigFiles": [
             "lighthouserc.json"
           ],
-          "notes": "Run Lighthouse CI for web apps and basic Node benchmarks on critical endpoints; schedule runs or limit to key branches to keep CI fast."
+          "notes": "Run Lighthouse CI for web apps and basic Node benchmarks on critical endpoints; schedule runs or limit to key branches to keep CI fast.",
+          "verification": "Identify and run the configured performance or Lighthouse-style checks and verify that key metrics are captured and compared to documented baselines."
         }
       },
       {
@@ -432,7 +473,8 @@
             ".eslintrc.*",
             "sonar-project.properties"
           ],
-          "notes": "Warn on overly complex functions and methods; fail CI only when new or modified code exceeds thresholds."
+          "notes": "Warn on overly complex functions and methods; fail CI only when new or modified code exceeds thresholds.",
+          "verification": "Run the configured complexity tooling or rules (for example, ESLint complexity rules or Sonar analysis) and review any hot spots, ensuring new code does not exceed agreed thresholds."
         }
       },
       {
@@ -450,11 +492,11 @@
         "stack": {
           "exampleTools": [
             "axe-core",
-            "axe CLI",
             "Lighthouse accessibility audits"
           ],
           "exampleConfigFiles": [],
-          "notes": "Run accessibility checks against key pages or components in CI; fail on critical violations while treating minor issues as warnings initially."
+          "notes": "Run accessibility checks against key pages or components in CI; fail on critical violations while treating minor issues as warnings initially.",
+          "verification": "For web-facing apps, run the configured accessibility tooling (for example, axe, pa11y, or Lighthouse accessibility audits) against key pages and confirm that critical issues are resolved."
         }
       }
     ],
@@ -477,7 +519,8 @@
             "Pino"
           ],
           "exampleConfigFiles": [],
-          "notes": "Adopt structured JSON logging with correlation IDs; consider asserting log output in tests for critical paths."
+          "notes": "Adopt structured JSON logging with correlation IDs and send logs to a centralized sink in production.",
+          "verification": "Confirm that a structured logging library (such as Winston or Pino) is configured to emit JSON or key-value logs and that error handling routes important failures through this logger."
         }
       }
     ]

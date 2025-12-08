@@ -14,7 +14,7 @@
     },
     "qualityGatePolicy": {
       "preferSoftFailOnLegacy": true,
-      "description": "New quality checks should warn on existing code and fail CI only for violations introduced in new or changed commits, to reduce friction on legacy codebases."
+      "description": "New quality checks should warn on existing code and fail CI only for violations introduced in new or changed code, to reduce friction on legacy codebases."
     },
     "migrationGuide": [
       {
@@ -64,12 +64,33 @@
           "complexity-analysis",
           "accessibility-auditing"
         ],
-        "notes": "Tackle recommended items in order of business value; backend-only repos can skip web-focused checks like accessibility."
+        "notes": "Tackle recommended items in order of business value; backend-only repos can skip web-focused checks like accessibility. For AI/ML-heavy Python teams, consider extending containerization with data versioning (DVC) and unit tests with data quality checks (e.g., Great Expectations) as part of this step."
       }
     ]
   },
   "checklist": {
     "core": [
+      {
+        "id": "gitignore-and-dockerignore",
+        "label": "Git and Docker Ignore Files",
+        "description": "Maintain proper .gitignore and .dockerignore files to prevent committing secrets, build artifacts, or unnecessary files.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleConfigFiles": [
+            ".gitignore",
+            ".dockerignore"
+          ],
+          "notes": "Use the official github/gitignore VisualStudio/.NET template. .dockerignore must exclude bin/, obj/, .vs/, *.user, and similar local/build artifacts.",
+          "verification": "Confirm .gitignore excludes bin/, obj/, .vs/, *.user, packages/ and that .dockerignore excludes .git and build output directories."
+        }
+      },
       {
         "id": "linting",
         "label": "Linting",
@@ -84,13 +105,15 @@
         },
         "stack": {
           "exampleTools": [
-            "dotnet-format",
-            "StyleCop.Analyzers"
+            "Roslyn analyzers",
+            "StyleCop"
           ],
           "exampleConfigFiles": [
-            ".editorconfig"
+            ".editorconfig",
+            "Directory.Build.props"
           ],
-          "notes": "Use analyzers to enforce style and basic correctness; adopt new rules in warning-only mode for legacy code."
+          "notes": "Enable analyzers or style rules for the solution and review warnings regularly; enforce stricter rules on new code.",
+          "verification": "Run the configured analyzer or formatting command (for example, `dotnet format` or an analyzer task) and confirm it exits successfully with no new violations."
         }
       },
       {
@@ -111,8 +134,11 @@
             "NUnit",
             "MSTest"
           ],
-          "exampleConfigFiles": [],
-          "notes": "Prefer a single test framework per repo; avoid mixing MSTest, NUnit, and xUnit in one codebase."
+          "exampleConfigFiles": [
+            "*.Tests.csproj"
+          ],
+          "notes": "Group unit tests into dedicated test projects and keep them independent from external services.",
+          "verification": "Run the test projects with `dotnet test` and confirm all unit tests pass without unexpected failures."
         }
       },
       {
@@ -128,11 +154,13 @@
           }
         },
         "stack": {
+          "exampleTools": [],
           "exampleConfigFiles": [
             "Dockerfile",
             "docker-compose.yml"
           ],
-          "notes": "Pin .NET SDK and ASP.NET runtime image tags (e.g., mcr.microsoft.com/dotnet/sdk:8.0) and keep them aligned with CI."
+          "notes": "Use multi-stage builds for .NET publish output and pin the SDK/runtime image versions to match CI.",
+          "verification": "Inspect the Dockerfile (and docker-compose if present) to ensure the .NET service can be built and started in a container using the documented commands."
         }
       },
       {
@@ -149,13 +177,14 @@
         },
         "stack": {
           "exampleTools": [
-            "GitVersion",
-            "GitReleaseManager"
+            "GitVersion"
           ],
           "exampleConfigFiles": [
-            "GitVersion.yml"
+            "GitVersion.yml",
+            "*.csproj"
           ],
-          "notes": "Derive SemVer from git history and generate release notes; keep assembly and package versions in sync. Use protected branches and required status checks for release lines."
+          "notes": "Use GitVersion or similar to compute SemVer from git history and feed it into assembly/package versions.",
+          "verification": "Check that versioning is driven by a SemVer-aware tool (for example, GitVersion) and verify that running the release/versioning step locally or in CI produces the expected version metadata."
         }
       },
       {
@@ -172,12 +201,15 @@
         },
         "stack": {
           "exampleTools": [
-            "commitlint"
+            "commitlint",
+            "commitizen"
           ],
           "exampleConfigFiles": [
-            "commitlint.config.*"
+            "commitlint.config.*",
+            ".cz.toml"
           ],
-          "notes": "Commit message linting is language-agnostic; use the same conventions across all repos."
+          "notes": "Document your commit convention and wire up a helper tool so contributors can easily follow it.",
+          "verification": "Create a test commit following the documented commit convention and confirm that any configured commit message checks (local hooks or CI) accept the message."
         }
       },
       {
@@ -194,10 +226,14 @@
         },
         "stack": {
           "exampleTools": [
-            "coverlet"
+            "coverlet",
+            "ReportGenerator"
           ],
-          "exampleConfigFiles": [],
-          "notes": "Output coverage in Cobertura or JaCoCo formats for CI dashboards; enforce thresholds on new code where possible."
+          "exampleConfigFiles": [
+            "*.csproj"
+          ],
+          "notes": "Enable coverage collection for test projects and publish reports in a human-friendly format from CI.",
+          "verification": "Run the test suite with coverage enabled (for example, using coverlet or a similar tool) and verify that coverage reports are generated and used in CI to monitor thresholds."
         }
       },
       {
@@ -213,7 +249,13 @@
           }
         },
         "stack": {
-          "notes": "Use a Makefile or script that chains format, build, test, coverage, and packaging into one command."
+          "exampleTools": [],
+          "exampleConfigFiles": [
+            ".github/workflows/*",
+            "azure-pipelines.yml"
+          ],
+          "notes": "Ensure CI runs analyzers, tests, build, and packaging or container checks before changes can be merged.",
+          "verification": "Open the CI configuration and verify there is a job or stage that runs analyzers, tests, build, and any required packaging or container checks before merging to main."
         }
       },
       {
@@ -230,12 +272,13 @@
         },
         "stack": {
           "exampleTools": [
-            "dotnet-format"
+            "dotnet format"
           ],
           "exampleConfigFiles": [
             ".editorconfig"
           ],
-          "notes": "Use .editorconfig as the single source of formatting truth across the solution."
+          "notes": "Use .editorconfig and dotnet-format to keep C# style consistent across contributors.",
+          "verification": "Run the configured formatter or code style enforcement (for example, `dotnet format`) and confirm that code in the repository conforms to the defined rules."
         }
       },
       {
@@ -252,12 +295,13 @@
         },
         "stack": {
           "exampleTools": [
-            "lefthook"
+            "Lefthook"
           ],
           "exampleConfigFiles": [
             "lefthook.yml"
           ],
-          "notes": "Wire dotnet-format and tests into pre-commit or pre-push hooks to catch issues before CI."
+          "notes": "Configure Lefthook or similar to run formatting and basic checks on staged files before commits.",
+          "verification": "Inspect the hook configuration (for example, Lefthook or similar) and confirm it runs at least formatting and basic checks on staged changes before commits or pushes."
         }
       },
       {
@@ -274,13 +318,16 @@
         },
         "stack": {
           "exampleTools": [
-            "Roslyn analyzers"
+            "Roslyn analyzers",
+            "nullable reference types"
           ],
           "exampleConfigFiles": [
             ".editorconfig",
-            "Directory.Build.props"
+            "Directory.Build.props",
+            "*.csproj"
           ],
-          "notes": "Turn on nullable reference types and treat relevant warnings as errors for new code paths."
+          "notes": "Enable nullable reference types and relevant analyzers to catch type and nullability issues at compile time.",
+          "verification": "Confirm nullable reference types and relevant analyzers are enabled, then build the solution and ensure there are no unaddressed type-related warnings or errors in the target scope."
         }
       },
       {
@@ -297,14 +344,14 @@
         },
         "stack": {
           "exampleTools": [
-            "dotnet list package --vulnerable",
-            "Dependabot"
+            "dotnet list package --vulnerable"
           ],
           "exampleConfigFiles": [
             "packages.lock.json",
-            "nuget.config"
+            "*.csproj"
           ],
-          "notes": "Use package lock files and regular vulnerability scans; align .NET SDK versions across CI, containers, and developer machines."
+          "notes": "Enable package lock files and use vulnerability scanning to track and remediate high-risk dependencies.",
+          "verification": "Run the configured security tooling (for example, `dotnet list package --vulnerable` or an external scanner) and ensure no newly introduced critical vulnerabilities appear in the report."
         }
       },
       {
@@ -327,7 +374,8 @@
             "README.md",
             "docfx.json"
           ],
-          "notes": "Use XML comments and DocFX for public APIs; keep README as the primary onboarding doc."
+          "notes": "Keep README and API docs in sync with the solution structure and public surface area.",
+          "verification": "Open README.md and confirm it covers setup, build/run commands, and architecture, and verify that any generated API/docs tooling (for example, DocFX) can be run as described."
         }
       },
       {
@@ -349,7 +397,8 @@
             "CODE_OF_CONDUCT.md",
             "CONTRIBUTING.md"
           ],
-          "notes": "Ensure governance files live at the repo root and are referenced in project documentation. Configure branch policies in Azure DevOps or GitHub (required reviewers, status checks, no direct pushes to main). Document review expectations (tests, docs, code quality) in CONTRIBUTING.md."
+          "notes": "Document contribution expectations and ensure legal and code-of-conduct policies are easy to find.",
+          "verification": "Check that LICENSE, CODE_OF_CONDUCT.md, and CONTRIBUTING.md exist and that CONTRIBUTING.md documents testing, documentation, and review expectations aligned with your branch policies."
         }
       }
     ],
@@ -368,11 +417,15 @@
         },
         "stack": {
           "exampleTools": [
-            "ASP.NET Core TestServer",
-            "WebApplicationFactory"
+            "xUnit",
+            "NUnit",
+            "MSTest"
           ],
-          "exampleConfigFiles": [],
-          "notes": "Spin up in-memory servers for API testing to avoid reliance on external infrastructure."
+          "exampleConfigFiles": [
+            "*.IntegrationTests.csproj"
+          ],
+          "notes": "Create dedicated integration test projects that exercise real infrastructure or service boundaries where appropriate.",
+          "verification": "Confirm there is a test project or configuration dedicated to integration or API tests and run it to verify external or cross-service interactions behave as expected."
         }
       },
       {
@@ -391,8 +444,11 @@
           "exampleTools": [
             "BenchmarkDotNet"
           ],
-          "exampleConfigFiles": [],
-          "notes": "Benchmark hot paths and track changes over time; consider scheduled performance runs rather than every PR."
+          "exampleConfigFiles": [
+            "*.csproj"
+          ],
+          "notes": "Use BenchmarkDotNet or similar to track performance of critical methods or endpoints over time.",
+          "verification": "Identify and run the configured performance or benchmarking suite (for example, BenchmarkDotNet) and review the output to ensure it is tracked against historical or target values."
         }
       },
       {
@@ -410,12 +466,13 @@
         "stack": {
           "exampleTools": [
             "SonarQube",
-            "Visual Studio Code Metrics"
+            "Visual Studio code metrics"
           ],
           "exampleConfigFiles": [
             "sonar-project.properties"
           ],
-          "notes": "Use complexity metrics to identify refactoring targets rather than as hard gates at first."
+          "notes": "Use code metrics or Sonar analysis to flag overly complex methods and refactor them over time.",
+          "verification": "Run the configured code metrics or Sonar analysis and review complexity reports for key modules, ensuring that new or changed code stays within acceptable limits."
         }
       },
       {
@@ -432,11 +489,12 @@
         },
         "stack": {
           "exampleTools": [
-            "Accessibility Insights",
-            "axe for .NET web apps"
+            "axe-core",
+            "Accessibility Insights"
           ],
           "exampleConfigFiles": [],
-          "notes": "Focus on public, user-facing endpoints; integrate accessibility checks into existing UI or integration test pipelines."
+          "notes": "Apply accessibility tooling to ASP.NET or Blazor front-ends and review issues alongside functional testing.",
+          "verification": "For web-facing apps, run the configured accessibility checks or tools against your main UI endpoints and confirm that blocking accessibility issues are addressed."
         }
       }
     ],
@@ -458,8 +516,11 @@
             "Serilog",
             "NLog"
           ],
-          "exampleConfigFiles": [],
-          "notes": "Use enriched, structured logs and centralize sinks; ensure unhandled exceptions are logged consistently."
+          "exampleConfigFiles": [
+            "appsettings.json"
+          ],
+          "notes": "Configure structured logging for your .NET services and ensure exceptions and key events are logged with useful context.",
+          "verification": "Confirm that a structured logging library (such as Serilog or NLog) is configured with an agreed sink and format, and that the application logs meaningful context for errors and key events."
         }
       }
     ]
