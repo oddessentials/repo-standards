@@ -428,7 +428,7 @@
       {
         "id": "code-formatter",
         "label": "Code Formatter",
-        "description": "CRITICAL: Enforce automatic code formatting to eliminate style debates, ensure consistent code style across all contributors, and allow code reviews to focus on logic rather than formatting. Formatters are non-negotiable for modern development workflows.",
+        "description": "Automatic code formatting to maintain a consistent style across all contributors.",
         "appliesTo": {
           "stacks": ["typescript-js", "csharp-dotnet", "python"]
         },
@@ -444,19 +444,19 @@
           "typescript-js": {
             "exampleTools": ["prettier"],
             "exampleConfigFiles": [".prettierrc.*", ".prettierignore"],
-            "notes": "Prettier is MANDATORY for JavaScript/TypeScript projects. Configure it with minimal options to maintain consistency. Run Prettier in check mode in CI to block unformatted code. REQUIRED: Enable auto-fix via pre-commit hooks (using lint-staged) and editor integration (format-on-save) to prevent formatting issues from ever reaching CI. This eliminates 100% of style debates and formatting-related PR comments.",
+            "notes": "Run Prettier in check mode in CI; auto-fix locally via pre-commit hooks or editor integration.",
             "verification": "Run the formatter in check mode (for example, `npm run format:check`) and confirm it reports clean formatting on committed code and auto-fixes as expected locally."
           },
           "csharp-dotnet": {
             "exampleTools": ["dotnet format"],
             "exampleConfigFiles": [".editorconfig"],
-            "notes": "dotnet format is ESSENTIAL for .NET projects. Use .editorconfig to define formatting rules and run `dotnet format` in CI to enforce them. REQUIRED: Configure pre-commit hooks and IDE integration to auto-format on save. This ensures all code follows the same style rules automatically, preventing style inconsistencies and keeping code reviews focused on functionality.",
+            "notes": "Use .editorconfig and dotnet-format to keep C# style consistent across contributors.",
             "verification": "Run the configured formatter or code style enforcement (for example, `dotnet format`) and confirm that code in the repository conforms to the defined rules."
           },
           "python": {
             "exampleTools": ["black"],
             "exampleConfigFiles": ["pyproject.toml"],
-            "notes": "Black is REQUIRED for Python projects due to its uncompromising, opinionated approach that eliminates all formatting decisions. Configure black with default settings and treat its output as THE definitive code style. REQUIRED: Integrate black into pre-commit hooks and editor auto-format on save. Black's zero-configuration philosophy means no style debates—ever. Teams should embrace 'any color you want, as long as it's black.'",
+            "notes": "Use black (or an equivalent opinionated formatter) and treat its output as the single source of truth for code style.",
             "verification": "Run the configured formatter (for example, `black .` or `black --check .`) and confirm it reports clean formatting on committed code and auto-fixes as expected locally."
           }
         }
