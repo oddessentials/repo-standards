@@ -107,7 +107,7 @@ interface StackChecklistJson {
 function filterSectionForStackAndCi(
   items: ChecklistItemMaster[],
   stack: StackId,
-  ciSystem?: CiSystem
+  ciSystem?: CiSystem,
 ): StackItem[] {
   return items
     .filter((item) => {
@@ -124,7 +124,7 @@ function filterSectionForStackAndCi(
       const result: StackItem = {
         id: item.id,
         label: item.label,
-        description: item.description
+        description: item.description,
       };
 
       if (item.ciHints) {
@@ -150,7 +150,7 @@ function filterSectionForStackAndCi(
 function generateStackJson(
   master: MasterJson,
   stack: StackId,
-  ciSystem?: CiSystem
+  ciSystem?: CiSystem,
 ): StackChecklistJson {
   const stackMeta = master.stacks[stack];
   const ciSystems = ciSystem ? [ciSystem] : master.ciSystems;
@@ -166,14 +166,14 @@ function generateStackJson(
       recommended: filterSectionForStackAndCi(
         master.checklist.recommended,
         stack,
-        ciSystem
+        ciSystem,
       ),
       optionalEnhancements: filterSectionForStackAndCi(
         master.checklist.optionalEnhancements,
         stack,
-        ciSystem
-      )
-    }
+        ciSystem,
+      ),
+    },
   };
 }
 
@@ -185,7 +185,29 @@ const raw = fs.readFileSync(masterPath, "utf8");
 const master: MasterJson = JSON.parse(raw);
 
 // args: stack [ciSystem]
-const targetStack = (process.argv[2] as StackId) || "typescript-js";
+// args: stack [ciSystem]
+const STACK_ALIASES: Record<string, StackId> = {
+  dotnet: "csharp-dotnet",
+  csharp: "csharp-dotnet",
+  ts: "typescript-js",
+  js: "typescript-js",
+  python: "python",
+  py: "python",
+  "typescript-js": "typescript-js",
+  "csharp-dotnet": "csharp-dotnet",
+};
+
+const rawArg = process.argv[2] || "typescript-js";
+const targetStack = STACK_ALIASES[rawArg.toLowerCase()];
+
+if (!targetStack) {
+  console.error(`Unknown stack: ${rawArg}`);
+  console.error(
+    `Available stacks: ${["typescript-js", "csharp-dotnet", "python"].join(", ")}`,
+  );
+  process.exit(1);
+}
+
 const targetCiSystem = process.argv[3] as CiSystem | undefined;
 
 const stackJson = generateStackJson(master, targetStack, targetCiSystem);
