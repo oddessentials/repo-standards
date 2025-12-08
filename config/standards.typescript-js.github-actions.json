@@ -220,7 +220,7 @@
       {
         "id": "code-formatter",
         "label": "Code Formatter",
-        "description": "Automatic code formatting to maintain a consistent style across all contributors.",
+        "description": "CRITICAL: Enforce automatic code formatting to eliminate style debates, ensure consistent code style across all contributors, and allow code reviews to focus on logic rather than formatting. Formatters are non-negotiable for modern development workflows.",
         "ciHints": {
           "github-actions": {
             "job": "ci"
@@ -229,7 +229,7 @@
         "stack": {
           "exampleTools": ["prettier"],
           "exampleConfigFiles": [".prettierrc.*", ".prettierignore"],
-          "notes": "Run Prettier in check mode in CI; auto-fix locally via pre-commit hooks or editor integration.",
+          "notes": "Prettier is MANDATORY for JavaScript/TypeScript projects. Configure it with minimal options to maintain consistency. Run Prettier in check mode in CI to block unformatted code. REQUIRED: Enable auto-fix via pre-commit hooks (using lint-staged) and editor integration (format-on-save) to prevent formatting issues from ever reaching CI. This eliminates 100% of style debates and formatting-related PR comments.",
           "verification": "Run the formatter in check mode (for example, `npm run format:check`) and confirm it reports clean formatting on committed code and auto-fixes as expected locally."
         }
       },
