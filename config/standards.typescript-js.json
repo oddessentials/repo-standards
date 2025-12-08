@@ -88,7 +88,13 @@
             ".dockerignore"
           ],
           "notes": "Use the official github/gitignore Node template as a base and add .env*, node_modules, dist/, coverage/, *.log, npm-debug.log*, etc. .dockerignore must exclude node_modules, .git, and local build output.",
-          "verification": "Confirm .gitignore excludes node_modules, dist, coverage, .env* and common logs, and that .dockerignore excludes .git, node_modules, and local build output."
+          "verification": ".gitignore must exist; .dockerignore is recommended when containerizing or using Docker workflows.",
+          "requiredFiles": [
+            ".gitignore"
+          ],
+          "optionalFiles": [
+            ".dockerignore"
+          ]
         }
       },
       {
@@ -111,7 +117,24 @@
             ".eslintrc.*"
           ],
           "notes": "Treat new lint errors as CI failures; keep existing issues as warnings until addressed.",
-          "verification": "Run the configured lint command (for example, `npm run lint`) and confirm it exits 0 with no unexpected errors."
+          "verification": "Presence of eslint.config.js (or any .eslintrc* file) indicates linting is enforced for the repository.",
+          "requiredFiles": [
+            "eslint.config.js"
+          ],
+          "optionalFiles": [
+            ".eslintrc.js",
+            ".eslintrc.cjs",
+            ".eslintrc.json",
+            ".eslintrc.yaml",
+            ".prettierrc",
+            "prettier.config.js",
+            "prettier.config.cjs",
+            "prettier.config.json",
+            "prettier.config.yaml"
+          ],
+          "requiredScripts": [
+            "lint"
+          ]
         }
       },
       {
@@ -134,7 +157,16 @@
             "jest.config.*"
           ],
           "notes": "Keep unit tests fast and deterministic; move slow or flaky tests into integration or E2E suites.",
-          "verification": "Run the main unit test command (for example, `npm test`) and confirm all tests complete successfully without timeouts or flakiness."
+          "verification": "Test framework configuration is present; test script is defined in package.json.",
+          "optionalFiles": [
+            "jest.config.js",
+            "jest.config.ts",
+            "vitest.config.js",
+            "vitest.config.ts"
+          ],
+          "requiredScripts": [
+            "test"
+          ]
         }
       },
       {
@@ -156,7 +188,13 @@
             "docker-compose.yml"
           ],
           "notes": "Use multi-stage builds and pin Node.js and base image versions in the Dockerfile to match CI (e.g., node:22-alpine).",
-          "verification": "Inspect the Dockerfile (and docker-compose if present) to ensure the app can be built and started in a container using the documented commands."
+          "verification": "Dockerfile must be present; docker-compose.yml is optional and indicates orchestration usage.",
+          "requiredFiles": [
+            "Dockerfile"
+          ],
+          "optionalFiles": [
+            "docker-compose.yml"
+          ]
         }
       },
       {
@@ -323,7 +361,13 @@
             "tsconfig.json"
           ],
           "notes": "Enable strict mode ('strict': true) and treat type-check failures as CI failures for new code; gradually expand strictness into legacy modules.",
-          "verification": "Run the strict type-check command (for example, `tsc --noEmit`) and confirm it completes without errors on the code you plan to merge."
+          "verification": "Presence of tsconfig.json indicates type-checking is configured for the repository.",
+          "requiredFiles": [
+            "tsconfig.json"
+          ],
+          "requiredScripts": [
+            "typecheck"
+          ]
         }
       },
       {
@@ -349,7 +393,12 @@
             "yarn.lock"
           ],
           "notes": "Require a lockfile for reproducible installs and pin Node.js/tooling versions; block merges on new high-severity vulnerabilities.",
-          "verification": "Run the configured dependency security check (for example, `npm audit` or an external scanner) and verify there are no new high-severity vulnerabilities introduced by recent changes."
+          "verification": "Dependency lockfile is present; security scanning is configured in CI or project tooling.",
+          "optionalFiles": [
+            "package-lock.json",
+            "pnpm-lock.yaml",
+            "yarn.lock"
+          ]
         }
       },
       {
@@ -374,7 +423,14 @@
             "docs/"
           ],
           "notes": "README should describe setup, scripts, and architecture; generate API docs from TypeScript types and JSDoc where helpful.",
-          "verification": "Open README.md and confirm it accurately describes setup, main scripts, and architecture, and that any API docs (for example, TypeDoc output) are generated or referenced as documented."
+          "verification": "README.md is present in the repository root; docs/ directory or documentation tooling configuration exists if applicable.",
+          "requiredFiles": [
+            "README.md"
+          ],
+          "optionalFiles": [
+            "docs/",
+            "typedoc.json"
+          ]
         }
       },
       {
@@ -397,7 +453,14 @@
             "CONTRIBUTING.md"
           ],
           "notes": "Use an SPDX license identifier in package.json and describe review expectations, tests, and docs requirements in CONTRIBUTING.md.",
-          "verification": "Check that LICENSE, CODE_OF_CONDUCT.md, and CONTRIBUTING.md exist and that CONTRIBUTING.md explains how to run tests, update docs, and follow code review and branch protection expectations."
+          "verification": "LICENSE file is present in the repository root; CODE_OF_CONDUCT.md and CONTRIBUTING.md are present for contribution guidance.",
+          "requiredFiles": [
+            "LICENSE"
+          ],
+          "optionalFiles": [
+            "CODE_OF_CONDUCT.md",
+            "CONTRIBUTING.md"
+          ]
         }
       }
     ],

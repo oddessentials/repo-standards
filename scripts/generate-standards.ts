@@ -22,8 +22,17 @@ interface StackHints {
   exampleTools?: string[];
   exampleConfigFiles?: string[];
   notes?: string;
-  // NEW: per-stack human instructions for how to verify the item
+  // Human‑readable verification instructions
   verification?: string;
+  // Machine‑readable additions (all optional)
+  requiredFiles?: string[];
+  optionalFiles?: string[];
+  requiredScripts?: string[];
+  machineCheck?: {
+    command: string;
+    expectExitCode?: number;
+    description?: string;
+  };
 }
 
 interface ChecklistItemMaster {
