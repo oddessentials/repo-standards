@@ -11,23 +11,24 @@ export default [
       parser: tsParser,
       parserOptions: {
         ecmaVersion: "latest",
-        sourceType: "module"
+        sourceType: "module",
         // No "project" here so we don't require type-aware linting
       },
       globals: {
-        ...globals.node
-      }
+        ...globals.node,
+      },
     },
     plugins: {
-      "@typescript-eslint": tsPlugin
+      "@typescript-eslint": tsPlugin,
     },
     rules: {
       // Basic sane defaults – you can tweak later
       "no-unused-vars": "off",
       "@typescript-eslint/no-unused-vars": [
         "warn",
-        { argsIgnorePattern: "^_", ignoreRestSiblings: true }
-      ]
-    }
-  }
+        { argsIgnorePattern: "^_", ignoreRestSiblings: true },
+      ],
+      complexity: ["warn", 20],
+    },
+  },
 ];
