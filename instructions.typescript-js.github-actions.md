@@ -18,14 +18,14 @@ This document provides high-level guidance for an autonomous coding agent to bri
 - Run static code linting to enforce consistency and catch common issues early.
 - Ensure eslint.config.js exists in the repository.
 - Consider adding .eslintrc.js, .eslintrc.cjs, .eslintrc.json and others if applicable.
-- Define a `lint` script in package.json or equivalent.
+- Define a `lint` script or equivalent command.
 - Treat new lint errors as CI failures; keep existing issues as warnings until addressed.
 
 ### Unit Test Runner
 
 - Provide a deterministic unit test framework with a single command to run all tests.
 - Consider adding jest.config.js, jest.config.ts, vitest.config.js and others if applicable.
-- Define a `test` script in package.json or equivalent.
+- Define a `test` script or equivalent command.
 - Keep unit tests fast and deterministic; move slow or flaky tests into integration or E2E suites.
 
 ### Containerization (Docker / Docker Compose)
@@ -68,7 +68,7 @@ This document provides high-level guidance for an autonomous coding agent to bri
 
 - Use static type checking to catch errors before runtime and enforce strictness on new code.
 - Ensure tsconfig.json exists in the repository.
-- Define a `typecheck` script in package.json or equivalent.
+- Define a `typecheck` script or equivalent command.
 - Enable strict mode ('strict': true) and treat type-check failures as CI failures for new code; gradually expand strictness into legacy modules.
 
 ### Dependency Management & Vulnerability Scanning
@@ -76,6 +76,11 @@ This document provides high-level guidance for an autonomous coding agent to bri
 - Lock dependencies and scan regularly for known vulnerabilities; fail CI on newly introduced high-severity issues.
 - Consider adding package-lock.json, pnpm-lock.yaml, yarn.lock if applicable.
 - Require a lockfile for reproducible installs and pin Node.js/tooling versions; block merges on new high-severity vulnerabilities.
+
+### Runtime Version Specification
+
+- Specify required runtime/engine versions in package manifests to ensure environment stability and prevent version-related issues across development teams.
+- Ensure package.json exists in the repository.
 
 ### Documentation Standards
 

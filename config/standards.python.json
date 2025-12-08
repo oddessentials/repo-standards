@@ -161,9 +161,9 @@
         },
         "stack": {
           "exampleTools": ["bumpversion", "setuptools_scm", "towncrier"],
-          "exampleConfigFiles": ["pyproject.toml", "setup.cfg"],
-          "notes": "Use a single source of truth for the package version and keep it aligned with SemVer and your release notes.",
-          "verification": "Check that the package version in pyproject or setup configuration follows SemVer and verify that the configured tool (for example, bumpversion or setuptools_scm) can compute or bump the version as expected."
+          "exampleConfigFiles": ["pyproject.toml", "setup.cfg", "CHANGELOG.md"],
+          "notes": "Automate version bumping and changelog generation using setuptools_scm (git-tag based) or bumpversion with towncrier for changelog fragments. Configure CI to automatically update version in pyproject.toml, generate/update CHANGELOG.md from commit messages or changelog fragments, and create git tags. Maintain a single source of truth for versioning.",
+          "verification": "Check that the package version in pyproject or setup configuration follows SemVer and verify that the configured tool (for example, setuptools_scm or bumpversion) automatically computes or bumps the version and generates changelog entries from commit history or fragments."
         }
       },
       {
