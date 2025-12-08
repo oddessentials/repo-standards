@@ -1,7 +1,9 @@
 // scripts/generate-instructions.ts
 //
-// Generates instructions.md from the stack+CI specific JSON file.
-// Usage: npx ts-node-esm scripts/generate-instructions.ts
+// Generates instructions.md from a stack+CI specific JSON file.
+// Usage: npx ts-node-esm scripts/generate-instructions.ts [config-file]
+// Example: npm run generate:instructions standards.python.github-actions.json
+// Default: config/standards.typescript-js.github-actions.json
 
 import fs from "node:fs";
 import path from "node:path";
@@ -62,7 +64,7 @@ function generateBullets(item: ChecklistItem): string[] {
     // Bullet 4: Required scripts
     if (stack?.requiredScripts?.length) {
         const scripts = stack.requiredScripts.map((s) => `\`${s}\``).join(", ");
-        bullets.push(`Define a ${scripts} script in package.json or equivalent.`);
+        bullets.push(`Define a ${scripts} script or equivalent command.`);
     }
 
     // Bullet 5: Notes-based guidance (if short enough)
@@ -97,16 +99,33 @@ function generateSection(title: string, items: ChecklistItem[]): string {
 
 function main() {
     const rootDir = process.cwd();
-    const inputPath = path.join(
-        rootDir,
-        "config",
-        "standards.typescript-js.github-actions.json"
-    );
-    const outputPath = path.join(rootDir, "instructions.md");
+
+    // Accept config file as CLI argument, default to TypeScript+GitHub Actions
+    const configArg = process.argv[2];
+    let inputPath: string;
+
+    if (configArg) {
+        // If argument provided, resolve relative to config/ or as absolute
+        if (path.isAbsolute(configArg)) {
+            inputPath = configArg;
+        } else if (configArg.startsWith("config/") || configArg.startsWith("config\\")) {
+            inputPath = path.join(rootDir, configArg);
+        } else {
+            inputPath = path.join(rootDir, "config", configArg);
+        }
+    } else {
+        inputPath = path.join(rootDir, "config", "standards.typescript-js.github-actions.json");
+    }
+
+    // Derive output filename from input (e.g., standards.python.json -> instructions.python.md)
+    const inputBasename = path.basename(inputPath, ".json");
+    const outputBasename = inputBasename.replace(/^standards\./, "instructions.");
+    const outputPath = path.join(rootDir, `${outputBasename}.md`);
 
     if (!fs.existsSync(inputPath)) {
         console.error(`Input file not found: ${inputPath}`);
-        console.error("Run 'npm run generate:ci -- typescript-js github-actions' first.");
+        console.error("Usage: npm run generate:instructions [config-file]");
+        console.error("Example: npm run generate:instructions standards.python.github-actions.json");
         process.exit(1);
     }
 
@@ -118,7 +137,7 @@ function main() {
     // Header
     lines.push("# Repository Standards Instructions");
     lines.push("");
-    lines.push(`> Auto-generated from \`config/standards.typescript-js.github-actions.json\``);
+    lines.push(`> Auto-generated from \`${path.relative(rootDir, inputPath)}\``);
     lines.push(`> Stack: ${data.stackLabel} | CI: ${data.ciSystems.join(", ")}`);
     lines.push("");
     lines.push("This document provides high-level guidance for an autonomous coding agent to bring a repository into compliance with the defined standards.");
@@ -137,3 +156,4 @@ function main() {
 }
 
 main();
+
