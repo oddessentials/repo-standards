@@ -16,7 +16,9 @@
     "generate:ci:ts": "npm run generate:ci -- typescript-js",
     "generate:ci:python": "npm run generate:ci -- python",
     "generate:ci:dotnet": "npm run generate:ci -- csharp-dotnet",
-    "generate:ci:all": "npm run generate:ci:ts && npm run generate:ci:python && npm run generate:ci:dotnet"
+    "generate:ci:all": "npm run generate:ci:ts && npm run generate:ci:python && npm run generate:ci:dotnet",
+    "generate:ts:azdo": "npm run generate:ci -- typescript-js azure-devops",
+    "generate:ts:github": "npm run generate:ci -- typescript-js github-actions"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
