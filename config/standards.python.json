@@ -2,10 +2,7 @@
   "version": 1,
   "stack": "python",
   "stackLabel": "Python",
-  "ciSystems": [
-    "azure-devops",
-    "github-actions"
-  ],
+  "ciSystems": ["azure-devops", "github-actions"],
   "meta": {
     "defaultCoverageThreshold": 0.8,
     "complexityChecks": {
@@ -21,11 +18,7 @@
         "step": 1,
         "title": "Establish Local Safety Nets First",
         "description": "Start by adding pre-commit hooks and core formatting/linting so developers get fast feedback without touching CI.",
-        "focusIds": [
-          "pre-commit-hooks",
-          "linting",
-          "code-formatter"
-        ],
+        "focusIds": ["pre-commit-hooks", "linting", "code-formatter"],
         "notes": "Keep hooks fast and focused on changed files to avoid slowing down day-to-day work."
       },
       {
@@ -83,18 +76,11 @@
           }
         },
         "stack": {
-          "exampleConfigFiles": [
-            ".gitignore",
-            ".dockerignore"
-          ],
+          "exampleConfigFiles": [".gitignore", ".dockerignore"],
           "notes": "Use the official github/gitignore Python template. Include **pycache**, .venv/, .pytest_cache, .env, and similar local-only files. .dockerignore must exclude .git, virtual environments, and caches.",
           "verification": ".gitignore must exist; .dockerignore is recommended when containerizing or using Docker workflows.",
-          "requiredFiles": [
-            ".gitignore"
-          ],
-          "optionalFiles": [
-            ".dockerignore"
-          ]
+          "requiredFiles": [".gitignore"],
+          "optionalFiles": [".dockerignore"]
         }
       },
       {
@@ -110,26 +96,13 @@
           }
         },
         "stack": {
-          "exampleTools": [
-            "ruff",
-            "flake8"
-          ],
-          "exampleConfigFiles": [
-            "pyproject.toml",
-            ".flake8"
-          ],
+          "exampleTools": ["ruff", "flake8"],
+          "exampleConfigFiles": ["pyproject.toml", ".flake8"],
           "notes": "Configure a primary linter (such as ruff) and keep rules focused on catching real issues without overwhelming developers.",
           "verification": "pyproject.toml (or ruff.toml / .flake8) signals that linting tools are configured for the repository.",
-          "requiredFiles": [
-            "pyproject.toml"
-          ],
-          "optionalFiles": [
-            "ruff.toml",
-            ".flake8"
-          ],
-          "requiredScripts": [
-            "lint"
-          ]
+          "requiredFiles": ["pyproject.toml"],
+          "optionalFiles": ["ruff.toml", ".flake8"],
+          "requiredScripts": ["lint"]
         }
       },
       {
@@ -145,23 +118,12 @@
           }
         },
         "stack": {
-          "exampleTools": [
-            "pytest"
-          ],
-          "exampleConfigFiles": [
-            "pytest.ini",
-            "pyproject.toml"
-          ],
+          "exampleTools": ["pytest"],
+          "exampleConfigFiles": ["pytest.ini", "pyproject.toml"],
           "notes": "Organize unit tests under a tests/ directory and avoid real network or database calls in this layer.",
           "verification": "Test framework configuration is present; tests/ directory or pytest configuration exists.",
-          "optionalFiles": [
-            "pytest.ini",
-            "pyproject.toml",
-            "tests/"
-          ],
-          "requiredScripts": [
-            "test"
-          ]
+          "optionalFiles": ["pytest.ini", "pyproject.toml", "tests/"],
+          "requiredScripts": ["test"]
         }
       },
       {
@@ -178,18 +140,11 @@
         },
         "stack": {
           "exampleTools": [],
-          "exampleConfigFiles": [
-            "Dockerfile",
-            "docker-compose.yml"
-          ],
+          "exampleConfigFiles": ["Dockerfile", "docker-compose.yml"],
           "notes": "Choose a slim Python base image, pin the version, and clearly document how to start the service in a container.",
           "verification": "Dockerfile must be present; docker-compose.yml is optional and indicates orchestration usage.",
-          "requiredFiles": [
-            "Dockerfile"
-          ],
-          "optionalFiles": [
-            "docker-compose.yml"
-          ]
+          "requiredFiles": ["Dockerfile"],
+          "optionalFiles": ["docker-compose.yml"]
         }
       },
       {
@@ -205,15 +160,8 @@
           }
         },
         "stack": {
-          "exampleTools": [
-            "bumpversion",
-            "setuptools_scm",
-            "towncrier"
-          ],
-          "exampleConfigFiles": [
-            "pyproject.toml",
-            "setup.cfg"
-          ],
+          "exampleTools": ["bumpversion", "setuptools_scm", "towncrier"],
+          "exampleConfigFiles": ["pyproject.toml", "setup.cfg"],
           "notes": "Use a single source of truth for the package version and keep it aligned with SemVer and your release notes.",
           "verification": "Check that the package version in pyproject or setup configuration follows SemVer and verify that the configured tool (for example, bumpversion or setuptools_scm) can compute or bump the version as expected."
         }
@@ -231,13 +179,8 @@
           }
         },
         "stack": {
-          "exampleTools": [
-            "commitizen"
-          ],
-          "exampleConfigFiles": [
-            ".cz.toml",
-            "pyproject.toml"
-          ],
+          "exampleTools": ["commitizen"],
+          "exampleConfigFiles": [".cz.toml", "pyproject.toml"],
           "notes": "Standardize commit messages using commitizen or a similar helper and document the required types and scopes.",
           "verification": "Use the configured commit helper (for example, commitizen) or hooks to create a test commit and confirm that non-conforming messages are rejected while valid ones are accepted."
         }
@@ -255,15 +198,8 @@
           }
         },
         "stack": {
-          "exampleTools": [
-            "pytest",
-            "pytest-cov",
-            "coverage.py"
-          ],
-          "exampleConfigFiles": [
-            "pytest.ini",
-            "pyproject.toml"
-          ],
+          "exampleTools": ["pytest", "pytest-cov", "coverage.py"],
+          "exampleConfigFiles": ["pytest.ini", "pyproject.toml"],
           "notes": "Configure coverage reporting for your test suite and surface summary metrics in CI.",
           "verification": "Run the unit tests with coverage (for example, pytest with pytest-cov) and confirm that coverage reports are generated and referenced in CI to enforce or track thresholds."
         }
@@ -282,10 +218,7 @@
         },
         "stack": {
           "exampleTools": [],
-          "exampleConfigFiles": [
-            ".github/workflows/*",
-            "azure-pipelines.yml"
-          ],
+          "exampleConfigFiles": [".github/workflows/*", "azure-pipelines.yml"],
           "notes": "Ensure CI runs linting, type checking (if used), tests, and packaging or container checks for Python services before merging.",
           "verification": "Open the CI configuration and verify there is a job or stage that runs linting, type checking (if used), tests, and any packaging or container checks before merging to main."
         }
@@ -303,12 +236,8 @@
           }
         },
         "stack": {
-          "exampleTools": [
-            "black"
-          ],
-          "exampleConfigFiles": [
-            "pyproject.toml"
-          ],
+          "exampleTools": ["black"],
+          "exampleConfigFiles": ["pyproject.toml"],
           "notes": "Use black (or an equivalent opinionated formatter) and treat its output as the single source of truth for code style.",
           "verification": "Run the configured formatter (for example, `black .` or `black --check .`) and confirm it reports clean formatting on committed code and auto-fixes as expected locally."
         }
@@ -326,12 +255,8 @@
           }
         },
         "stack": {
-          "exampleTools": [
-            "pre-commit"
-          ],
-          "exampleConfigFiles": [
-            ".pre-commit-config.yaml"
-          ],
+          "exampleTools": ["pre-commit"],
+          "exampleConfigFiles": [".pre-commit-config.yaml"],
           "notes": "Use pre-commit to run ruff, black, and optionally mypy on staged files before committing.",
           "verification": "Inspect .pre-commit-config.yaml and confirm that hooks for linting, formatting, and optionally type checking are enabled and run on changed files before commits."
         }
@@ -349,24 +274,13 @@
           }
         },
         "stack": {
-          "exampleTools": [
-            "mypy"
-          ],
-          "exampleConfigFiles": [
-            "mypy.ini",
-            "pyproject.toml"
-          ],
+          "exampleTools": ["mypy"],
+          "exampleConfigFiles": ["mypy.ini", "pyproject.toml"],
           "notes": "Adopt gradual typing with type hints and mypy, focusing first on critical modules and new code paths.",
           "verification": "pyproject.toml (or mypy.ini) signals that mypy configuration is available for the repository.",
-          "requiredFiles": [
-            "pyproject.toml"
-          ],
-          "optionalFiles": [
-            "mypy.ini"
-          ],
-          "requiredScripts": [
-            "typecheck"
-          ]
+          "requiredFiles": ["pyproject.toml"],
+          "optionalFiles": ["mypy.ini"],
+          "requiredScripts": ["typecheck"]
         }
       },
       {
@@ -382,10 +296,7 @@
           }
         },
         "stack": {
-          "exampleTools": [
-            "pip-audit",
-            "safety"
-          ],
+          "exampleTools": ["pip-audit", "safety"],
           "exampleConfigFiles": [
             "requirements.txt",
             "Pipfile.lock",
@@ -393,11 +304,32 @@
           ],
           "notes": "Pin dependency versions and routinely scan for vulnerabilities, prioritizing fixes for critical and high-severity issues.",
           "verification": "Dependency lockfile is present; security scanning is configured in CI or project tooling.",
-          "optionalFiles": [
-            "requirements.txt",
-            "Pipfile.lock",
-            "poetry.lock"
-          ]
+          "optionalFiles": ["requirements.txt", "Pipfile.lock", "poetry.lock"]
+        }
+      },
+      {
+        "id": "runtime-version",
+        "label": "Runtime Version Specification",
+        "description": "Specify required runtime/engine versions in package manifests to ensure environment stability and prevent version-related issues across development teams.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": [
+            "pyproject.toml",
+            "setup.py",
+            ".python-version"
+          ],
+          "notes": "Specify python_requires in pyproject.toml (e.g., requires-python = \">=3.9\") or setup.py (e.g., python_requires='>=3.9'). Consider adding .python-version for pyenv users to automatically switch to the correct Python version.",
+          "verification": "pyproject.toml or setup.py must specify python_requires; .python-version is recommended for local development.",
+          "requiredFiles": ["pyproject.toml"],
+          "optionalFiles": [".python-version"]
         }
       },
       {
@@ -413,23 +345,12 @@
           }
         },
         "stack": {
-          "exampleTools": [
-            "Sphinx",
-            "MkDocs"
-          ],
-          "exampleConfigFiles": [
-            "README.md",
-            "docs/"
-          ],
+          "exampleTools": ["Sphinx", "MkDocs"],
+          "exampleConfigFiles": ["README.md", "docs/"],
           "notes": "Ensure README explains environment setup and core commands, and generate API docs from docstrings where appropriate.",
           "verification": "README.md is present in the repository root; docs/ directory or documentation tooling configuration exists if applicable.",
-          "requiredFiles": [
-            "README.md"
-          ],
-          "optionalFiles": [
-            "docs/",
-            "mkdocs.yml"
-          ]
+          "requiredFiles": ["README.md"],
+          "optionalFiles": ["docs/", "mkdocs.yml"]
         }
       },
       {
@@ -453,13 +374,8 @@
           ],
           "notes": "Spell out contributor responsibilities for tests, documentation, and review so expectations are clear for Python-focused teams.",
           "verification": "LICENSE file is present in the repository root; CODE_OF_CONDUCT.md and CONTRIBUTING.md are present for contribution guidance.",
-          "requiredFiles": [
-            "LICENSE"
-          ],
-          "optionalFiles": [
-            "CODE_OF_CONDUCT.md",
-            "CONTRIBUTING.md"
-          ]
+          "requiredFiles": ["LICENSE"],
+          "optionalFiles": ["CODE_OF_CONDUCT.md", "CONTRIBUTING.md"]
         }
       }
     ],
@@ -477,12 +393,8 @@
           }
         },
         "stack": {
-          "exampleTools": [
-            "pytest"
-          ],
-          "exampleConfigFiles": [
-            "tests/integration/"
-          ],
+          "exampleTools": ["pytest"],
+          "exampleConfigFiles": ["tests/integration/"],
           "notes": "Separate integration tests from unit tests, using fixtures to handle databases, services, or other external systems.",
           "verification": "Confirm there is a separate integration or API test suite (for example, a dedicated tests/integration directory) and run it to verify interactions with databases, services, or external systems."
         }
@@ -500,14 +412,8 @@
           }
         },
         "stack": {
-          "exampleTools": [
-            "pytest-benchmark",
-            "cProfile"
-          ],
-          "exampleConfigFiles": [
-            "pytest.ini",
-            "pyproject.toml"
-          ],
+          "exampleTools": ["pytest-benchmark", "cProfile"],
+          "exampleConfigFiles": ["pytest.ini", "pyproject.toml"],
           "notes": "Use simple benchmarks or profiling runs to characterize bottlenecks and watch for regressions in critical workflows.",
           "verification": "Identify and run the configured performance checks or benchmarks (for example, pytest-benchmark or cProfile-based scripts) and confirm that their results are recorded and compared over time."
         }
@@ -525,12 +431,8 @@
           }
         },
         "stack": {
-          "exampleTools": [
-            "radon"
-          ],
-          "exampleConfigFiles": [
-            "radon.cfg"
-          ],
+          "exampleTools": ["radon"],
+          "exampleConfigFiles": ["radon.cfg"],
           "notes": "Use radon or similar tools to track complexity of Python functions and keep new code within acceptable limits.",
           "verification": "Run the configured complexity tool (for example, radon) on the codebase and review the report to ensure new or heavily changed functions are not excessively complex."
         }
@@ -548,9 +450,7 @@
           }
         },
         "stack": {
-          "exampleTools": [
-            "pa11y"
-          ],
+          "exampleTools": ["pa11y"],
           "exampleConfigFiles": [],
           "notes": "Use headless browser-based tools to scan Python-backed web UIs for accessibility issues on high-traffic routes.",
           "verification": "For Python-backed web UIs, run the configured accessibility tooling (for example, pa11y or axe via a headless browser) against key routes and verify that critical issues are fixed or tracked."
@@ -571,10 +471,7 @@
           }
         },
         "stack": {
-          "exampleTools": [
-            "structlog",
-            "loguru"
-          ],
+          "exampleTools": ["structlog", "loguru"],
           "exampleConfigFiles": [
             "logging configuration files",
             "pyproject.toml"
