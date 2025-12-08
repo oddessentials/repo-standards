@@ -8,10 +8,12 @@
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
-    "lint": "eslint . --ext .ts",
+    "lint": "eslint .",
     "format": "prettier . --write",
-    "test": "echo \"(placeholder) add test runner here\" && exit 0",
-    "ci": "npm run lint && npm run test && npm run build",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "prepare": "husky",
+    "ci": "npm run lint && npm run typecheck && npm run test && npm run build",
     "generate:ci": "ts-node-esm scripts/generate-standards.ts",
     "generate:ci:ts": "npm run generate:ci -- typescript-js",
     "generate:ci:python": "npm run generate:ci -- python",
@@ -22,17 +24,32 @@
     "generate:instructions": "ts-node-esm scripts/generate-instructions.ts"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.2.0",
+    "@commitlint/config-conventional": "^20.2.0",
     "@types/node": "^24.10.1",
     "@typescript-eslint/eslint-plugin": "^8.48.1",
     "@typescript-eslint/parser": "^8.48.1",
+    "coverage-v8": "^0.0.1-security",
     "eslint": "^9.39.1",
     "globals": "^16.5.0",
+    "happy-dom": "^20.0.11",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
     "prettier": "^3.7.4",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.15"
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "lint-staged": {
+    "*.{js,ts,mjs,json,md}": [
+      "prettier --write"
+    ],
+    "*.{js,ts,mjs}": [
+      "eslint --fix"
+    ]
   }
 }
