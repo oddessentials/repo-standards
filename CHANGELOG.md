@@ -1,3 +1,9 @@
+## [1.0.1](https://github.com/oddessentials/repo-standards/compare/v1.0.0...v1.0.1) (2025-12-12)
+
+### Bug Fixes
+
+- bump and publish ([27f0c89](https://github.com/oddessentials/repo-standards/commit/27f0c89445fd71cdd243039d5f1bf4c2e46c4c9e))
+
 # 1.0.0 (2025-12-12)
 
 ### Bug Fixes
