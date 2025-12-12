@@ -26,7 +26,3 @@
 [2]: https://docs.npmjs.com/files/package.json/?utm_source=chatgpt.com "package.json"
 [3]: https://docs.github.com/actions/using-workflows/workflow-syntax-for-github-actions?utm_source=chatgpt.com "Workflow syntax for GitHub Actions"
 [4]: https://docs.github.com/en/actions/reference/security/secure-use?utm_source=chatgpt.com "Secure use reference - GitHub Docs"
-
-Environment Notes Updated:
-This repo's github account has a repo secret added: NPM_TOKEN_ODDESSENTIALS
-The .env file also includes NPM_TOKEN_ODDESSENTIALS
