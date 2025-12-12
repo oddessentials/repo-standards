@@ -29,7 +29,7 @@ jobs:
       - name: Verify package entry point
         run: |
           npm pack --dry-run
-          node -e "require('@oddessentials/repo-standards')"
+          node -e "import('@oddessentials/repo-standards').then(m => console.log('Loaded:', Object.keys(m)))"
 
       - name: Deterministic build check
         run: |
