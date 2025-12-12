@@ -1,14 +1,56 @@
 import { fileURLToPath } from "node:url";
+import { readFileSync } from "node:fs";
+import { join, dirname } from "node:path";
+import type {
+  MasterJson,
+  StackChecklistJson,
+  StackId,
+  CiSystem,
+} from "./types.js";
 
-export function main() {
-  // Placeholder entrypoint for this repo-standards package.
-  // You can later turn this into a CLI or library if you want.
-  console.log("Repo standards utilities loaded.");
+// Re-export types for consumers
+export type { MasterJson, StackChecklistJson, StackId, CiSystem };
+
+// ESM equivalent of __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Path to config directory (relative to dist/index.js when installed)
+const configDir = join(__dirname, "config");
+
+/** Load the master spec JSON from the packaged dist directory */
+export function loadMasterSpec(): MasterJson {
+  const filePath = join(configDir, "standards.json");
+  return JSON.parse(readFileSync(filePath, "utf8"));
 }
 
-if (
-  import.meta.url.startsWith("file:") &&
-  process.argv[1] === fileURLToPath(import.meta.url)
-) {
-  main();
+/** Load a stack-specific checklist (optionally filtered by CI system) */
+export function loadBaseline(
+  stack: StackId,
+  ci?: CiSystem,
+): StackChecklistJson {
+  const suffix = ci ? `.${ci}` : "";
+  const file = `standards.${stack}${suffix}.json`;
+  const filePath = join(configDir, file);
+  return JSON.parse(readFileSync(filePath, "utf8"));
+}
+
+/** List all supported stacks (derived from the master spec) */
+export function listSupportedStacks(): readonly StackId[] {
+  const spec = loadMasterSpec();
+  return Object.keys(spec.stacks) as StackId[];
+}
+
+/** List all supported CI systems (derived from the master spec) */
+export function listSupportedCiSystems(): readonly CiSystem[] {
+  const spec = loadMasterSpec();
+  return spec.ciSystems as CiSystem[];
+}
+
+/** Optional CLI entry point for debugging */
+if (import.meta.url.startsWith("file:") && process.argv[1] === __filename) {
+  console.log({
+    stacks: listSupportedStacks(),
+    ciSystems: listSupportedCiSystems(),
+  });
 }

@@ -1,6 +1,3 @@
-This repo's github account has a repo secret added: NPM_TOKEN_ODDESSENTIALS
-The .env file also includes NPM_TOKEN_ODDESSENTIALS
-
 - **Decide the publish surface area (what consumers get).** Treat this repo as a _data package_: publish the master spec plus generated stack views (your README already defines `config/standards.json` as source-of-truth and the generated `config/standards.<stack>…json` artifacts). ([GitHub][1])
 
 - **Refactor output layout so the npm package is “clean.”** Add a build step that copies (or generates) artifacts into `dist/` (e.g., `dist/config/**` + `dist/schema/**`), and make consumers import from `@oddessentials/repo-standards/dist/...` or via explicit `exports` map; keep `config/` in-repo as source, but publish only `dist/` to avoid shipping dev-only files.
@@ -29,3 +26,7 @@ The .env file also includes NPM_TOKEN_ODDESSENTIALS
 [2]: https://docs.npmjs.com/files/package.json/?utm_source=chatgpt.com "package.json"
 [3]: https://docs.github.com/actions/using-workflows/workflow-syntax-for-github-actions?utm_source=chatgpt.com "Workflow syntax for GitHub Actions"
 [4]: https://docs.github.com/en/actions/reference/security/secure-use?utm_source=chatgpt.com "Secure use reference - GitHub Docs"
+
+Environment Notes Updated:
+This repo's github account has a repo secret added: NPM_TOKEN_ODDESSENTIALS
+The .env file also includes NPM_TOKEN_ODDESSENTIALS

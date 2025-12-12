@@ -17,7 +17,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20
           cache: npm
 
       - name: Install dependencies
@@ -26,20 +26,15 @@ jobs:
       - name: Lint, test, build
         run: npm run ci
 
-      - name: Generate standards for TypeScript/JS
-        run: npm run generate:ci -- typescript-js
+      - name: Verify package entry point
+        run: |
+          npm pack --dry-run
+          node -e "require('@oddessentials/repo-standards')"
 
-      - name: Generate standards for .NET
-        run: npm run generate:ci -- csharp-dotnet
-
-      - name: Generate standards for Python
-        run: npm run generate:ci -- python
-
-      # Optional: fail if standards.json is out of date vs generated files
-      # - name: Check for uncommitted changes
-      #   run: |
-      #     if [[ -n "$(git status --porcelain)" ]]; then
-      #       echo "Generated standards files are not committed. Please run the generator and commit updates."
-      #       git status
-      #       exit 1
-      #     fi
+      - name: Deterministic build check
+        run: |
+          npm run build
+          cp -r dist dist-first
+          rm -rf dist
+          npm run build
+          diff -r dist-first dist || { echo "Build is not deterministic"; exit 1; }

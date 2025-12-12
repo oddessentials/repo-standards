@@ -1,31 +1,31 @@
 {
-  "name": "repo-standards",
-  "private": true,
+  "name": "@oddessentials/repo-standards",
+  "private": false,
   "version": "1.0.0",
   "description": "Standards and CI filtering utilities for multi-stack repository governance.",
   "type": "module",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.build.json && tsx scripts/build.ts",
     "start": "node dist/index.js",
     "lint": "eslint .",
     "format": "prettier . --write",
+    "format:check": "prettier . --check",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "prepare": "husky",
-    "ci": "npm run lint && npm run typecheck && npm run test && npm run build",
-    "generate:ci": "ts-node-esm scripts/generate-standards.ts",
-    "generate:ci:ts": "npm run generate:ci -- typescript-js",
-    "generate:ci:python": "npm run generate:ci -- python",
-    "generate:ci:dotnet": "npm run generate:ci -- csharp-dotnet",
-    "generate:ci:all": "npm run generate:ci:ts && npm run generate:ci:python && npm run generate:ci:dotnet",
-    "generate:ts:azdo": "npm run generate:ci -- typescript-js azure-devops",
-    "generate:ts:github": "npm run generate:ci -- typescript-js github-actions",
-    "generate:instructions": "ts-node-esm scripts/generate-instructions.ts"
+    "ci": "npm run lint && npm run format:check && npm run typecheck && npm run test && npm run build",
+    "generate:standards": "tsx scripts/generate-standards.ts",
+    "verify": "npm run ci"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.2.0",
     "@commitlint/config-conventional": "^20.2.0",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/npm": "^9.0.2",
+    "@semantic-release/github": "^9.0.2",
+    "semantic-release": "^24.2.0",
     "@types/node": "^24.10.1",
     "@typescript-eslint/eslint-plugin": "^8.48.1",
     "@typescript-eslint/parser": "^8.48.1",
@@ -37,12 +37,12 @@
     "lint-staged": "^16.2.7",
     "prettier": "^3.7.4",
     "ts-node": "^10.9.2",
-    "ts-node-dev": "^2.0.0",
+    "tsx": "^4.7.2",
     "typescript": "^5.9.3",
     "vitest": "^4.0.15"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20 <21"
   },
   "lint-staged": {
     "*.{js,ts,mjs,json,md}": [
@@ -51,5 +51,32 @@
     "*.{js,ts,mjs}": [
       "eslint --fix"
     ]
-  }
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/oddessentials/repo-standards.git"
+  },
+  "homepage": "https://github.com/oddessentials/repo-standards#readme",
+  "bugs": {
+    "url": "https://github.com/oddessentials/repo-standards/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./config/*": "./dist/config/*",
+    "./schema/*": "./dist/schema/*"
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ]
 }
