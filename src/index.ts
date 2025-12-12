@@ -15,8 +15,13 @@ export type { MasterJson, StackChecklistJson, StackId, CiSystem };
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Path to config directory (relative to dist/index.js when installed)
-const configDir = join(__dirname, "config");
+// Path to config directory:
+// - When running from src/ (dev/test): use repo root config/
+// - When running from dist/ (installed): use dist/config/
+const isDevMode = __dirname.includes("src");
+const configDir = isDevMode
+  ? join(__dirname, "..", "config")
+  : join(__dirname, "config");
 
 /** Load the master spec JSON from the packaged dist directory */
 export function loadMasterSpec(): MasterJson {
