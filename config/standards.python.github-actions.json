@@ -1,0 +1,425 @@
+{
+  "version": 1,
+  "stack": "python",
+  "stackLabel": "Python",
+  "ciSystems": ["github-actions"],
+  "meta": {
+    "defaultCoverageThreshold": 0.8,
+    "complexityChecks": {
+      "enabledByDefault": true,
+      "description": "When supported by the stack, run cyclomatic complexity or similar metrics in CI as a warning-only check initially."
+    },
+    "qualityGatePolicy": {
+      "preferSoftFailOnLegacy": true,
+      "description": "New quality checks should warn on existing code and fail CI only for violations introduced in new or changed code, to reduce friction on legacy codebases."
+    },
+    "migrationGuide": [
+      {
+        "step": 1,
+        "title": "Establish Local Safety Nets First",
+        "description": "Start by adding pre-commit hooks and core formatting/linting so developers get fast feedback without touching CI.",
+        "focusIds": ["pre-commit-hooks", "linting", "code-formatter"],
+        "notes": "Keep hooks fast and focused on changed files to avoid slowing down day-to-day work."
+      },
+      {
+        "step": 2,
+        "title": "Mirror Local Checks in CI (Soft-Fail on Legacy)",
+        "description": "Introduce CI quality gates that mirror local checks, but treat existing violations as warnings wherever possible.",
+        "focusIds": [
+          "ci-quality-gates",
+          "linting",
+          "code-formatter",
+          "commit-linting"
+        ],
+        "notes": "Use diff-based tools or baselines so only new violations break builds; legacy issues remain visible but non-blocking."
+      },
+      {
+        "step": 3,
+        "title": "Add Type Safety, Coverage, and Dependency Security",
+        "description": "Enable type-checking, coverage thresholds, and dependency/vulnerability scanning with gradual enforcement.",
+        "focusIds": [
+          "type-checking",
+          "unit-test-runner",
+          "unit-test-reporter",
+          "dependency-security"
+        ],
+        "notes": "Pin tool and runtime versions in CI and containers to avoid flaky differences across environments."
+      },
+      {
+        "step": 4,
+        "title": "Layer in Docs, Governance, and Recommended Checks",
+        "description": "Add documentation standards, governance files, integration testing, performance baselines, complexity analysis, accessibility auditing, and (optionally) ML-specific practices for data-heavy Python repos.",
+        "focusIds": [
+          "documentation",
+          "repository-governance",
+          "integration-testing",
+          "performance-baselining",
+          "complexity-analysis",
+          "accessibility-auditing"
+        ],
+        "notes": "Tackle recommended items in order of business value; backend-only repos can skip web-focused checks like accessibility. For AI/ML-heavy Python teams, consider extending containerization with data versioning (DVC) and unit tests with data quality checks (e.g., Great Expectations) as part of this step."
+      }
+    ]
+  },
+  "checklist": {
+    "core": [
+      {
+        "id": "gitignore-and-dockerignore",
+        "label": "Git and Docker Ignore Files",
+        "description": "Maintain proper .gitignore and .dockerignore files to prevent committing secrets, build artifacts, or unnecessary files.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleConfigFiles": [".gitignore", ".dockerignore"],
+          "notes": "Use the official github/gitignore Python template. Include **pycache**, .venv/, .pytest_cache, .env, and similar local-only files. .dockerignore must exclude .git, virtual environments, and caches.",
+          "verification": ".gitignore must exist; .dockerignore is recommended when containerizing or using Docker workflows.",
+          "requiredFiles": [".gitignore"],
+          "optionalFiles": [".dockerignore"]
+        }
+      },
+      {
+        "id": "linting",
+        "label": "Linting",
+        "description": "Run static code linting to enforce consistency and catch common issues early.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["ruff", "flake8"],
+          "exampleConfigFiles": ["pyproject.toml", ".flake8"],
+          "notes": "Configure a primary linter (such as ruff) and keep rules focused on catching real issues without overwhelming developers.",
+          "verification": "pyproject.toml (or ruff.toml / .flake8) signals that linting tools are configured for the repository.",
+          "requiredFiles": ["pyproject.toml"],
+          "optionalFiles": ["ruff.toml", ".flake8"],
+          "requiredScripts": ["lint"]
+        }
+      },
+      {
+        "id": "unit-test-runner",
+        "label": "Unit Test Runner",
+        "description": "Provide a deterministic unit test framework with a single command to run all tests.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["pytest"],
+          "exampleConfigFiles": ["pytest.ini", "pyproject.toml"],
+          "notes": "Organize unit tests under a tests/ directory and avoid real network or database calls in this layer.",
+          "verification": "Test framework configuration is present; tests/ directory or pytest configuration exists.",
+          "optionalFiles": ["pytest.ini", "pyproject.toml", "tests/"],
+          "requiredScripts": ["test"]
+        }
+      },
+      {
+        "id": "containerization",
+        "label": "Containerization (Docker / Docker Compose)",
+        "description": "Provide a Dockerfile and, if applicable, a docker-compose file for local dev and CI parity.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": ["Dockerfile", "docker-compose.yml"],
+          "notes": "Choose a slim Python base image, pin the version, and clearly document how to start the service in a container.",
+          "verification": "Dockerfile must be present; docker-compose.yml is optional and indicates orchestration usage.",
+          "requiredFiles": ["Dockerfile"],
+          "optionalFiles": ["docker-compose.yml"]
+        }
+      },
+      {
+        "id": "semantic-versioning",
+        "label": "Semantic Versioning",
+        "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history.",
+        "ciHints": {
+          "github-actions": {
+            "job": "release"
+          }
+        },
+        "stack": {
+          "exampleTools": ["bumpversion", "setuptools_scm", "towncrier"],
+          "exampleConfigFiles": ["pyproject.toml", "setup.cfg", "CHANGELOG.md"],
+          "notes": "Automate version bumping and changelog generation using setuptools_scm (git-tag based) or bumpversion with towncrier for changelog fragments. Configure CI to automatically update version in pyproject.toml, generate/update CHANGELOG.md from commit messages or changelog fragments, and create git tags. Maintain a single source of truth for versioning.",
+          "verification": "Check that the package version in pyproject or setup configuration follows SemVer and verify that the configured tool (for example, setuptools_scm or bumpversion) automatically computes or bumps the version and generates changelog entries from commit history or fragments."
+        }
+      },
+      {
+        "id": "commit-linting",
+        "label": "Commit Linting",
+        "description": "Enforce structured commit messages such as Conventional Commits.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["commitizen"],
+          "exampleConfigFiles": [".cz.toml", "pyproject.toml"],
+          "notes": "Standardize commit messages using commitizen or a similar helper and document the required types and scopes.",
+          "verification": "Use the configured commit helper (for example, commitizen) or hooks to create a test commit and confirm that non-conforming messages are rejected while valid ones are accepted."
+        }
+      },
+      {
+        "id": "unit-test-reporter",
+        "label": "Unit Test Reporter / Coverage",
+        "description": "Generate readable unit test and coverage reports and enforce a minimum coverage threshold (around 80%) for new or changed code.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["pytest", "pytest-cov", "coverage.py"],
+          "exampleConfigFiles": ["pytest.ini", "pyproject.toml"],
+          "notes": "Configure coverage reporting for your test suite and surface summary metrics in CI.",
+          "verification": "Run the unit tests with coverage (for example, pytest with pytest-cov) and confirm that coverage reports are generated and referenced in CI to enforce or track thresholds."
+        }
+      },
+      {
+        "id": "ci-quality-gates",
+        "label": "CI Quality Gates",
+        "description": "Single CI pipeline that runs linting, formatting, type checking, tests, coverage, build, and containerization.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": [".github/workflows/*", "azure-pipelines.yml"],
+          "notes": "Ensure CI runs linting, type checking (if used), tests, and packaging or container checks for Python services before merging.",
+          "verification": "Open the CI configuration and verify there is a job or stage that runs linting, type checking (if used), tests, and any packaging or container checks before merging to main."
+        }
+      },
+      {
+        "id": "code-formatter",
+        "label": "Code Formatter",
+        "description": "Automatic code formatting to maintain a consistent style across all contributors.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["black"],
+          "exampleConfigFiles": ["pyproject.toml"],
+          "notes": "Use black (or an equivalent opinionated formatter) and treat its output as the single source of truth for code style.",
+          "verification": "Run the configured formatter (for example, `black .` or `black --check .`) and confirm it reports clean formatting on committed code and auto-fixes as expected locally."
+        }
+      },
+      {
+        "id": "pre-commit-hooks",
+        "label": "Pre-Commit Hooks",
+        "description": "Use git hooks to run linting, formatting, tests, and commit linting before changes are committed.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["pre-commit"],
+          "exampleConfigFiles": [".pre-commit-config.yaml"],
+          "notes": "Use pre-commit to run ruff, black, and optionally mypy on staged files before committing.",
+          "verification": "Inspect .pre-commit-config.yaml and confirm that hooks for linting, formatting, and optionally type checking are enabled and run on changed files before commits."
+        }
+      },
+      {
+        "id": "type-checking",
+        "label": "Type Checking",
+        "description": "Use static type checking to catch errors before runtime and enforce strictness on new code.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["mypy"],
+          "exampleConfigFiles": ["mypy.ini", "pyproject.toml"],
+          "notes": "Adopt gradual typing with type hints and mypy, focusing first on critical modules and new code paths.",
+          "verification": "pyproject.toml (or mypy.ini) signals that mypy configuration is available for the repository.",
+          "requiredFiles": ["pyproject.toml"],
+          "optionalFiles": ["mypy.ini"],
+          "requiredScripts": ["typecheck"]
+        }
+      },
+      {
+        "id": "dependency-security",
+        "label": "Dependency Management & Vulnerability Scanning",
+        "description": "Lock dependencies and scan regularly for known vulnerabilities; fail CI on newly introduced high-severity issues.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["pip-audit", "safety"],
+          "exampleConfigFiles": [
+            "requirements.txt",
+            "Pipfile.lock",
+            "poetry.lock"
+          ],
+          "notes": "Pin dependency versions and routinely scan for vulnerabilities, prioritizing fixes for critical and high-severity issues.",
+          "verification": "Dependency lockfile is present; security scanning is configured in CI or project tooling.",
+          "optionalFiles": ["requirements.txt", "Pipfile.lock", "poetry.lock"]
+        }
+      },
+      {
+        "id": "runtime-version",
+        "label": "Runtime Version Specification",
+        "description": "Specify required runtime/engine versions in package manifests to ensure environment stability and prevent version-related issues across development teams.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": [
+            "pyproject.toml",
+            "setup.py",
+            ".python-version"
+          ],
+          "notes": "Specify python_requires in pyproject.toml (e.g., requires-python = \">=3.9\") or setup.py (e.g., python_requires='>=3.9'). Consider adding .python-version for pyenv users to automatically switch to the correct Python version.",
+          "verification": "pyproject.toml or setup.py must specify python_requires; .python-version is recommended for local development.",
+          "requiredFiles": ["pyproject.toml"],
+          "optionalFiles": [".python-version"]
+        }
+      },
+      {
+        "id": "documentation",
+        "label": "Documentation Standards",
+        "description": "Maintain a comprehensive README and, where applicable, auto-generated API docs to support onboarding and maintainability.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["Sphinx", "MkDocs"],
+          "exampleConfigFiles": ["README.md", "docs/"],
+          "notes": "Ensure README explains environment setup and core commands, and generate API docs from docstrings where appropriate.",
+          "verification": "README.md is present in the repository root; docs/ directory or documentation tooling configuration exists if applicable.",
+          "requiredFiles": ["README.md"],
+          "optionalFiles": ["docs/", "mkdocs.yml"]
+        }
+      },
+      {
+        "id": "repository-governance",
+        "label": "Repository Governance",
+        "description": "Include standard governance files (LICENSE, CODE_OF_CONDUCT.md, CONTRIBUTING.md), branch protection rules, and review standards to define legal, ethical, and workflow expectations.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": [
+            "LICENSE",
+            "CODE_OF_CONDUCT.md",
+            "CONTRIBUTING.md"
+          ],
+          "notes": "Spell out contributor responsibilities for tests, documentation, and review so expectations are clear for Python-focused teams.",
+          "verification": "LICENSE file is present in the repository root; CODE_OF_CONDUCT.md and CONTRIBUTING.md are present for contribution guidance.",
+          "requiredFiles": ["LICENSE"],
+          "optionalFiles": ["CODE_OF_CONDUCT.md", "CONTRIBUTING.md"]
+        }
+      }
+    ],
+    "recommended": [
+      {
+        "id": "integration-testing",
+        "label": "Integration Testing",
+        "description": "Test how components interact with each other and external systems, running after unit tests with more relaxed coverage thresholds.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["pytest"],
+          "exampleConfigFiles": ["tests/integration/"],
+          "notes": "Separate integration tests from unit tests, using fixtures to handle databases, services, or other external systems.",
+          "verification": "Confirm there is a separate integration or API test suite (for example, a dedicated tests/integration directory) and run it to verify interactions with databases, services, or external systems."
+        }
+      },
+      {
+        "id": "performance-baselining",
+        "label": "Performance Baselines",
+        "description": "Establish performance baselines and monitor for regressions using lightweight benchmarks or audits in CI.",
+        "ciHints": {
+          "github-actions": {
+            "job": "performance"
+          }
+        },
+        "stack": {
+          "exampleTools": ["pytest-benchmark", "cProfile"],
+          "exampleConfigFiles": ["pytest.ini", "pyproject.toml"],
+          "notes": "Use simple benchmarks or profiling runs to characterize bottlenecks and watch for regressions in critical workflows.",
+          "verification": "Identify and run the configured performance checks or benchmarks (for example, pytest-benchmark or cProfile-based scripts) and confirm that their results are recorded and compared over time."
+        }
+      },
+      {
+        "id": "complexity-analysis",
+        "label": "Complexity Analysis",
+        "description": "Measure cyclomatic complexity or similar metrics to keep code maintainable, starting as a warning-only check.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["radon"],
+          "exampleConfigFiles": ["radon.cfg"],
+          "notes": "Use radon or similar tools to track complexity of Python functions and keep new code within acceptable limits.",
+          "verification": "Run the configured complexity tool (for example, radon) on the codebase and review the report to ensure new or heavily changed functions are not excessively complex."
+        }
+      },
+      {
+        "id": "accessibility-auditing",
+        "label": "Accessibility Auditing",
+        "description": "Run accessibility checks on web-facing components to detect critical issues and improve inclusive UX.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["pa11y"],
+          "exampleConfigFiles": [],
+          "notes": "Use headless browser-based tools to scan Python-backed web UIs for accessibility issues on high-traffic routes.",
+          "verification": "For Python-backed web UIs, run the configured accessibility tooling (for example, pa11y or axe via a headless browser) against key routes and verify that critical issues are fixed or tracked."
+        }
+      }
+    ],
+    "optionalEnhancements": [
+      {
+        "id": "observability",
+        "label": "Observability (Logging & Error Handling)",
+        "description": "Standardize error handling and structured logging to make debugging and production monitoring easier.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["structlog", "loguru"],
+          "exampleConfigFiles": [
+            "logging configuration files",
+            "pyproject.toml"
+          ],
+          "notes": "Use structured logging for Python services and ensure critical paths record enough context to debug issues after the fact.",
+          "verification": "Confirm that a structured logging setup (such as structlog or configured logging with JSON formatting) is in place and that critical paths log enough information to debug failures in production."
+        }
+      }
+    ]
+  }
+}
