@@ -13,6 +13,6 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["src", "scripts", "config"],
+  "include": ["src", "scripts"],
   "exclude": ["dist", "node_modules"]
 }

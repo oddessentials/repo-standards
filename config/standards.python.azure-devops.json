@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "stack": "typescript-js",
-  "stackLabel": "TypeScript / JavaScript",
+  "stack": "python",
+  "stackLabel": "Python",
   "ciSystems": ["azure-devops"],
   "meta": {
     "defaultCoverageThreshold": 0.8,
@@ -74,7 +74,7 @@
         },
         "stack": {
           "exampleConfigFiles": [".gitignore", ".dockerignore"],
-          "notes": "Use the official github/gitignore Node template as a base and add .env*, node_modules, dist/, coverage/, *.log, npm-debug.log*, etc. .dockerignore must exclude node_modules, .git, and local build output.",
+          "notes": "Use the official github/gitignore Python template. Include **pycache**, .venv/, .pytest_cache, .env, and similar local-only files. .dockerignore must exclude .git, virtual environments, and caches.",
           "verification": ".gitignore must exist; .dockerignore is recommended when containerizing or using Docker workflows.",
           "requiredFiles": [".gitignore"],
           "optionalFiles": [".dockerignore"]
@@ -90,22 +90,12 @@
           }
         },
         "stack": {
-          "exampleTools": ["eslint"],
-          "exampleConfigFiles": [".eslintrc.*"],
-          "notes": "Treat new lint errors as CI failures; keep existing issues as warnings until addressed.",
-          "verification": "Presence of eslint.config.js (or any .eslintrc* file) indicates linting is enforced for the repository.",
-          "requiredFiles": ["eslint.config.js"],
-          "optionalFiles": [
-            ".eslintrc.js",
-            ".eslintrc.cjs",
-            ".eslintrc.json",
-            ".eslintrc.yaml",
-            ".prettierrc",
-            "prettier.config.js",
-            "prettier.config.cjs",
-            "prettier.config.json",
-            "prettier.config.yaml"
-          ],
+          "exampleTools": ["ruff", "flake8"],
+          "exampleConfigFiles": ["pyproject.toml", ".flake8"],
+          "notes": "Configure a primary linter (such as ruff) and keep rules focused on catching real issues without overwhelming developers.",
+          "verification": "pyproject.toml (or ruff.toml / .flake8) signals that linting tools are configured for the repository.",
+          "requiredFiles": ["pyproject.toml"],
+          "optionalFiles": ["ruff.toml", ".flake8"],
           "requiredScripts": ["lint"]
         }
       },
@@ -119,16 +109,11 @@
           }
         },
         "stack": {
-          "exampleTools": ["jest"],
-          "exampleConfigFiles": ["jest.config.*"],
-          "notes": "Keep unit tests fast and deterministic; move slow or flaky tests into integration or E2E suites.",
-          "verification": "Test framework configuration is present; test script is defined in package.json.",
-          "optionalFiles": [
-            "jest.config.js",
-            "jest.config.ts",
-            "vitest.config.js",
-            "vitest.config.ts"
-          ],
+          "exampleTools": ["pytest"],
+          "exampleConfigFiles": ["pytest.ini", "pyproject.toml"],
+          "notes": "Organize unit tests under a tests/ directory and avoid real network or database calls in this layer.",
+          "verification": "Test framework configuration is present; tests/ directory or pytest configuration exists.",
+          "optionalFiles": ["pytest.ini", "pyproject.toml", "tests/"],
           "requiredScripts": ["test"]
         }
       },
@@ -144,7 +129,7 @@
         "stack": {
           "exampleTools": [],
           "exampleConfigFiles": ["Dockerfile", "docker-compose.yml"],
-          "notes": "Use multi-stage builds and pin Node.js and base image versions in the Dockerfile to match CI (e.g., node:22-alpine).",
+          "notes": "Choose a slim Python base image, pin the version, and clearly document how to start the service in a container.",
           "verification": "Dockerfile must be present; docker-compose.yml is optional and indicates orchestration usage.",
           "requiredFiles": ["Dockerfile"],
           "optionalFiles": ["docker-compose.yml"]
@@ -160,10 +145,10 @@
           }
         },
         "stack": {
-          "exampleTools": ["semantic-release", "standard-version"],
-          "exampleConfigFiles": [".releaserc", "package.json", "CHANGELOG.md"],
-          "notes": "Automate version bumping and changelog generation from Conventional Commits using semantic-release or standard-version. Configure CI to automatically bump package.json version, generate/update CHANGELOG.md, create git tags, and publish release artifacts. Protect release branches and ensure release tooling only runs there.",
-          "verification": "Check that the version field follows SemVer, and trigger the configured release workflow (for example, a dry run of semantic-release or standard-version) to confirm it automatically generates the expected next version, updates package.json, and creates/updates CHANGELOG.md with commit-based entries."
+          "exampleTools": ["bumpversion", "setuptools_scm", "towncrier"],
+          "exampleConfigFiles": ["pyproject.toml", "setup.cfg", "CHANGELOG.md"],
+          "notes": "Automate version bumping and changelog generation using setuptools_scm (git-tag based) or bumpversion with towncrier for changelog fragments. Configure CI to automatically update version in pyproject.toml, generate/update CHANGELOG.md from commit messages or changelog fragments, and create git tags. Maintain a single source of truth for versioning.",
+          "verification": "Check that the package version in pyproject or setup configuration follows SemVer and verify that the configured tool (for example, setuptools_scm or bumpversion) automatically computes or bumps the version and generates changelog entries from commit history or fragments."
         }
       },
       {
@@ -176,13 +161,10 @@
           }
         },
         "stack": {
-          "exampleTools": [
-            "@commitlint/cli",
-            "@commitlint/config-conventional"
-          ],
-          "exampleConfigFiles": ["commitlint.config.*"],
-          "notes": "Enforce commit message format via commit-msg hooks (e.g., Husky) before CI.",
-          "verification": "Create a test commit using the documented convention and ensure the commit message passes the configured commit linting or wizard (for example, commitlint or commitizen)."
+          "exampleTools": ["commitizen"],
+          "exampleConfigFiles": [".cz.toml", "pyproject.toml"],
+          "notes": "Standardize commit messages using commitizen or a similar helper and document the required types and scopes.",
+          "verification": "Use the configured commit helper (for example, commitizen) or hooks to create a test commit and confirm that non-conforming messages are rejected while valid ones are accepted."
         }
       },
       {
@@ -195,10 +177,10 @@
           }
         },
         "stack": {
-          "exampleTools": ["jest", "nyc"],
-          "exampleConfigFiles": ["jest.config.*"],
-          "notes": "Collect coverage in lcov or similar format; use diff coverage so legacy gaps are visible but non-blocking.",
-          "verification": "Run the unit tests with coverage enabled and confirm that a coverage report is produced and that the configured threshold (around 80%) is enforced for new changes."
+          "exampleTools": ["pytest", "pytest-cov", "coverage.py"],
+          "exampleConfigFiles": ["pytest.ini", "pyproject.toml"],
+          "notes": "Configure coverage reporting for your test suite and surface summary metrics in CI.",
+          "verification": "Run the unit tests with coverage (for example, pytest with pytest-cov) and confirm that coverage reports are generated and referenced in CI to enforce or track thresholds."
         }
       },
       {
@@ -213,8 +195,8 @@
         "stack": {
           "exampleTools": [],
           "exampleConfigFiles": [".github/workflows/*", "azure-pipelines.yml"],
-          "notes": "Expose a single npm script (e.g., `npm run ci`) that mirrors the CI pipeline so contributors can reproduce failures locally.",
-          "verification": "Open the CI configuration and verify there is a job or stage that runs linting, type checking, tests, build, and any required container checks before merging to main."
+          "notes": "Ensure CI runs linting, type checking (if used), tests, and packaging or container checks for Python services before merging.",
+          "verification": "Open the CI configuration and verify there is a job or stage that runs linting, type checking (if used), tests, and any packaging or container checks before merging to main."
         }
       },
       {
@@ -227,10 +209,10 @@
           }
         },
         "stack": {
-          "exampleTools": ["prettier"],
-          "exampleConfigFiles": [".prettierrc.*", ".prettierignore"],
-          "notes": "Run Prettier in check mode in CI; auto-fix locally via pre-commit hooks or editor integration.",
-          "verification": "Run the formatter in check mode (for example, `npm run format:check`) and confirm it reports clean formatting on committed code and auto-fixes as expected locally."
+          "exampleTools": ["black"],
+          "exampleConfigFiles": ["pyproject.toml"],
+          "notes": "Use black (or an equivalent opinionated formatter) and treat its output as the single source of truth for code style.",
+          "verification": "Run the configured formatter (for example, `black .` or `black --check .`) and confirm it reports clean formatting on committed code and auto-fixes as expected locally."
         }
       },
       {
@@ -243,10 +225,10 @@
           }
         },
         "stack": {
-          "exampleTools": ["husky", "lint-staged"],
-          "exampleConfigFiles": [".husky/", "package.json"],
-          "notes": "Run ESLint and Prettier on staged files and enforce commit message format via commit-msg hooks.",
-          "verification": "Inspect the pre-commit and commit-msg hooks (for example, files under .husky or other hook tooling) and confirm they run linting/formatting and commit linting on staged changes."
+          "exampleTools": ["pre-commit"],
+          "exampleConfigFiles": [".pre-commit-config.yaml"],
+          "notes": "Use pre-commit to run ruff, black, and optionally mypy on staged files before committing.",
+          "verification": "Inspect .pre-commit-config.yaml and confirm that hooks for linting, formatting, and optionally type checking are enabled and run on changed files before commits."
         }
       },
       {
@@ -259,11 +241,12 @@
           }
         },
         "stack": {
-          "exampleTools": ["TypeScript compiler (tsc)"],
-          "exampleConfigFiles": ["tsconfig.json"],
-          "notes": "Enable strict mode ('strict': true) and treat type-check failures as CI failures for new code; gradually expand strictness into legacy modules.",
-          "verification": "Presence of tsconfig.json indicates type-checking is configured for the repository.",
-          "requiredFiles": ["tsconfig.json"],
+          "exampleTools": ["mypy"],
+          "exampleConfigFiles": ["mypy.ini", "pyproject.toml"],
+          "notes": "Adopt gradual typing with type hints and mypy, focusing first on critical modules and new code paths.",
+          "verification": "pyproject.toml (or mypy.ini) signals that mypy configuration is available for the repository.",
+          "requiredFiles": ["pyproject.toml"],
+          "optionalFiles": ["mypy.ini"],
           "requiredScripts": ["typecheck"]
         }
       },
@@ -277,15 +260,15 @@
           }
         },
         "stack": {
-          "exampleTools": ["npm audit", "Snyk"],
+          "exampleTools": ["pip-audit", "safety"],
           "exampleConfigFiles": [
-            "package-lock.json",
-            "pnpm-lock.yaml",
-            "yarn.lock"
+            "requirements.txt",
+            "Pipfile.lock",
+            "poetry.lock"
           ],
-          "notes": "Require a lockfile for reproducible installs and pin Node.js/tooling versions; block merges on new high-severity vulnerabilities.",
+          "notes": "Pin dependency versions and routinely scan for vulnerabilities, prioritizing fixes for critical and high-severity issues.",
           "verification": "Dependency lockfile is present; security scanning is configured in CI or project tooling.",
-          "optionalFiles": ["package-lock.json", "pnpm-lock.yaml", "yarn.lock"]
+          "optionalFiles": ["requirements.txt", "Pipfile.lock", "poetry.lock"]
         }
       },
       {
@@ -299,10 +282,15 @@
         },
         "stack": {
           "exampleTools": [],
-          "exampleConfigFiles": ["package.json"],
-          "notes": "Specify the 'engines' field in package.json to define the required Node.js version (e.g., \"engines\": { \"node\": \">=18.0.0\" }). This helps prevent environment-related bugs and ensures all developers use compatible Node.js versions.",
-          "verification": "package.json must contain an 'engines' field specifying the required Node.js version.",
-          "requiredFiles": ["package.json"]
+          "exampleConfigFiles": [
+            "pyproject.toml",
+            "setup.py",
+            ".python-version"
+          ],
+          "notes": "Specify python_requires in pyproject.toml (e.g., requires-python = \">=3.9\") or setup.py (e.g., python_requires='>=3.9'). Consider adding .python-version for pyenv users to automatically switch to the correct Python version.",
+          "verification": "pyproject.toml or setup.py must specify python_requires; .python-version is recommended for local development.",
+          "requiredFiles": ["pyproject.toml"],
+          "optionalFiles": [".python-version"]
         }
       },
       {
@@ -315,12 +303,12 @@
           }
         },
         "stack": {
-          "exampleTools": ["JSDoc", "TypeDoc"],
+          "exampleTools": ["Sphinx", "MkDocs"],
           "exampleConfigFiles": ["README.md", "docs/"],
-          "notes": "README should describe setup, scripts, and architecture; generate API docs from TypeScript types and JSDoc where helpful.",
+          "notes": "Ensure README explains environment setup and core commands, and generate API docs from docstrings where appropriate.",
           "verification": "README.md is present in the repository root; docs/ directory or documentation tooling configuration exists if applicable.",
           "requiredFiles": ["README.md"],
-          "optionalFiles": ["docs/", "typedoc.json"]
+          "optionalFiles": ["docs/", "mkdocs.yml"]
         }
       },
       {
@@ -339,7 +327,7 @@
             "CODE_OF_CONDUCT.md",
             "CONTRIBUTING.md"
           ],
-          "notes": "Use an SPDX license identifier in package.json and describe review expectations, tests, and docs requirements in CONTRIBUTING.md.",
+          "notes": "Spell out contributor responsibilities for tests, documentation, and review so expectations are clear for Python-focused teams.",
           "verification": "LICENSE file is present in the repository root; CODE_OF_CONDUCT.md and CONTRIBUTING.md are present for contribution guidance.",
           "requiredFiles": ["LICENSE"],
           "optionalFiles": ["CODE_OF_CONDUCT.md", "CONTRIBUTING.md"]
@@ -357,10 +345,10 @@
           }
         },
         "stack": {
-          "exampleTools": ["Jest", "Supertest", "Playwright"],
-          "exampleConfigFiles": ["jest.config.*", "playwright.config.*"],
-          "notes": "Use Supertest for HTTP APIs and Playwright or similar tools for end-to-end flows; keep integration suites slower but reliable.",
-          "verification": "Confirm there is a separate integration or end-to-end test command or configuration and run it to verify that cross-component flows behave as expected."
+          "exampleTools": ["pytest"],
+          "exampleConfigFiles": ["tests/integration/"],
+          "notes": "Separate integration tests from unit tests, using fixtures to handle databases, services, or other external systems.",
+          "verification": "Confirm there is a separate integration or API test suite (for example, a dedicated tests/integration directory) and run it to verify interactions with databases, services, or external systems."
         }
       },
       {
@@ -373,10 +361,10 @@
           }
         },
         "stack": {
-          "exampleTools": ["Lighthouse CI", "custom Node.js benchmarks"],
-          "exampleConfigFiles": ["lighthouserc.json"],
-          "notes": "Run Lighthouse CI for web apps and basic Node benchmarks on critical endpoints; schedule runs or limit to key branches to keep CI fast.",
-          "verification": "Identify and run the configured performance or Lighthouse-style checks and verify that key metrics are captured and compared to documented baselines."
+          "exampleTools": ["pytest-benchmark", "cProfile"],
+          "exampleConfigFiles": ["pytest.ini", "pyproject.toml"],
+          "notes": "Use simple benchmarks or profiling runs to characterize bottlenecks and watch for regressions in critical workflows.",
+          "verification": "Identify and run the configured performance checks or benchmarks (for example, pytest-benchmark or cProfile-based scripts) and confirm that their results are recorded and compared over time."
         }
       },
       {
@@ -389,10 +377,10 @@
           }
         },
         "stack": {
-          "exampleTools": ["ESLint complexity rules", "SonarQube"],
-          "exampleConfigFiles": [".eslintrc.*", "sonar-project.properties"],
-          "notes": "Warn on overly complex functions and methods; fail CI only when new or modified code exceeds thresholds.",
-          "verification": "Run the configured complexity tooling or rules (for example, ESLint complexity rules or Sonar analysis) and review any hot spots, ensuring new code does not exceed agreed thresholds."
+          "exampleTools": ["radon"],
+          "exampleConfigFiles": ["radon.cfg"],
+          "notes": "Use radon or similar tools to track complexity of Python functions and keep new code within acceptable limits.",
+          "verification": "Run the configured complexity tool (for example, radon) on the codebase and review the report to ensure new or heavily changed functions are not excessively complex."
         }
       },
       {
@@ -405,10 +393,10 @@
           }
         },
         "stack": {
-          "exampleTools": ["axe-core", "Lighthouse accessibility audits"],
+          "exampleTools": ["pa11y"],
           "exampleConfigFiles": [],
-          "notes": "Run accessibility checks against key pages or components in CI; fail on critical violations while treating minor issues as warnings initially.",
-          "verification": "For web-facing apps, run the configured accessibility tooling (for example, axe, pa11y, or Lighthouse accessibility audits) against key pages and confirm that critical issues are resolved."
+          "notes": "Use headless browser-based tools to scan Python-backed web UIs for accessibility issues on high-traffic routes.",
+          "verification": "For Python-backed web UIs, run the configured accessibility tooling (for example, pa11y or axe via a headless browser) against key routes and verify that critical issues are fixed or tracked."
         }
       }
     ],
@@ -423,10 +411,13 @@
           }
         },
         "stack": {
-          "exampleTools": ["Winston", "Pino"],
-          "exampleConfigFiles": [],
-          "notes": "Adopt structured JSON logging with correlation IDs and send logs to a centralized sink in production.",
-          "verification": "Confirm that a structured logging library (such as Winston or Pino) is configured to emit JSON or key-value logs and that error handling routes important failures through this logger."
+          "exampleTools": ["structlog", "loguru"],
+          "exampleConfigFiles": [
+            "logging configuration files",
+            "pyproject.toml"
+          ],
+          "notes": "Use structured logging for Python services and ensure critical paths record enough context to debug issues after the fact.",
+          "verification": "Confirm that a structured logging setup (such as structlog or configured logging with JSON formatting) is in place and that critical paths log enough information to debug failures in production."
         }
       }
     ]

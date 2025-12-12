@@ -1,142 +1,202 @@
-# Repository Standards & CI Checklist
+[![npm version](https://img.shields.io/npm/v/@oddessentials/repo-standards.svg)](https://www.npmjs.com/package/@oddessentials/repo-standards)
+[![CI](https://github.com/oddessentials/repo-standards/actions/workflows/ci.yml/badge.svg)](https://github.com/oddessentials/repo-standards/actions/workflows/ci.yml)
+[![license](https://img.shields.io/npm/l/@oddessentials/repo-standards.svg)](LICENSE)
 
-This repo defines a **single master JSON spec** for repository quality standards across multiple stacks (TypeScript/JS, C#/.NET, Python), plus a small utility to generate **stack-specific views**.
+# 🐝 Repository Standards & CI Checklist
 
-- Master spec: `config/standards.json`
-- Generated stack views: `config/standards.<stack>[.<ciSystem>].json`
-- Generator: `scripts/generate-standards.ts`
+**@oddessentials/repo-standards**
+
+This package defines a **single, authoritative JSON specification** for repository quality standards across multiple stacks (TypeScript/JS, C#/.NET, Python), plus deterministic tooling to generate **stack- and CI-specific views**.
+
+It is designed to be:
+
+- **Machine-readable** (for autonomous agents and CI systems)
+- **Human-navigable** (for onboarding and audits)
+- **Migration-friendly** (soft-fail legacy, hard-fail new violations)
+
+> Think of this as a _policy catalog_, not an enforcement engine.
 
 ---
 
-## Meta Rules
+## What’s Included
 
-The master spec includes a `meta` block with global policies:
+- **Master spec (source of truth)**
+  `config/standards.json`
 
-- **Coverage**  
-  - `defaultCoverageThreshold = 0.8`  
-  - Aim for ~80% coverage on **new or changed code**, using diff coverage where possible.
-- **Soft-fail on legacy**  
-  - `qualityGatePolicy.preferSoftFailOnLegacy = true`  
-  - New checks (lint rules, types, complexity, etc.) should:
-    - Warn on **existing** violations.
-    - Fail CI only for **new violations** introduced in the current change.
-- **Complexity checks**  
-  - `complexityChecks.enabledByDefault = true`  
-  - Complexity (cyclomatic or similar) should start as **warnings-only**, tightening over time.
-- **Migration guide**  
-  - `meta.migrationGuide` defines a stepwise approach:
-    1. Local safety nets (pre-commit, lint, format).
-    2. Mirror in CI with soft-fail on legacy.
-    3. Add type safety, coverage, dependency security.
-    4. Add docs, governance, integration/perf/accessibility checks, plus optional ML guidance for Python data teams.
+- **Generated stack views (artifacts)**
+  `config/standards.<stack>[.<ciSystem>].json`
+
+- **Generator scripts**
+  Deterministically derive filtered views from the master spec.
+
+---
+
+## Meta Rules (Global Policy)
+
+The master spec includes a `meta` block that defines system-wide expectations:
+
+### Coverage
+
+- `defaultCoverageThreshold = 0.8`
+- Target ~80% coverage on **new or changed code**
+- Prefer diff-based coverage where supported
+
+### Soft-Fail on Legacy
+
+- `qualityGatePolicy.preferSoftFailOnLegacy = true`
+- New checks should:
+  - Warn on **existing** violations
+  - Fail CI only for **new violations** introduced by the change
+
+### Complexity
+
+- `complexityChecks.enabledByDefault = true`
+- Complexity rules start as **warnings**
+- Intended to tighten gradually as codebases mature
+
+### Migration Guide
+
+`meta.migrationGuide` defines a stepwise adoption path:
+
+1. Local safety nets (formatting, linting, pre-commit)
+2. Mirror in CI with soft-fail legacy
+3. Add type safety, coverage, dependency security
+4. Add docs, governance, integration/perf/accessibility
+   _(plus ML-specific practices for Python data teams)_
 
 ---
 
 ## Structure of `config/standards.json`
 
-- `version`: schema/version number for the spec.
-- `meta`: global settings (coverage, complexity, migration guide, etc.).
-- `ciSystems`: currently `["azure-devops", "github-actions"]`.
-- `stacks`: supported stacks:
+- `version` — schema version
+- `meta` — global rules and migration policy
+- `ciSystems` — supported CI platforms
+  _(currently `github-actions`, `azure-devops`)_
+- `stacks` — supported stacks:
   - `typescript-js`
   - `csharp-dotnet`
   - `python`
-- `checklist`:
-  - `core`: must-have items (linting, tests, type-checking, dependency security, docs, repo governance, etc.).
-  - `recommended`: high-value but optional (integration tests, perf baselines, complexity analysis, accessibility auditing).
-  - `optionalEnhancements`: nice-to-haves (observability, logging patterns, etc.).
 
-Each item includes:
+- `checklist`
+  - `core` — must-have requirements
+  - `recommended` — high-value additions
+  - `optionalEnhancements` — advanced / nice-to-have
+
+Each checklist item includes:
 
 - `id`, `label`, `description`
-- `appliesTo.stacks` and `appliesTo.ciSystems`
-- `ciHints`: suggested pipeline stage/job names
-- `stackHints[stack]`:
-  - `exampleTools`
-  - `exampleConfigFiles`
-  - `notes` (how to apply, trade-offs, ML variants for Python, etc.)
+- `appliesTo.stacks`, `appliesTo.ciSystems`
+- `ciHints` — suggested pipeline stages
+- `stackHints[stack]`
+  - example tools
+  - example config files
+  - notes and trade-offs (including ML variants for Python)
 
 ---
 
 ## Generating Stack-Specific JSON
 
-The generator script reads `config/standards.json` and writes filtered views.
+The generator reads the master spec and produces filtered, deterministic outputs.
 
 ### Commands
 
-From the repo root:
-
 ```bash
-# TypeScript/JS, all CI systems
+# TypeScript / JavaScript
 npm run generate:ci -- typescript-js
 
-# Python, all CI systems
+# Python
 npm run generate:ci -- python
 
-# C#/.NET, all CI systems
+# C# / .NET
 npm run generate:ci -- csharp-dotnet
 
-# Python + Azure DevOps only
+# Python + Azure DevOps
 npm run generate:ci -- python azure-devops
 
-# TypeScript/JS + GitHub Actions only
+# TypeScript + GitHub Actions
 npm run generate:ci -- typescript-js github-actions
 ```
 
 ### Outputs
 
-* All CI systems:
+All CI systems:
 
-  ```text
-  config/standards.typescript-js.json
-  config/standards.csharp-dotnet.json
-  config/standards.python.json
-  ```
+```text
+config/standards.typescript-js.json
+config/standards.csharp-dotnet.json
+config/standards.python.json
+```
 
-* Filtered by CI system (example):
+Filtered by CI system (example):
 
-  ```text
-  config/standards.python.azure-devops.json
-  config/standards.typescript-js.github-actions.json
-  ```
+```text
+config/standards.python.azure-devops.json
+config/standards.typescript-js.github-actions.json
+```
 
-These generated files are **artifacts**, not hand-edited. Treat `config/standards.json` as the **source of truth**.
+> These generated files are **artifacts**.
+> Do not edit them manually — always modify `config/standards.json`.
 
 ---
 
-## How to Apply to a Repo
+## Consuming This Package (npm)
 
-1. Pick your stack (`typescript-js`, `csharp-dotnet`, or `python`).
+Install:
 
-2. Generate the filtered view:
+```bash
+npm install @oddessentials/repo-standards
+```
 
-   ```bash
-   npm run generate:ci -- python
-   ```
+Typical usage:
 
-3. Use the resulting `config/standards.python.json` as:
+- Load the **master spec** for tooling or audits
+- Load a **stack-specific view** as:
+  - a CI contract
+  - an onboarding checklist
+  - input to autonomous agents (e.g. Odd Hive Mind)
 
-   * A checklist for onboarding.
-   * Input to internal docs/onboarding tools.
-   * A contract for CI (what must pass before merging).
+This package is intentionally **read-only** and **side-effect free**.
 
-4. For existing repos, follow `meta.migrationGuide`:
+---
 
-   * Start with pre-commit hooks and formatting.
-   * Mirror checks in CI (soft-fail legacy).
-   * Add type safety, coverage, dependency security.
-   * Layer in docs, governance, integration/perf/accessibility, and ML-specific practices if applicable.
+## How to Apply to a Repository
 
-## Instruction generation
+1. Identify the stack (`typescript-js`, `csharp-dotnet`, `python`)
+2. Generate the filtered checklist
+3. Use it as:
+   - a baseline for CI
+   - a migration checklist for legacy repos
+   - a governance artifact for reviews
 
-### Default (TypeScript + GitHub Actions)
+For existing repositories, follow `meta.migrationGuide` to adopt standards incrementally without breaking teams.
 
-`npm run generate:instructions`
+---
 
-### Python stack
+## Instruction Generation
 
-`npm run generate:instructions -- standards.python.json`
+Human-readable “agent instructions” can also be generated:
 
-### C#/.NET with Azure DevOps
+```bash
+# Default (TypeScript + GitHub Actions)
+npm run generate:instructions
 
-`npm run generate:instructions -- standards.csharp-dotnet.azure-devops.json`
+# Python
+npm run generate:instructions -- standards.python.json
+
+# C# / .NET + Azure DevOps
+npm run generate:instructions -- standards.csharp-dotnet.azure-devops.json
+```
+
+---
+
+## Philosophy
+
+🐝 **Small rules. Shared language. Predictable outcomes.**
+
+This repo deliberately separates:
+
+- **Policy definition** (what good looks like)
+- **Enforcement** (handled elsewhere)
+- **Execution** (CI, agents, humans)
+
+That separation is what makes it composable, automatable, and safe.

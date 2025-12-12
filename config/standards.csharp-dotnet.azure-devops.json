@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "stack": "typescript-js",
-  "stackLabel": "TypeScript / JavaScript",
+  "stack": "csharp-dotnet",
+  "stackLabel": "C# / .NET",
   "ciSystems": ["azure-devops"],
   "meta": {
     "defaultCoverageThreshold": 0.8,
@@ -74,7 +74,7 @@
         },
         "stack": {
           "exampleConfigFiles": [".gitignore", ".dockerignore"],
-          "notes": "Use the official github/gitignore Node template as a base and add .env*, node_modules, dist/, coverage/, *.log, npm-debug.log*, etc. .dockerignore must exclude node_modules, .git, and local build output.",
+          "notes": "Use the official github/gitignore VisualStudio/.NET template. .dockerignore must exclude bin/, obj/, .vs/, *.user, and similar local/build artifacts.",
           "verification": ".gitignore must exist; .dockerignore is recommended when containerizing or using Docker workflows.",
           "requiredFiles": [".gitignore"],
           "optionalFiles": [".dockerignore"]
@@ -90,22 +90,12 @@
           }
         },
         "stack": {
-          "exampleTools": ["eslint"],
-          "exampleConfigFiles": [".eslintrc.*"],
-          "notes": "Treat new lint errors as CI failures; keep existing issues as warnings until addressed.",
-          "verification": "Presence of eslint.config.js (or any .eslintrc* file) indicates linting is enforced for the repository.",
-          "requiredFiles": ["eslint.config.js"],
-          "optionalFiles": [
-            ".eslintrc.js",
-            ".eslintrc.cjs",
-            ".eslintrc.json",
-            ".eslintrc.yaml",
-            ".prettierrc",
-            "prettier.config.js",
-            "prettier.config.cjs",
-            "prettier.config.json",
-            "prettier.config.yaml"
-          ],
+          "exampleTools": ["Roslyn analyzers", "StyleCop"],
+          "exampleConfigFiles": [".editorconfig", "Directory.Build.props"],
+          "notes": "Enable analyzers or style rules for the solution and review warnings regularly; enforce stricter rules on new code.",
+          "verification": ".editorconfig must exist to drive the .NET formatting and analysis tooling.",
+          "requiredFiles": [".editorconfig"],
+          "optionalFiles": ["Directory.Build.props"],
           "requiredScripts": ["lint"]
         }
       },
@@ -119,17 +109,11 @@
           }
         },
         "stack": {
-          "exampleTools": ["jest"],
-          "exampleConfigFiles": ["jest.config.*"],
-          "notes": "Keep unit tests fast and deterministic; move slow or flaky tests into integration or E2E suites.",
-          "verification": "Test framework configuration is present; test script is defined in package.json.",
-          "optionalFiles": [
-            "jest.config.js",
-            "jest.config.ts",
-            "vitest.config.js",
-            "vitest.config.ts"
-          ],
-          "requiredScripts": ["test"]
+          "exampleTools": ["xUnit", "NUnit", "MSTest"],
+          "exampleConfigFiles": ["*.Tests.csproj"],
+          "notes": "Group unit tests into dedicated test projects and keep them independent from external services.",
+          "verification": "Test projects are present in the solution; test configuration is defined.",
+          "optionalFiles": ["*.Tests.csproj"]
         }
       },
       {
@@ -144,7 +128,7 @@
         "stack": {
           "exampleTools": [],
           "exampleConfigFiles": ["Dockerfile", "docker-compose.yml"],
-          "notes": "Use multi-stage builds and pin Node.js and base image versions in the Dockerfile to match CI (e.g., node:22-alpine).",
+          "notes": "Use multi-stage builds for .NET publish output and pin the SDK/runtime image versions to match CI.",
           "verification": "Dockerfile must be present; docker-compose.yml is optional and indicates orchestration usage.",
           "requiredFiles": ["Dockerfile"],
           "optionalFiles": ["docker-compose.yml"]
@@ -160,10 +144,10 @@
           }
         },
         "stack": {
-          "exampleTools": ["semantic-release", "standard-version"],
-          "exampleConfigFiles": [".releaserc", "package.json", "CHANGELOG.md"],
-          "notes": "Automate version bumping and changelog generation from Conventional Commits using semantic-release or standard-version. Configure CI to automatically bump package.json version, generate/update CHANGELOG.md, create git tags, and publish release artifacts. Protect release branches and ensure release tooling only runs there.",
-          "verification": "Check that the version field follows SemVer, and trigger the configured release workflow (for example, a dry run of semantic-release or standard-version) to confirm it automatically generates the expected next version, updates package.json, and creates/updates CHANGELOG.md with commit-based entries."
+          "exampleTools": ["GitVersion"],
+          "exampleConfigFiles": ["GitVersion.yml", "*.csproj", "CHANGELOG.md"],
+          "notes": "Use GitVersion to automatically compute SemVer from git history and feed it into assembly/package versions. Configure CI to auto-generate or update CHANGELOG.md from commit messages and git tags. Integrate with release pipeline to automatically version assemblies, NuGet packages, and create release notes.",
+          "verification": "Check that versioning is driven by a SemVer-aware tool (for example, GitVersion) and verify that running the release/versioning step locally or in CI automatically produces the expected version metadata, updates project files, and generates changelog entries from commit history."
         }
       },
       {
@@ -176,13 +160,10 @@
           }
         },
         "stack": {
-          "exampleTools": [
-            "@commitlint/cli",
-            "@commitlint/config-conventional"
-          ],
-          "exampleConfigFiles": ["commitlint.config.*"],
-          "notes": "Enforce commit message format via commit-msg hooks (e.g., Husky) before CI.",
-          "verification": "Create a test commit using the documented convention and ensure the commit message passes the configured commit linting or wizard (for example, commitlint or commitizen)."
+          "exampleTools": ["commitlint", "commitizen"],
+          "exampleConfigFiles": ["commitlint.config.*", ".cz.toml"],
+          "notes": "Document your commit convention and wire up a helper tool so contributors can easily follow it.",
+          "verification": "Create a test commit following the documented commit convention and confirm that any configured commit message checks (local hooks or CI) accept the message."
         }
       },
       {
@@ -195,10 +176,10 @@
           }
         },
         "stack": {
-          "exampleTools": ["jest", "nyc"],
-          "exampleConfigFiles": ["jest.config.*"],
-          "notes": "Collect coverage in lcov or similar format; use diff coverage so legacy gaps are visible but non-blocking.",
-          "verification": "Run the unit tests with coverage enabled and confirm that a coverage report is produced and that the configured threshold (around 80%) is enforced for new changes."
+          "exampleTools": ["coverlet", "ReportGenerator"],
+          "exampleConfigFiles": ["*.csproj"],
+          "notes": "Enable coverage collection for test projects and publish reports in a human-friendly format from CI.",
+          "verification": "Run the test suite with coverage enabled (for example, using coverlet or a similar tool) and verify that coverage reports are generated and used in CI to monitor thresholds."
         }
       },
       {
@@ -213,8 +194,8 @@
         "stack": {
           "exampleTools": [],
           "exampleConfigFiles": [".github/workflows/*", "azure-pipelines.yml"],
-          "notes": "Expose a single npm script (e.g., `npm run ci`) that mirrors the CI pipeline so contributors can reproduce failures locally.",
-          "verification": "Open the CI configuration and verify there is a job or stage that runs linting, type checking, tests, build, and any required container checks before merging to main."
+          "notes": "Ensure CI runs analyzers, tests, build, and packaging or container checks before changes can be merged.",
+          "verification": "Open the CI configuration and verify there is a job or stage that runs analyzers, tests, build, and any required packaging or container checks before merging to main."
         }
       },
       {
@@ -227,10 +208,10 @@
           }
         },
         "stack": {
-          "exampleTools": ["prettier"],
-          "exampleConfigFiles": [".prettierrc.*", ".prettierignore"],
-          "notes": "Run Prettier in check mode in CI; auto-fix locally via pre-commit hooks or editor integration.",
-          "verification": "Run the formatter in check mode (for example, `npm run format:check`) and confirm it reports clean formatting on committed code and auto-fixes as expected locally."
+          "exampleTools": ["dotnet format"],
+          "exampleConfigFiles": [".editorconfig"],
+          "notes": "Use .editorconfig and dotnet-format to keep C# style consistent across contributors.",
+          "verification": "Run the configured formatter or code style enforcement (for example, `dotnet format`) and confirm that code in the repository conforms to the defined rules."
         }
       },
       {
@@ -243,10 +224,10 @@
           }
         },
         "stack": {
-          "exampleTools": ["husky", "lint-staged"],
-          "exampleConfigFiles": [".husky/", "package.json"],
-          "notes": "Run ESLint and Prettier on staged files and enforce commit message format via commit-msg hooks.",
-          "verification": "Inspect the pre-commit and commit-msg hooks (for example, files under .husky or other hook tooling) and confirm they run linting/formatting and commit linting on staged changes."
+          "exampleTools": ["Lefthook"],
+          "exampleConfigFiles": ["lefthook.yml"],
+          "notes": "Configure Lefthook or similar to run formatting and basic checks on staged files before commits.",
+          "verification": "Inspect the hook configuration (for example, Lefthook or similar) and confirm it runs at least formatting and basic checks on staged changes before commits or pushes."
         }
       },
       {
@@ -259,11 +240,16 @@
           }
         },
         "stack": {
-          "exampleTools": ["TypeScript compiler (tsc)"],
-          "exampleConfigFiles": ["tsconfig.json"],
-          "notes": "Enable strict mode ('strict': true) and treat type-check failures as CI failures for new code; gradually expand strictness into legacy modules.",
-          "verification": "Presence of tsconfig.json indicates type-checking is configured for the repository.",
-          "requiredFiles": ["tsconfig.json"],
+          "exampleTools": ["Roslyn analyzers"],
+          "exampleConfigFiles": [
+            ".editorconfig",
+            "Directory.Build.props",
+            "*.csproj"
+          ],
+          "notes": "Enable nullable reference types and relevant analyzers to catch type and nullability issues at compile time. C# project files (*.csproj) indicate the presence of projects that can be type-checked.",
+          "verification": ".editorconfig must exist; Directory.Build.props is optional for shared build configuration.",
+          "requiredFiles": [".editorconfig"],
+          "optionalFiles": ["Directory.Build.props"],
           "requiredScripts": ["typecheck"]
         }
       },
@@ -277,15 +263,11 @@
           }
         },
         "stack": {
-          "exampleTools": ["npm audit", "Snyk"],
-          "exampleConfigFiles": [
-            "package-lock.json",
-            "pnpm-lock.yaml",
-            "yarn.lock"
-          ],
-          "notes": "Require a lockfile for reproducible installs and pin Node.js/tooling versions; block merges on new high-severity vulnerabilities.",
-          "verification": "Dependency lockfile is present; security scanning is configured in CI or project tooling.",
-          "optionalFiles": ["package-lock.json", "pnpm-lock.yaml", "yarn.lock"]
+          "exampleTools": ["dotnet list package --vulnerable"],
+          "exampleConfigFiles": ["packages.lock.json", "*.csproj"],
+          "notes": "Enable package lock files and use vulnerability scanning to track and remediate high-risk dependencies.",
+          "verification": "Dependency lockfile or package reference is present; security scanning is configured.",
+          "optionalFiles": ["packages.lock.json"]
         }
       },
       {
@@ -299,10 +281,10 @@
         },
         "stack": {
           "exampleTools": [],
-          "exampleConfigFiles": ["package.json"],
-          "notes": "Specify the 'engines' field in package.json to define the required Node.js version (e.g., \"engines\": { \"node\": \">=18.0.0\" }). This helps prevent environment-related bugs and ensures all developers use compatible Node.js versions.",
-          "verification": "package.json must contain an 'engines' field specifying the required Node.js version.",
-          "requiredFiles": ["package.json"]
+          "exampleConfigFiles": ["*.csproj", "global.json"],
+          "notes": "Specify TargetFramework in .csproj files (e.g., <TargetFramework>net8.0</TargetFramework>) and optionally use global.json to pin the SDK version (e.g., { \"sdk\": { \"version\": \"8.0.100\" } }) for consistent builds across the team.",
+          "verification": ".csproj files must specify TargetFramework; global.json is recommended to pin SDK version.",
+          "optionalFiles": ["global.json"]
         }
       },
       {
@@ -315,12 +297,12 @@
           }
         },
         "stack": {
-          "exampleTools": ["JSDoc", "TypeDoc"],
-          "exampleConfigFiles": ["README.md", "docs/"],
-          "notes": "README should describe setup, scripts, and architecture; generate API docs from TypeScript types and JSDoc where helpful.",
-          "verification": "README.md is present in the repository root; docs/ directory or documentation tooling configuration exists if applicable.",
+          "exampleTools": ["DocFX"],
+          "exampleConfigFiles": ["README.md", "docfx.json"],
+          "notes": "Keep README and API docs in sync with the solution structure and public surface area.",
+          "verification": "README.md is present in the repository root; docs/ directory or DocFX configuration exists if applicable.",
           "requiredFiles": ["README.md"],
-          "optionalFiles": ["docs/", "typedoc.json"]
+          "optionalFiles": ["docs/", "docfx.json"]
         }
       },
       {
@@ -339,7 +321,7 @@
             "CODE_OF_CONDUCT.md",
             "CONTRIBUTING.md"
           ],
-          "notes": "Use an SPDX license identifier in package.json and describe review expectations, tests, and docs requirements in CONTRIBUTING.md.",
+          "notes": "Document contribution expectations and ensure legal and code-of-conduct policies are easy to find.",
           "verification": "LICENSE file is present in the repository root; CODE_OF_CONDUCT.md and CONTRIBUTING.md are present for contribution guidance.",
           "requiredFiles": ["LICENSE"],
           "optionalFiles": ["CODE_OF_CONDUCT.md", "CONTRIBUTING.md"]
@@ -357,10 +339,10 @@
           }
         },
         "stack": {
-          "exampleTools": ["Jest", "Supertest", "Playwright"],
-          "exampleConfigFiles": ["jest.config.*", "playwright.config.*"],
-          "notes": "Use Supertest for HTTP APIs and Playwright or similar tools for end-to-end flows; keep integration suites slower but reliable.",
-          "verification": "Confirm there is a separate integration or end-to-end test command or configuration and run it to verify that cross-component flows behave as expected."
+          "exampleTools": ["xUnit", "NUnit", "MSTest"],
+          "exampleConfigFiles": ["*.IntegrationTests.csproj"],
+          "notes": "Create dedicated integration test projects that exercise real infrastructure or service boundaries where appropriate.",
+          "verification": "Confirm there is a test project or configuration dedicated to integration or API tests and run it to verify external or cross-service interactions behave as expected."
         }
       },
       {
@@ -373,10 +355,10 @@
           }
         },
         "stack": {
-          "exampleTools": ["Lighthouse CI", "custom Node.js benchmarks"],
-          "exampleConfigFiles": ["lighthouserc.json"],
-          "notes": "Run Lighthouse CI for web apps and basic Node benchmarks on critical endpoints; schedule runs or limit to key branches to keep CI fast.",
-          "verification": "Identify and run the configured performance or Lighthouse-style checks and verify that key metrics are captured and compared to documented baselines."
+          "exampleTools": ["BenchmarkDotNet"],
+          "exampleConfigFiles": ["*.csproj"],
+          "notes": "Use BenchmarkDotNet or similar to track performance of critical methods or endpoints over time.",
+          "verification": "Identify and run the configured performance or benchmarking suite (for example, BenchmarkDotNet) and review the output to ensure it is tracked against historical or target values."
         }
       },
       {
@@ -389,10 +371,10 @@
           }
         },
         "stack": {
-          "exampleTools": ["ESLint complexity rules", "SonarQube"],
-          "exampleConfigFiles": [".eslintrc.*", "sonar-project.properties"],
-          "notes": "Warn on overly complex functions and methods; fail CI only when new or modified code exceeds thresholds.",
-          "verification": "Run the configured complexity tooling or rules (for example, ESLint complexity rules or Sonar analysis) and review any hot spots, ensuring new code does not exceed agreed thresholds."
+          "exampleTools": ["SonarQube", "Visual Studio code metrics"],
+          "exampleConfigFiles": ["sonar-project.properties"],
+          "notes": "Use code metrics or Sonar analysis to flag overly complex methods and refactor them over time.",
+          "verification": "Run the configured code metrics or Sonar analysis and review complexity reports for key modules, ensuring that new or changed code stays within acceptable limits."
         }
       },
       {
@@ -405,10 +387,10 @@
           }
         },
         "stack": {
-          "exampleTools": ["axe-core", "Lighthouse accessibility audits"],
+          "exampleTools": ["axe-core", "Accessibility Insights"],
           "exampleConfigFiles": [],
-          "notes": "Run accessibility checks against key pages or components in CI; fail on critical violations while treating minor issues as warnings initially.",
-          "verification": "For web-facing apps, run the configured accessibility tooling (for example, axe, pa11y, or Lighthouse accessibility audits) against key pages and confirm that critical issues are resolved."
+          "notes": "Apply accessibility tooling to ASP.NET or Blazor front-ends and review issues alongside functional testing.",
+          "verification": "For web-facing apps, run the configured accessibility checks or tools against your main UI endpoints and confirm that blocking accessibility issues are addressed."
         }
       }
     ],
@@ -423,10 +405,10 @@
           }
         },
         "stack": {
-          "exampleTools": ["Winston", "Pino"],
-          "exampleConfigFiles": [],
-          "notes": "Adopt structured JSON logging with correlation IDs and send logs to a centralized sink in production.",
-          "verification": "Confirm that a structured logging library (such as Winston or Pino) is configured to emit JSON or key-value logs and that error handling routes important failures through this logger."
+          "exampleTools": ["Serilog", "NLog"],
+          "exampleConfigFiles": ["appsettings.json"],
+          "notes": "Configure structured logging for your .NET services and ensure exceptions and key events are logged with useful context.",
+          "verification": "Confirm that a structured logging library (such as Serilog or NLog) is configured with an agreed sink and format, and that the application logs meaningful context for errors and key events."
         }
       }
     ]
