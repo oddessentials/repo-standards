@@ -1,3 +1,9 @@
+## [2.0.1](https://github.com/oddessentials/repo-standards/compare/v2.0.0...v2.0.1) (2025-12-23)
+
+### Bug Fixes
+
+- **schema:** loosen requiredFiles/Scripts for cross-stack compatibility ([5d3b022](https://github.com/oddessentials/repo-standards/commit/5d3b0226106309674336304d1ff548d6d952af75))
+
 # [2.0.0](https://github.com/oddessentials/repo-standards/compare/v1.2.1...v2.0.0) (2025-12-23)
 
 ### Features
