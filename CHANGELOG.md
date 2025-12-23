@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/oddessentials/repo-standards/compare/v2.0.1...v2.1.0) (2025-12-23)
+
+### Features
+
+- schema validation added ([9907d51](https://github.com/oddessentials/repo-standards/commit/9907d5143d0d07e62127bf314a82494cbb5c246c))
+- standarize for monorepos ([ba14141](https://github.com/oddessentials/repo-standards/commit/ba14141afd80f725896af774f85f5c1e51b37b75))
+
 ## [2.0.1](https://github.com/oddessentials/repo-standards/compare/v2.0.0...v2.0.1) (2025-12-23)
 
 ### Bug Fixes
