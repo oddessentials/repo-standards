@@ -130,12 +130,11 @@
           "verification": ".editorconfig must exist to drive the .NET formatting and analysis tooling.",
           "requiredFiles": [".editorconfig"],
           "optionalFiles": ["Directory.Build.props"],
-          "requiredScripts": ["lint"],
           "bazelHints": {
             "commands": [
               "bazel build //... --aspects=@rules_dotnet//dotnet:analyzers.bzl%analyzer_aspect"
             ],
-            "notes": "Use rules_dotnet analyzer aspects for Roslyn-based linting in Bazel."
+            "notes": "Example only; actual targets are repo-defined. Use rules_dotnet analyzer aspects for Roslyn-based linting."
           }
         }
       },
@@ -335,10 +334,9 @@
           "verification": ".editorconfig must exist; Directory.Build.props is optional for shared build configuration.",
           "requiredFiles": [".editorconfig"],
           "optionalFiles": ["Directory.Build.props"],
-          "requiredScripts": ["typecheck"],
           "bazelHints": {
             "commands": ["bazel build //..."],
-            "notes": "C# type errors surface during bazel build with rules_dotnet. No separate typecheck step needed."
+            "notes": "Example only; actual targets are repo-defined. C# type errors surface during bazel build with rules_dotnet."
           }
         }
       },

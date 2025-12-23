@@ -119,18 +119,22 @@
         },
         "stack": {
           "exampleTools": ["ruff", "flake8"],
-          "exampleConfigFiles": ["pyproject.toml", ".flake8"],
+          "exampleConfigFiles": ["pyproject.toml", ".flake8", "ruff.toml"],
           "notes": "Configure a primary linter (such as ruff) and keep rules focused on catching real issues without overwhelming developers.",
-          "verification": "pyproject.toml (or ruff.toml / .flake8) signals that linting tools are configured for the repository.",
-          "requiredFiles": ["pyproject.toml"],
-          "optionalFiles": ["ruff.toml", ".flake8"],
-          "requiredScripts": ["lint"],
+          "verification": "pyproject.toml (or ruff.toml / .flake8 / setup.cfg) signals that linting tools are configured for the repository.",
+          "anyOfFiles": [
+            "pyproject.toml",
+            "ruff.toml",
+            ".flake8",
+            "setup.cfg",
+            "tox.ini"
+          ],
           "bazelHints": {
             "commands": [
               "bazel test //...:ruff_test",
               "bazel run //tools/lint:ruff -- check ."
             ],
-            "notes": "Use rules_python with ruff wrapped as py_test or a custom run target."
+            "notes": "Example only; actual targets are repo-defined. Use rules_python with ruff wrapped as py_test or run target."
           }
         }
       },
@@ -149,10 +153,9 @@
           "notes": "Organize unit tests under a tests/ directory and avoid real network or database calls in this layer.",
           "verification": "Test framework configuration is present; tests/ directory or pytest configuration exists.",
           "optionalFiles": ["pytest.ini", "pyproject.toml", "tests/"],
-          "requiredScripts": ["test"],
           "bazelHints": {
             "commands": ["bazel test //..."],
-            "notes": "Use rules_python py_test for pytest-based tests. Tests are hermetically isolated."
+            "notes": "Example only; actual targets are repo-defined. Use rules_python py_test for pytest-based tests."
           }
         }
       },
@@ -298,13 +301,12 @@
           "verification": "pyproject.toml (or mypy.ini) signals that mypy configuration is available for the repository.",
           "requiredFiles": ["pyproject.toml"],
           "optionalFiles": ["mypy.ini"],
-          "requiredScripts": ["typecheck"],
           "bazelHints": {
             "commands": [
               "bazel test //...:mypy_test",
               "bazel run //tools/typecheck:mypy"
             ],
-            "notes": "Wrap mypy as a py_test or run target for Bazel-based type checking."
+            "notes": "Example only; actual targets are repo-defined. Wrap mypy as a py_test or run target."
           }
         }
       },
