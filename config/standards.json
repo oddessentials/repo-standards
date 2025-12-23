@@ -182,15 +182,20 @@
         "stackHints": {
           "typescript-js": {
             "exampleTools": ["eslint"],
-            "exampleConfigFiles": [".eslintrc.*"],
+            "exampleConfigFiles": [".eslintrc.*", "eslint.config.js"],
             "notes": "Treat new lint errors as CI failures; keep existing issues as warnings until addressed.",
             "verification": "Presence of eslint.config.js (or any .eslintrc* file) indicates linting is enforced for the repository.",
-            "requiredFiles": ["eslint.config.js"],
-            "optionalFiles": [
+            "anyOfFiles": [
+              "eslint.config.js",
+              "eslint.config.mjs",
+              "eslint.config.cjs",
               ".eslintrc.js",
               ".eslintrc.cjs",
               ".eslintrc.json",
               ".eslintrc.yaml",
+              ".eslintrc.yml"
+            ],
+            "optionalFiles": [
               ".prettierrc",
               "prettier.config.js",
               "prettier.config.cjs",
@@ -203,7 +208,7 @@
                 "bazel test //... --aspects=//tools:lint.bzl%eslint_aspect --output_groups=report"
               ],
               "recommendedTargets": ["//tools/lint:lint"],
-              "notes": "Wrap eslint via aspect_rules_lint or a custom sh_test rule. Aspect-based linting runs on all source files."
+              "notes": "Example only; actual targets are repo-defined. Wrap eslint via aspect_rules_lint or a custom sh_test rule."
             }
           },
           "csharp-dotnet": {
@@ -213,28 +218,31 @@
             "verification": ".editorconfig must exist to drive the .NET formatting and analysis tooling.",
             "requiredFiles": [".editorconfig"],
             "optionalFiles": ["Directory.Build.props"],
-            "requiredScripts": ["lint"],
             "bazelHints": {
               "commands": [
                 "bazel build //... --aspects=@rules_dotnet//dotnet:analyzers.bzl%analyzer_aspect"
               ],
-              "notes": "Use rules_dotnet analyzer aspects for Roslyn-based linting in Bazel."
+              "notes": "Example only; actual targets are repo-defined. Use rules_dotnet analyzer aspects for Roslyn-based linting."
             }
           },
           "python": {
             "exampleTools": ["ruff", "flake8"],
-            "exampleConfigFiles": ["pyproject.toml", ".flake8"],
+            "exampleConfigFiles": ["pyproject.toml", ".flake8", "ruff.toml"],
             "notes": "Configure a primary linter (such as ruff) and keep rules focused on catching real issues without overwhelming developers.",
-            "verification": "pyproject.toml (or ruff.toml / .flake8) signals that linting tools are configured for the repository.",
-            "requiredFiles": ["pyproject.toml"],
-            "optionalFiles": ["ruff.toml", ".flake8"],
-            "requiredScripts": ["lint"],
+            "verification": "pyproject.toml (or ruff.toml / .flake8 / setup.cfg) signals that linting tools are configured for the repository.",
+            "anyOfFiles": [
+              "pyproject.toml",
+              "ruff.toml",
+              ".flake8",
+              "setup.cfg",
+              "tox.ini"
+            ],
             "bazelHints": {
               "commands": [
                 "bazel test //...:ruff_test",
                 "bazel run //tools/lint:ruff -- check ."
               ],
-              "notes": "Use rules_python with ruff wrapped as py_test or a custom run target."
+              "notes": "Example only; actual targets are repo-defined. Use rules_python with ruff wrapped as py_test or run target."
             }
           },
           "rust": {
@@ -248,7 +256,7 @@
               "commands": [
                 "bazel build //... --aspects=@rules_rust//rust:defs.bzl%clippy_aspect --output_groups=clippy_checks"
               ],
-              "notes": "rules_rust includes clippy_aspect for Bazel-native Clippy linting on all Rust targets."
+              "notes": "Example only; actual targets are repo-defined. rules_rust includes clippy_aspect for Bazel-native Clippy linting."
             }
           },
           "go": {
@@ -317,10 +325,9 @@
             "notes": "Organize unit tests under a tests/ directory and avoid real network or database calls in this layer.",
             "verification": "Test framework configuration is present; tests/ directory or pytest configuration exists.",
             "optionalFiles": ["pytest.ini", "pyproject.toml", "tests/"],
-            "requiredScripts": ["test"],
             "bazelHints": {
               "commands": ["bazel test //..."],
-              "notes": "Use rules_python py_test for pytest-based tests. Tests are hermetically isolated."
+              "notes": "Example only; actual targets are repo-defined. Use rules_python py_test for pytest-based tests."
             }
           },
           "rust": {
@@ -831,10 +838,9 @@
             "verification": ".editorconfig must exist; Directory.Build.props is optional for shared build configuration.",
             "requiredFiles": [".editorconfig"],
             "optionalFiles": ["Directory.Build.props"],
-            "requiredScripts": ["typecheck"],
             "bazelHints": {
               "commands": ["bazel build //..."],
-              "notes": "C# type errors surface during bazel build with rules_dotnet. No separate typecheck step needed."
+              "notes": "Example only; actual targets are repo-defined. C# type errors surface during bazel build with rules_dotnet."
             }
           },
           "python": {
@@ -844,13 +850,12 @@
             "verification": "pyproject.toml (or mypy.ini) signals that mypy configuration is available for the repository.",
             "requiredFiles": ["pyproject.toml"],
             "optionalFiles": ["mypy.ini"],
-            "requiredScripts": ["typecheck"],
             "bazelHints": {
               "commands": [
                 "bazel test //...:mypy_test",
                 "bazel run //tools/typecheck:mypy"
               ],
-              "notes": "Wrap mypy as a py_test or run target for Bazel-based type checking."
+              "notes": "Example only; actual targets are repo-defined. Wrap mypy as a py_test or run target."
             }
           },
           "rust": {

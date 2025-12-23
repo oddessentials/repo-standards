@@ -134,7 +134,7 @@
             "commands": [
               "bazel build //... --aspects=@rules_rust//rust:defs.bzl%clippy_aspect --output_groups=clippy_checks"
             ],
-            "notes": "rules_rust includes clippy_aspect for Bazel-native Clippy linting on all Rust targets."
+            "notes": "Example only; actual targets are repo-defined. rules_rust includes clippy_aspect for Bazel-native Clippy linting."
           }
         }
       },
