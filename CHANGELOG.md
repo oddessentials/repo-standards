@@ -1,3 +1,21 @@
+# [3.0.0](https://github.com/oddessentials/repo-standards/compare/v2.1.0...v3.0.0) (2025-12-23)
+
+- fix!: align schema version with package.json major version ([aa703dd](https://github.com/oddessentials/repo-standards/commit/aa703dd8eece0288539fd78c30931adbac30f2c4))
+
+### BREAKING CHANGES
+
+- Schema version corrected from 3 to 2 to match package.json major.
+
+* standards.json version: 3 -> 2
+
+* standards.schema.json: , minimum, description updated to v2
+
+* build.ts: syncSchemaVersion() auto-upgrades on major bump, fails if schema ahead
+
+* index.test.ts: expects version 2, added version sync invariant test
+
+* README.md: updated version references
+
 # [2.1.0](https://github.com/oddessentials/repo-standards/compare/v2.0.1...v2.1.0) (2025-12-23)
 
 ### Features
