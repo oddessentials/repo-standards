@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "stack": "go",
   "stackLabel": "Go",
   "ciSystems": ["azure-devops"],
@@ -41,7 +41,8 @@
           "type-checking",
           "unit-test-runner",
           "unit-test-reporter",
-          "dependency-security"
+          "dependency-security",
+          "dependency-update-automation"
         ],
         "notes": "Pin tool and runtime versions in CI and containers to avoid flaky differences across environments."
       },
@@ -324,6 +325,45 @@
       }
     ],
     "recommended": [
+      {
+        "id": "dependency-update-automation",
+        "label": "Dependency Update Automation",
+        "description": "Automate dependency updates using Renovate or Dependabot to keep dependencies current and reduce security exposure window.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality",
+            "notes": "CI hints are suggested mappings; adjust to your pipeline topology."
+          }
+        },
+        "stack": {
+          "exampleTools": ["renovate", "dependabot"],
+          "exampleConfigFiles": ["renovate.json", ".github/dependabot.yml"],
+          "notes": "Both support go.mod/go.sum. Renovate handles replace directives better. Security scanning is covered by dependency-security (govulncheck).",
+          "verification": "Check for renovate.json OR .github/dependabot.yml. Verify Go module PRs.",
+          "anyOfFiles": [
+            "renovate.json",
+            ".renovaterc.json",
+            ".github/dependabot.yml"
+          ]
+        }
+      },
+      {
+        "id": "dependency-architecture-rules",
+        "label": "Dependency Architecture Rules",
+        "description": "Enforce module boundaries and import constraints to prevent architectural drift and unwanted coupling.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality",
+            "notes": "CI hints are suggested mappings; adjust to your pipeline topology."
+          }
+        },
+        "stack": {
+          "exampleTools": ["depaware", "go-mod-check"],
+          "exampleConfigFiles": [],
+          "notes": "Go's module system is simpler. Use internal/ packages for visibility. depaware provides transitive dep analysis. Standard practice: 'go mod tidy && git diff --exit-code go.mod go.sum'.",
+          "verification": "Run 'go mod verify' and 'go mod tidy' with diff check in CI."
+        }
+      },
       {
         "id": "integration-testing",
         "label": "Integration Testing",

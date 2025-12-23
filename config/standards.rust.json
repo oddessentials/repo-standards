@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "stack": "rust",
   "stackLabel": "Rust",
   "ciSystems": ["azure-devops", "github-actions"],
@@ -41,7 +41,8 @@
           "type-checking",
           "unit-test-runner",
           "unit-test-reporter",
-          "dependency-security"
+          "dependency-security",
+          "dependency-update-automation"
         ],
         "notes": "Pin tool and runtime versions in CI and containers to avoid flaky differences across environments."
       },
@@ -369,6 +370,54 @@
       }
     ],
     "recommended": [
+      {
+        "id": "dependency-update-automation",
+        "label": "Dependency Update Automation",
+        "description": "Automate dependency updates using Renovate or Dependabot to keep dependencies current and reduce security exposure window.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality",
+            "notes": "CI hints are suggested mappings; adjust to your pipeline topology."
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "CI hints are suggested mappings; adjust to your workflow structure."
+          }
+        },
+        "stack": {
+          "exampleTools": ["renovate", "dependabot"],
+          "exampleConfigFiles": ["renovate.json", ".github/dependabot.yml"],
+          "notes": "Both support Cargo.toml/Cargo.lock. Works with cargo workspaces. Security scanning is covered by dependency-security (cargo-audit/cargo-deny).",
+          "verification": "Check for renovate.json OR .github/dependabot.yml. Verify Cargo dependency PRs.",
+          "anyOfFiles": [
+            "renovate.json",
+            ".renovaterc.json",
+            ".github/dependabot.yml"
+          ]
+        }
+      },
+      {
+        "id": "dependency-architecture-rules",
+        "label": "Dependency Architecture Rules",
+        "description": "Enforce module boundaries and import constraints to prevent architectural drift and unwanted coupling.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality",
+            "notes": "CI hints are suggested mappings; adjust to your pipeline topology."
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "CI hints are suggested mappings; adjust to your workflow structure."
+          }
+        },
+        "stack": {
+          "exampleTools": ["cargo-deny"],
+          "exampleConfigFiles": ["deny.toml"],
+          "notes": "cargo-deny's [bans] section enforces dependency graph rules (deny specific crates, wildcards). Extend existing config if using for security scanning.",
+          "verification": "Run 'cargo deny check bans' to verify dependency constraints.",
+          "optionalFiles": ["deny.toml"]
+        }
+      },
       {
         "id": "integration-testing",
         "label": "Integration Testing",

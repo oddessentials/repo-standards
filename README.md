@@ -68,7 +68,7 @@ The master spec includes a `meta` block that defines system-wide expectations:
 
 ## Structure of `config/standards.json`
 
-- `version` — schema version
+- `version` — schema version (currently `2`)
 - `meta` — global rules and migration policy
 - `ciSystems` — supported CI platforms
   _(currently `github-actions`, `azure-devops`)_
@@ -76,6 +76,8 @@ The master spec includes a `meta` block that defines system-wide expectations:
   - `typescript-js`
   - `csharp-dotnet`
   - `python`
+  - `rust`
+  - `go`
 
 - `checklist`
   - `core` — must-have requirements
@@ -91,6 +93,54 @@ Each checklist item includes:
   - example tools
   - example config files
   - notes and trade-offs (including ML variants for Python)
+  - `anyOfFiles` — either-or file compliance hints (v2+)
+  - `pinningNotes` — version pinning guidance (v2+)
+
+### Schema Version
+
+The `version` field indicates schema compatibility:
+
+- `1` — Original schema
+- `2` — Adds `anyOfFiles` and `pinningNotes` fields (additive, non-breaking)
+
+Consumers should ignore unknown fields for forward compatibility.
+
+---
+
+## Dependency Governance (Recommended Items)
+
+Two recommended checklist items support supply-chain governance:
+
+| Item                            | Scope             | Primary Tools                            |
+| ------------------------------- | ----------------- | ---------------------------------------- |
+| `dependency-update-automation`  | Automated PR bots | Renovate (cross-CI), Dependabot (GitHub) |
+| `dependency-architecture-rules` | Import boundaries | Varies by stack                          |
+
+> **Note**: `dependency-security` (core) covers vulnerability scanning and lockfiles.
+> These recommended items are complementary, not overlapping.
+
+### Renovate vs Dependabot
+
+| Factor             | Renovate            | Dependabot  |
+| ------------------ | ------------------- | ----------- |
+| CI Support         | GHA + AzDO + GitLab | GitHub only |
+| Config Flexibility | High                | Medium      |
+| Grouping           | Advanced            | Basic       |
+| Automerge          | Configurable        | Limited     |
+
+**Recommendation**: Use Renovate for cross-CI portability.
+
+### Azure DevOps Renovate Setup
+
+For Azure DevOps, Renovate requires one of:
+
+1. **Mend Renovate Hosted Service** — Install from Azure Marketplace
+2. **Self-Hosted Runner** — Scheduled pipeline with `renovate/renovate` Docker image
+3. **Container Job** — Run Renovate in a container step
+
+Required secrets:
+
+- `AZURE_DEVOPS_TOKEN` (PAT with Code Read/Write, PR Contribute)
 
 ---
 
@@ -153,7 +203,7 @@ Typical usage:
 - Load a **stack-specific view** as:
   - a CI contract
   - an onboarding checklist
-  - input to autonomous agents (e.g. Odd Hive Mind)
+  - input to autonomous agents
 
 This package is intentionally **read-only** and **side-effect free**.
 

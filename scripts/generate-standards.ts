@@ -28,6 +28,10 @@ interface StackHints {
   requiredFiles?: string[];
   optionalFiles?: string[];
   requiredScripts?: string[];
+  // Either-or file compliance: at least one of these files must exist
+  anyOfFiles?: string[];
+  // Version pinning guidance for deterministic CI
+  pinningNotes?: string;
   machineCheck?: {
     command: string;
     expectExitCode?: number;
