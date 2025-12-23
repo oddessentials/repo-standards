@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 1,
   "stack": "rust",
   "stackLabel": "Rust",
   "ciSystems": ["azure-devops"],

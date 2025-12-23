@@ -101,8 +101,7 @@ Each checklist item includes:
 The `version` field indicates schema compatibility:
 
 - `1` — Original schema
-- `2` — Adds `anyOfFiles` and `pinningNotes` fields (additive, non-breaking)
-- `3` — Adds `bazelHints` field and `meta.bazelIntegration` section for Bazel support
+- `2` — Adds `bazelHints`, `meta.bazelIntegration` for Bazel support, `anyOfFiles`, `pinningNotes`
 
 Consumers should ignore unknown fields for forward compatibility.
 

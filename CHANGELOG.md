@@ -1,8 +1,8 @@
-# [3.0.0](https://github.com/oddessentials/repo-standards/compare/v1.2.1...v3.0.0) (2025-12-23)
+# [2.0.0](https://github.com/oddessentials/repo-standards/compare/v1.2.1...v2.0.0) (2025-12-23)
 
 ### ⚠ BREAKING CHANGES
 
-- Schema version bumped to 3 (matches package.json major version)
+- Schema version reflects package.json major version (now synchronized)
 - Added `bazelHints` field to `StackHints` (consumers may encounter new field)
 - Added `meta.bazelIntegration` section
 

@@ -33,9 +33,9 @@ describe("repo-standards API", () => {
 });
 
 describe("dependency governance items", () => {
-  it("schema version is 3", () => {
+  it("schema version is 2", () => {
     const spec = loadMasterSpec();
-    expect(spec.version).toBe(3);
+    expect(spec.version).toBe(2);
   });
 
   it("recommended section includes both dependency items", () => {

@@ -36,6 +36,31 @@ function sortObject(obj: unknown): unknown {
   return obj;
 }
 
+/**
+ * Sync schema version with package.json major version.
+ * This ensures the schema version always matches the package major version.
+ */
+function syncSchemaVersion(rootDir: string): void {
+  const pkgPath = join(rootDir, "package.json");
+  const standardsPath = join(rootDir, "config", "standards.json");
+
+  const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
+  const standards = JSON.parse(readFileSync(standardsPath, "utf8"));
+
+  // Extract major version from package.json (e.g., "2.0.0" -> 2)
+  const pkgMajor = parseInt(pkg.version.split(".")[0], 10);
+
+  if (standards.version !== pkgMajor) {
+    console.log(
+      `Syncing schema version: ${standards.version} -> ${pkgMajor} (from package.json)`,
+    );
+    standards.version = pkgMajor;
+    writeFileSync(standardsPath, JSON.stringify(standards, null, 2) + "\n");
+  } else {
+    console.log(`Schema version ${standards.version} matches package.json`);
+  }
+}
+
 // Run the existing generator for each stack (and optional CI system)
 function generateStack(stack: string, ci?: string) {
   const args = ["scripts/generate-standards.ts", stack];
@@ -49,6 +74,9 @@ function main() {
   const rootDir = process.cwd();
   const configSrc = resolve(rootDir, "config");
   const configDest = resolve(rootDir, "dist", "config");
+
+  // Sync schema version with package.json major version (before generation)
+  syncSchemaVersion(rootDir);
 
   // Ensure dist/config exists
   mkdirSync(configDest, { recursive: true });
