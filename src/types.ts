@@ -1,6 +1,11 @@
 // src/types.ts
 
-export type StackId = "typescript-js" | "csharp-dotnet" | "python";
+export type StackId =
+  | "typescript-js"
+  | "csharp-dotnet"
+  | "python"
+  | "rust"
+  | "go";
 export type CiSystem = "azure-devops" | "github-actions";
 
 export interface MasterJson {

@@ -1,0 +1,411 @@
+{
+  "version": 1,
+  "stack": "rust",
+  "stackLabel": "Rust",
+  "ciSystems": ["azure-devops"],
+  "meta": {
+    "defaultCoverageThreshold": 0.8,
+    "complexityChecks": {
+      "enabledByDefault": true,
+      "description": "When supported by the stack, run cyclomatic complexity or similar metrics in CI as a warning-only check initially."
+    },
+    "qualityGatePolicy": {
+      "preferSoftFailOnLegacy": true,
+      "description": "New quality checks should warn on existing code and fail CI only for violations introduced in new or changed code, to reduce friction on legacy codebases."
+    },
+    "migrationGuide": [
+      {
+        "step": 1,
+        "title": "Establish Local Safety Nets First",
+        "description": "Start by adding pre-commit hooks and core formatting/linting so developers get fast feedback without touching CI.",
+        "focusIds": ["pre-commit-hooks", "linting", "code-formatter"],
+        "notes": "Keep hooks fast and focused on changed files to avoid slowing down day-to-day work."
+      },
+      {
+        "step": 2,
+        "title": "Mirror Local Checks in CI (Soft-Fail on Legacy)",
+        "description": "Introduce CI quality gates that mirror local checks, but treat existing violations as warnings wherever possible.",
+        "focusIds": [
+          "ci-quality-gates",
+          "linting",
+          "code-formatter",
+          "commit-linting"
+        ],
+        "notes": "Use diff-based tools or baselines so only new violations break builds; legacy issues remain visible but non-blocking."
+      },
+      {
+        "step": 3,
+        "title": "Add Type Safety, Coverage, and Dependency Security",
+        "description": "Enable type-checking, coverage thresholds, and dependency/vulnerability scanning with gradual enforcement.",
+        "focusIds": [
+          "type-checking",
+          "unit-test-runner",
+          "unit-test-reporter",
+          "dependency-security"
+        ],
+        "notes": "Pin tool and runtime versions in CI and containers to avoid flaky differences across environments."
+      },
+      {
+        "step": 4,
+        "title": "Layer in Docs, Governance, and Recommended Checks",
+        "description": "Add documentation standards, governance files, integration testing, performance baselines, complexity analysis, accessibility auditing, and (optionally) ML-specific practices for data-heavy Python repos.",
+        "focusIds": [
+          "documentation",
+          "repository-governance",
+          "integration-testing",
+          "performance-baselining",
+          "complexity-analysis",
+          "accessibility-auditing"
+        ],
+        "notes": "Tackle recommended items in order of business value; backend-only repos can skip web-focused checks like accessibility. For AI/ML-heavy Python teams, consider extending containerization with data versioning (DVC) and unit tests with data quality checks (e.g., Great Expectations) as part of this step."
+      }
+    ]
+  },
+  "checklist": {
+    "core": [
+      {
+        "id": "gitignore-and-dockerignore",
+        "label": "Git and Docker Ignore Files",
+        "description": "Maintain proper .gitignore and .dockerignore files to prevent committing secrets, build artifacts, or unnecessary files.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          }
+        },
+        "stack": {
+          "exampleConfigFiles": [".gitignore", ".dockerignore"],
+          "notes": "Use the official github/gitignore Rust template. Exclude target/, Cargo.lock (for libraries), *.pdb, and similar build artifacts. .dockerignore must exclude target/, .git, and local development files.",
+          "verification": ".gitignore must exist; .dockerignore is recommended when containerizing or using Docker workflows.",
+          "requiredFiles": [".gitignore"],
+          "optionalFiles": [".dockerignore"]
+        }
+      },
+      {
+        "id": "linting",
+        "label": "Linting",
+        "description": "Run static code linting to enforce consistency and catch common issues early.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          }
+        },
+        "stack": {
+          "exampleTools": ["clippy", "cargo-clippy"],
+          "exampleConfigFiles": ["clippy.toml", ".clippy.toml"],
+          "notes": "Use Clippy for comprehensive Rust linting. Configure via clippy.toml for project-specific rules. Treat warnings as errors in CI with -D warnings.",
+          "verification": "Clippy is available via rustup component. Run 'cargo clippy' to verify linting is configured.",
+          "requiredFiles": ["Cargo.toml"],
+          "optionalFiles": ["clippy.toml", ".clippy.toml"]
+        }
+      },
+      {
+        "id": "unit-test-runner",
+        "label": "Unit Test Runner",
+        "description": "Provide a deterministic unit test framework with a single command to run all tests.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "test"
+          }
+        },
+        "stack": {
+          "exampleTools": ["cargo test"],
+          "exampleConfigFiles": ["Cargo.toml"],
+          "notes": "Use cargo test as the built-in test runner. Organize tests in tests/ directory for integration tests and inline #[test] functions for unit tests.",
+          "verification": "Run 'cargo test' to verify the test suite is configured and passing.",
+          "requiredFiles": ["Cargo.toml"],
+          "optionalFiles": ["tests/"]
+        }
+      },
+      {
+        "id": "containerization",
+        "label": "Containerization (Docker / Docker Compose)",
+        "description": "Provide a Dockerfile and, if applicable, a docker-compose file for local dev and CI parity.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "build"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": ["Dockerfile", "docker-compose.yml"],
+          "notes": "Use multi-stage builds: builder stage with rust:alpine for compiling, then copy binary to distroless or alpine for minimal runtime image. Pin Rust version via rust-toolchain.toml.",
+          "verification": "Dockerfile must be present; docker-compose.yml is optional and indicates orchestration usage.",
+          "requiredFiles": ["Dockerfile"],
+          "optionalFiles": ["docker-compose.yml"]
+        }
+      },
+      {
+        "id": "semantic-versioning",
+        "label": "Semantic Versioning",
+        "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "release"
+          }
+        },
+        "stack": {
+          "exampleTools": ["cargo-release", "semantic-release"],
+          "exampleConfigFiles": ["Cargo.toml", "CHANGELOG.md"],
+          "notes": "Version is defined in Cargo.toml. Use cargo-release or semantic-release-cargo for automated versioning. Follow Conventional Commits for changelog generation.",
+          "verification": "Check that Cargo.toml version follows SemVer and verify changelog generation from commit history."
+        }
+      },
+      {
+        "id": "commit-linting",
+        "label": "Commit Linting",
+        "description": "Enforce structured commit messages such as Conventional Commits.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          }
+        },
+        "stack": {
+          "exampleTools": ["commitlint", "commitizen"],
+          "exampleConfigFiles": ["commitlint.config.js", ".cz.toml"],
+          "notes": "Use commitlint with husky or pre-commit for enforcing Conventional Commits. Works consistently with cargo workspaces.",
+          "verification": "Test that non-conforming commit messages are rejected by the configured hooks or CI check."
+        }
+      },
+      {
+        "id": "unit-test-reporter",
+        "label": "Unit Test Reporter / Coverage",
+        "description": "Generate readable unit test and coverage reports and enforce a minimum coverage threshold (around 80%) for new or changed code.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "test"
+          }
+        },
+        "stack": {
+          "exampleTools": ["cargo-tarpaulin", "llvm-cov", "grcov"],
+          "exampleConfigFiles": ["Cargo.toml"],
+          "notes": "Use cargo-tarpaulin or llvm-cov for code coverage. Generate lcov or cobertura reports for CI integration.",
+          "verification": "Run 'cargo tarpaulin' or equivalent and verify coverage reports are generated and thresholds enforced."
+        }
+      },
+      {
+        "id": "ci-quality-gates",
+        "label": "CI Quality Gates",
+        "description": "Single CI pipeline that runs linting, formatting, type checking, tests, coverage, build, and containerization.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": [".github/workflows/*", "azure-pipelines.yml"],
+          "notes": "Use 'cargo clippy', 'cargo test', 'cargo build --release' as quality gates. Consider cargo-deny for dependency auditing.",
+          "verification": "Verify CI runs cargo clippy, cargo test, and cargo build before merging to main."
+        }
+      },
+      {
+        "id": "code-formatter",
+        "label": "Code Formatter",
+        "description": "Automatic code formatting to maintain a consistent style across all contributors.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          }
+        },
+        "stack": {
+          "exampleTools": ["rustfmt"],
+          "exampleConfigFiles": ["rustfmt.toml", ".rustfmt.toml"],
+          "notes": "Use rustfmt (via 'cargo fmt') as the standard formatter. Configure via rustfmt.toml. Run 'cargo fmt --check' in CI.",
+          "verification": "Run 'cargo fmt --check' and confirm it reports clean formatting. Use 'cargo fmt' to auto-fix."
+        }
+      },
+      {
+        "id": "pre-commit-hooks",
+        "label": "Pre-Commit Hooks",
+        "description": "Use git hooks to run linting, formatting, tests, and commit linting before changes are committed.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          }
+        },
+        "stack": {
+          "exampleTools": ["pre-commit", "cargo-husky"],
+          "exampleConfigFiles": [".pre-commit-config.yaml"],
+          "notes": "Use pre-commit with rust hooks for cargo fmt and cargo clippy on staged files. cargo-husky is an alternative.",
+          "verification": "Inspect .pre-commit-config.yaml and confirm that hooks run cargo fmt --check and cargo clippy before commits."
+        }
+      },
+      {
+        "id": "type-checking",
+        "label": "Type Checking",
+        "description": "Use static type checking to catch errors before runtime and enforce strictness on new code.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          }
+        },
+        "stack": {
+          "exampleTools": ["rustc (built-in)"],
+          "exampleConfigFiles": ["Cargo.toml"],
+          "notes": "Rust has compile-time type checking built into the language. The borrow checker enforces memory safety. No additional tooling needed for type safety.",
+          "verification": "Run 'cargo check' or 'cargo build' to verify type correctness. All Rust code is type-checked by default.",
+          "requiredFiles": ["Cargo.toml"]
+        }
+      },
+      {
+        "id": "dependency-security",
+        "label": "Dependency Management & Vulnerability Scanning",
+        "description": "Lock dependencies and scan regularly for known vulnerabilities; fail CI on newly introduced high-severity issues.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          }
+        },
+        "stack": {
+          "exampleTools": ["cargo-audit", "cargo-deny"],
+          "exampleConfigFiles": ["Cargo.lock", "deny.toml"],
+          "notes": "Use cargo-audit for vulnerability scanning or cargo-deny for comprehensive dependency checking (licenses, advisories, bans). Cargo.lock locks versions.",
+          "verification": "Cargo.lock is present; run 'cargo audit' or 'cargo deny check' to verify security scanning.",
+          "requiredFiles": ["Cargo.lock"],
+          "optionalFiles": ["deny.toml"]
+        }
+      },
+      {
+        "id": "runtime-version",
+        "label": "Runtime Version Specification",
+        "description": "Specify required runtime/engine versions in package manifests to ensure environment stability and prevent version-related issues across development teams.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": ["rust-toolchain.toml", "rust-toolchain"],
+          "notes": "Use rust-toolchain.toml to pin the Rust version (e.g., channel = 'stable' or specific version '1.75.0'). This ensures consistent builds across the team via rustup.",
+          "verification": "rust-toolchain.toml or rust-toolchain file specifies the required Rust version.",
+          "optionalFiles": ["rust-toolchain.toml", "rust-toolchain"]
+        }
+      },
+      {
+        "id": "documentation",
+        "label": "Documentation Standards",
+        "description": "Maintain a comprehensive README and, where applicable, auto-generated API docs to support onboarding and maintainability.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "docs"
+          }
+        },
+        "stack": {
+          "exampleTools": ["rustdoc", "mdBook"],
+          "exampleConfigFiles": ["README.md", "docs/"],
+          "notes": "Use rustdoc (via 'cargo doc') for API documentation from doc comments. Consider mdBook for user guides and tutorials.",
+          "verification": "README.md is present; run 'cargo doc' to generate API docs.",
+          "requiredFiles": ["README.md"],
+          "optionalFiles": ["docs/", "book.toml"]
+        }
+      },
+      {
+        "id": "repository-governance",
+        "label": "Repository Governance",
+        "description": "Include standard governance files (LICENSE, CODE_OF_CONDUCT.md, CONTRIBUTING.md), branch protection rules, and review standards to define legal, ethical, and workflow expectations.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "governance"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": [
+            "LICENSE",
+            "CODE_OF_CONDUCT.md",
+            "CONTRIBUTING.md"
+          ],
+          "notes": "Include license in Cargo.toml metadata. Document cargo workspace conventions and testing requirements in CONTRIBUTING.md.",
+          "verification": "LICENSE file is present; CODE_OF_CONDUCT.md and CONTRIBUTING.md provide contribution guidance.",
+          "requiredFiles": ["LICENSE"],
+          "optionalFiles": ["CODE_OF_CONDUCT.md", "CONTRIBUTING.md"]
+        }
+      }
+    ],
+    "recommended": [
+      {
+        "id": "integration-testing",
+        "label": "Integration Testing",
+        "description": "Test how components interact with each other and external systems, running after unit tests with more relaxed coverage thresholds.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "test"
+          }
+        },
+        "stack": {
+          "exampleTools": ["cargo test"],
+          "exampleConfigFiles": ["tests/"],
+          "notes": "Use the tests/ directory for integration tests. Use #[ignore] attribute for slow tests and run with 'cargo test -- --ignored'.",
+          "verification": "Confirm tests/ directory contains integration tests and run 'cargo test' to verify cross-component flows."
+        }
+      },
+      {
+        "id": "performance-baselining",
+        "label": "Performance Baselines",
+        "description": "Establish performance baselines and monitor for regressions using lightweight benchmarks or audits in CI.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "performance"
+          }
+        },
+        "stack": {
+          "exampleTools": ["criterion", "cargo bench"],
+          "exampleConfigFiles": ["benches/"],
+          "notes": "Use criterion for statistical benchmarking. Create benches/ directory for benchmark files. Track results over time in CI.",
+          "verification": "Run 'cargo bench' and verify benchmark results are captured and compared against baselines."
+        }
+      },
+      {
+        "id": "complexity-analysis",
+        "label": "Complexity Analysis",
+        "description": "Measure cyclomatic complexity or similar metrics to keep code maintainable, starting as a warning-only check.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          }
+        },
+        "stack": {
+          "exampleTools": ["clippy", "cargo-geiger"],
+          "exampleConfigFiles": ["clippy.toml"],
+          "notes": "Clippy includes cognitive complexity warnings. Use cargo-geiger for unsafe code metrics. Configure thresholds in clippy.toml.",
+          "verification": "Run 'cargo clippy' and review complexity-related warnings. Ensure new code stays within acceptable limits."
+        }
+      },
+      {
+        "id": "accessibility-auditing",
+        "label": "Accessibility Auditing",
+        "description": "Run accessibility checks on web-facing components to detect critical issues and improve inclusive UX.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          }
+        },
+        "stack": {
+          "exampleTools": ["axe-core", "pa11y"],
+          "exampleConfigFiles": [],
+          "notes": "For Rust web frameworks (Actix, Axum, Rocket), use headless browser-based accessibility tools to audit rendered HTML.",
+          "verification": "For web-facing Rust apps, run accessibility audits against key routes using axe or pa11y."
+        }
+      }
+    ],
+    "optionalEnhancements": [
+      {
+        "id": "observability",
+        "label": "Observability (Logging & Error Handling)",
+        "description": "Standardize error handling and structured logging to make debugging and production monitoring easier.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "observability"
+          }
+        },
+        "stack": {
+          "exampleTools": ["tracing", "log"],
+          "exampleConfigFiles": [],
+          "notes": "Use the tracing crate for structured logging with spans and events. Configure tracing-subscriber for output formatting.",
+          "verification": "Confirm that tracing or log crate is configured with appropriate subscriber/logger and emits structured output."
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,411 @@
+{
+  "version": 1,
+  "stack": "go",
+  "stackLabel": "Go",
+  "ciSystems": ["github-actions"],
+  "meta": {
+    "defaultCoverageThreshold": 0.8,
+    "complexityChecks": {
+      "enabledByDefault": true,
+      "description": "When supported by the stack, run cyclomatic complexity or similar metrics in CI as a warning-only check initially."
+    },
+    "qualityGatePolicy": {
+      "preferSoftFailOnLegacy": true,
+      "description": "New quality checks should warn on existing code and fail CI only for violations introduced in new or changed code, to reduce friction on legacy codebases."
+    },
+    "migrationGuide": [
+      {
+        "step": 1,
+        "title": "Establish Local Safety Nets First",
+        "description": "Start by adding pre-commit hooks and core formatting/linting so developers get fast feedback without touching CI.",
+        "focusIds": ["pre-commit-hooks", "linting", "code-formatter"],
+        "notes": "Keep hooks fast and focused on changed files to avoid slowing down day-to-day work."
+      },
+      {
+        "step": 2,
+        "title": "Mirror Local Checks in CI (Soft-Fail on Legacy)",
+        "description": "Introduce CI quality gates that mirror local checks, but treat existing violations as warnings wherever possible.",
+        "focusIds": [
+          "ci-quality-gates",
+          "linting",
+          "code-formatter",
+          "commit-linting"
+        ],
+        "notes": "Use diff-based tools or baselines so only new violations break builds; legacy issues remain visible but non-blocking."
+      },
+      {
+        "step": 3,
+        "title": "Add Type Safety, Coverage, and Dependency Security",
+        "description": "Enable type-checking, coverage thresholds, and dependency/vulnerability scanning with gradual enforcement.",
+        "focusIds": [
+          "type-checking",
+          "unit-test-runner",
+          "unit-test-reporter",
+          "dependency-security"
+        ],
+        "notes": "Pin tool and runtime versions in CI and containers to avoid flaky differences across environments."
+      },
+      {
+        "step": 4,
+        "title": "Layer in Docs, Governance, and Recommended Checks",
+        "description": "Add documentation standards, governance files, integration testing, performance baselines, complexity analysis, accessibility auditing, and (optionally) ML-specific practices for data-heavy Python repos.",
+        "focusIds": [
+          "documentation",
+          "repository-governance",
+          "integration-testing",
+          "performance-baselining",
+          "complexity-analysis",
+          "accessibility-auditing"
+        ],
+        "notes": "Tackle recommended items in order of business value; backend-only repos can skip web-focused checks like accessibility. For AI/ML-heavy Python teams, consider extending containerization with data versioning (DVC) and unit tests with data quality checks (e.g., Great Expectations) as part of this step."
+      }
+    ]
+  },
+  "checklist": {
+    "core": [
+      {
+        "id": "gitignore-and-dockerignore",
+        "label": "Git and Docker Ignore Files",
+        "description": "Maintain proper .gitignore and .dockerignore files to prevent committing secrets, build artifacts, or unnecessary files.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleConfigFiles": [".gitignore", ".dockerignore"],
+          "notes": "Use the official github/gitignore Go template. Exclude vendor/ (if not vendoring), *.exe, *.test, *.out, and IDE-specific files. .dockerignore must exclude .git and local build output.",
+          "verification": ".gitignore must exist; .dockerignore is recommended when containerizing or using Docker workflows.",
+          "requiredFiles": [".gitignore"],
+          "optionalFiles": [".dockerignore"]
+        }
+      },
+      {
+        "id": "linting",
+        "label": "Linting",
+        "description": "Run static code linting to enforce consistency and catch common issues early.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["golangci-lint", "staticcheck"],
+          "exampleConfigFiles": [".golangci.yml", ".golangci.yaml"],
+          "notes": "Use golangci-lint as the primary linter aggregator. Configure enabled linters in .golangci.yml for consistent team-wide enforcement.",
+          "verification": ".golangci.yml or .golangci.yaml indicates linting is configured. Run 'golangci-lint run' to verify.",
+          "requiredFiles": ["go.mod"],
+          "optionalFiles": [".golangci.yml", ".golangci.yaml"]
+        }
+      },
+      {
+        "id": "unit-test-runner",
+        "label": "Unit Test Runner",
+        "description": "Provide a deterministic unit test framework with a single command to run all tests.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["go test"],
+          "exampleConfigFiles": ["go.mod"],
+          "notes": "Use 'go test ./...' to run all tests. Place test files alongside source files with _test.go suffix. Keep unit tests fast and isolated.",
+          "verification": "Run 'go test ./...' to verify the test suite is configured and passing.",
+          "requiredFiles": ["go.mod"],
+          "optionalFiles": []
+        }
+      },
+      {
+        "id": "containerization",
+        "label": "Containerization (Docker / Docker Compose)",
+        "description": "Provide a Dockerfile and, if applicable, a docker-compose file for local dev and CI parity.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": ["Dockerfile", "docker-compose.yml"],
+          "notes": "Use multi-stage builds: builder stage with golang:alpine, then copy binary to scratch or distroless for minimal runtime. Set CGO_ENABLED=0 for static binaries.",
+          "verification": "Dockerfile must be present; docker-compose.yml is optional and indicates orchestration usage.",
+          "requiredFiles": ["Dockerfile"],
+          "optionalFiles": ["docker-compose.yml"]
+        }
+      },
+      {
+        "id": "semantic-versioning",
+        "label": "Semantic Versioning",
+        "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history.",
+        "ciHints": {
+          "github-actions": {
+            "job": "release"
+          }
+        },
+        "stack": {
+          "exampleTools": ["goreleaser", "semantic-release"],
+          "exampleConfigFiles": [".goreleaser.yml", "CHANGELOG.md"],
+          "notes": "Go uses git tags for versioning (v1.2.3 format). Use goreleaser for automated releases with changelog generation. Tag versions consistently.",
+          "verification": "Check that git tags follow vMAJOR.MINOR.PATCH format and goreleaser or similar tool generates releases and changelogs."
+        }
+      },
+      {
+        "id": "commit-linting",
+        "label": "Commit Linting",
+        "description": "Enforce structured commit messages such as Conventional Commits.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["commitlint", "commitizen"],
+          "exampleConfigFiles": ["commitlint.config.js", ".cz.toml"],
+          "notes": "Use commitlint with pre-commit hooks for enforcing Conventional Commits. Consistent with goreleaser changelog generation.",
+          "verification": "Test that non-conforming commit messages are rejected by the configured hooks or CI check."
+        }
+      },
+      {
+        "id": "unit-test-reporter",
+        "label": "Unit Test Reporter / Coverage",
+        "description": "Generate readable unit test and coverage reports and enforce a minimum coverage threshold (around 80%) for new or changed code.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["go test -cover", "go tool cover"],
+          "exampleConfigFiles": ["go.mod"],
+          "notes": "Use 'go test -coverprofile=coverage.out ./...' for coverage. Generate HTML or integrate with codecov/coveralls.",
+          "verification": "Run 'go test -cover ./...' and verify coverage reports are produced and thresholds monitored."
+        }
+      },
+      {
+        "id": "ci-quality-gates",
+        "label": "CI Quality Gates",
+        "description": "Single CI pipeline that runs linting, formatting, type checking, tests, coverage, build, and containerization.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": [".github/workflows/*", "azure-pipelines.yml"],
+          "notes": "Run 'golangci-lint run', 'go test ./...', 'go build' as quality gates. Use govulncheck for security scanning.",
+          "verification": "Verify CI runs golangci-lint, go test, and go build before merging to main."
+        }
+      },
+      {
+        "id": "code-formatter",
+        "label": "Code Formatter",
+        "description": "Automatic code formatting to maintain a consistent style across all contributors.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["gofmt", "goimports"],
+          "exampleConfigFiles": [],
+          "notes": "Use gofmt (built-in) for formatting. goimports extends gofmt with import organization. Formatting is enforced by convention.",
+          "verification": "Run 'gofmt -d .' or 'goimports -d .' and confirm no output indicates clean formatting."
+        }
+      },
+      {
+        "id": "pre-commit-hooks",
+        "label": "Pre-Commit Hooks",
+        "description": "Use git hooks to run linting, formatting, tests, and commit linting before changes are committed.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["pre-commit", "lefthook"],
+          "exampleConfigFiles": [".pre-commit-config.yaml", "lefthook.yml"],
+          "notes": "Use pre-commit with go hooks for gofmt, goimports, and golangci-lint on staged files.",
+          "verification": "Inspect hooks configuration and confirm that go fmt and golangci-lint run before commits."
+        }
+      },
+      {
+        "id": "type-checking",
+        "label": "Type Checking",
+        "description": "Use static type checking to catch errors before runtime and enforce strictness on new code.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["go vet", "staticcheck"],
+          "exampleConfigFiles": ["go.mod"],
+          "notes": "Go has compile-time type checking built in. Use 'go vet' for additional static analysis. staticcheck provides enhanced type-related checks.",
+          "verification": "Run 'go build ./...' to verify type correctness. Use 'go vet ./...' for additional static analysis.",
+          "requiredFiles": ["go.mod"]
+        }
+      },
+      {
+        "id": "dependency-security",
+        "label": "Dependency Management & Vulnerability Scanning",
+        "description": "Lock dependencies and scan regularly for known vulnerabilities; fail CI on newly introduced high-severity issues.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["govulncheck", "nancy"],
+          "exampleConfigFiles": ["go.sum"],
+          "notes": "Use govulncheck (official Go tool) for vulnerability scanning. go.sum locks dependency checksums for reproducible builds.",
+          "verification": "go.sum is present; run 'govulncheck ./...' to verify security scanning.",
+          "requiredFiles": ["go.sum"]
+        }
+      },
+      {
+        "id": "runtime-version",
+        "label": "Runtime Version Specification",
+        "description": "Specify required runtime/engine versions in package manifests to ensure environment stability and prevent version-related issues across development teams.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": ["go.mod", ".go-version"],
+          "notes": "Specify 'go' directive in go.mod (e.g., go 1.21) to set minimum Go version. Consider .go-version for goenv users.",
+          "verification": "go.mod must contain 'go' directive specifying minimum version; .go-version is optional for local development.",
+          "requiredFiles": ["go.mod"],
+          "optionalFiles": [".go-version"]
+        }
+      },
+      {
+        "id": "documentation",
+        "label": "Documentation Standards",
+        "description": "Maintain a comprehensive README and, where applicable, auto-generated API docs to support onboarding and maintainability.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["godoc", "pkgsite"],
+          "exampleConfigFiles": ["README.md", "docs/"],
+          "notes": "Use godoc or pkgsite for API documentation from code comments. Follow Go documentation conventions.",
+          "verification": "README.md is present; documentation comments exist in exported functions/types.",
+          "requiredFiles": ["README.md"],
+          "optionalFiles": ["docs/"]
+        }
+      },
+      {
+        "id": "repository-governance",
+        "label": "Repository Governance",
+        "description": "Include standard governance files (LICENSE, CODE_OF_CONDUCT.md, CONTRIBUTING.md), branch protection rules, and review standards to define legal, ethical, and workflow expectations.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": [
+            "LICENSE",
+            "CODE_OF_CONDUCT.md",
+            "CONTRIBUTING.md"
+          ],
+          "notes": "Include license identifier in go.mod comments if needed. Document Go module conventions and testing requirements in CONTRIBUTING.md.",
+          "verification": "LICENSE file is present; CODE_OF_CONDUCT.md and CONTRIBUTING.md provide contribution guidance.",
+          "requiredFiles": ["LICENSE"],
+          "optionalFiles": ["CODE_OF_CONDUCT.md", "CONTRIBUTING.md"]
+        }
+      }
+    ],
+    "recommended": [
+      {
+        "id": "integration-testing",
+        "label": "Integration Testing",
+        "description": "Test how components interact with each other and external systems, running after unit tests with more relaxed coverage thresholds.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["go test"],
+          "exampleConfigFiles": ["*_test.go"],
+          "notes": "Use build tags (//go:build integration) or separate test directories for integration tests. Run with 'go test -tags=integration ./...'.",
+          "verification": "Confirm integration tests exist and run 'go test -tags=integration ./...' to verify."
+        }
+      },
+      {
+        "id": "performance-baselining",
+        "label": "Performance Baselines",
+        "description": "Establish performance baselines and monitor for regressions using lightweight benchmarks or audits in CI.",
+        "ciHints": {
+          "github-actions": {
+            "job": "performance"
+          }
+        },
+        "stack": {
+          "exampleTools": ["go test -bench", "benchstat"],
+          "exampleConfigFiles": ["*_test.go"],
+          "notes": "Use 'go test -bench=. ./...' for benchmarks. Use benchstat to compare results across runs.",
+          "verification": "Run 'go test -bench=. ./...' and verify benchmark results are tracked over time."
+        }
+      },
+      {
+        "id": "complexity-analysis",
+        "label": "Complexity Analysis",
+        "description": "Measure cyclomatic complexity or similar metrics to keep code maintainable, starting as a warning-only check.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["gocyclo", "golangci-lint"],
+          "exampleConfigFiles": [".golangci.yml"],
+          "notes": "Use gocyclo or golangci-lint's gocyclo linter to measure cyclomatic complexity. Configure threshold in .golangci.yml.",
+          "verification": "Run 'gocyclo' or 'golangci-lint run' and review complexity reports, ensuring new code doesn't exceed thresholds."
+        }
+      },
+      {
+        "id": "accessibility-auditing",
+        "label": "Accessibility Auditing",
+        "description": "Run accessibility checks on web-facing components to detect critical issues and improve inclusive UX.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["axe-core", "pa11y"],
+          "exampleConfigFiles": [],
+          "notes": "For Go web apps, use headless browser-based accessibility tools to audit rendered HTML from templates.",
+          "verification": "For web-facing Go apps, run accessibility audits against key routes using axe or pa11y."
+        }
+      }
+    ],
+    "optionalEnhancements": [
+      {
+        "id": "observability",
+        "label": "Observability (Logging & Error Handling)",
+        "description": "Standardize error handling and structured logging to make debugging and production monitoring easier.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["slog", "zap", "zerolog"],
+          "exampleConfigFiles": [],
+          "notes": "Use slog (stdlib) or zap/zerolog for structured logging. Configure JSON output for production and text for development.",
+          "verification": "Confirm that a structured logging library is configured with appropriate output format and log levels."
+        }
+      }
+    ]
+  }
+}

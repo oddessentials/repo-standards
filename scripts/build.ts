@@ -60,7 +60,7 @@ function main() {
   );
   console.log("Copied master standards.json to dist/config/");
 
-  const stacks = ["typescript-js", "csharp-dotnet", "python"];
+  const stacks = ["typescript-js", "csharp-dotnet", "python", "rust", "go"];
   const ciSystems = ["azure-devops", "github-actions"];
 
   // Generate each stack without CI suffix
