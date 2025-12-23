@@ -1,3 +1,9 @@
+# [1.1.0](https://github.com/oddessentials/repo-standards/compare/v1.0.1...v1.1.0) (2025-12-23)
+
+### Features
+
+- add support for rust and go ([51f38f6](https://github.com/oddessentials/repo-standards/commit/51f38f6e5125e288fa3ba6cad0eb9a45168275fc))
+
 ## [1.0.1](https://github.com/oddessentials/repo-standards/compare/v1.0.0...v1.0.1) (2025-12-12)
 
 ### Bug Fixes
