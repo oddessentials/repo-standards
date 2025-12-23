@@ -36,6 +36,39 @@ function sortObject(obj: unknown): unknown {
   return obj;
 }
 
+/**
+ * Sync schema version with package.json major version.
+ * Only UPGRADES schema version when package.json major is higher.
+ * This allows schema to lead during breaking change development,
+ * then semantic-release bumps package.json to match.
+ */
+function syncSchemaVersion(rootDir: string): void {
+  const pkgPath = join(rootDir, "package.json");
+  const standardsPath = join(rootDir, "config", "standards.json");
+
+  const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
+  const standards = JSON.parse(readFileSync(standardsPath, "utf8"));
+
+  // Extract major version from package.json (e.g., "2.0.0" -> 2)
+  const pkgMajor = parseInt(pkg.version.split(".")[0], 10);
+
+  if (pkgMajor > standards.version) {
+    // Only upgrade schema version when package.json is ahead
+    console.log(
+      `Upgrading schema version: ${standards.version} -> ${pkgMajor} (from package.json)`,
+    );
+    standards.version = pkgMajor;
+    writeFileSync(standardsPath, JSON.stringify(standards, null, 2) + "\n");
+  } else if (standards.version > pkgMajor) {
+    // Schema leads (breaking change in development) - this is expected
+    console.log(
+      `Schema version ${standards.version} leads package.json ${pkgMajor} (breaking change pending)`,
+    );
+  } else {
+    console.log(`Schema version ${standards.version} matches package.json`);
+  }
+}
+
 // Run the existing generator for each stack (and optional CI system)
 function generateStack(stack: string, ci?: string) {
   const args = ["scripts/generate-standards.ts", stack];
@@ -49,6 +82,9 @@ function main() {
   const rootDir = process.cwd();
   const configSrc = resolve(rootDir, "config");
   const configDest = resolve(rootDir, "dist", "config");
+
+  // Sync schema version with package.json major version (before generation)
+  syncSchemaVersion(rootDir);
 
   // Ensure dist/config exists
   mkdirSync(configDest, { recursive: true });
