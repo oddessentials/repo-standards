@@ -6,7 +6,7 @@
 
 **@oddessentials/repo-standards**
 
-This package defines a **single, authoritative JSON specification** for repository quality standards across multiple stacks (TypeScript/JS, C#/.NET, Python), plus deterministic tooling to generate **stack- and CI-specific views**.
+This package defines a **single, authoritative JSON specification** for repository quality standards across multiple stacks (TypeScript/JS, C#/.NET, Python, Rust, and Go), plus deterministic tooling to generate **stack- and CI-specific views**.
 
 It is designed to be:
 
