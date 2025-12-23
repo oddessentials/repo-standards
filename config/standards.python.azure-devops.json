@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "stack": "python",
   "stackLabel": "Python",
   "ciSystems": ["azure-devops"],
@@ -60,7 +60,34 @@
         ],
         "notes": "Tackle recommended items in order of business value; backend-only repos can skip web-focused checks like accessibility. For AI/ML-heavy Python teams, consider extending containerization with data versioning (DVC) and unit tests with data quality checks (e.g., Great Expectations) as part of this step."
       }
-    ]
+    ],
+    "bazelIntegration": {
+      "description": "Bazel build executor support for quality checks. All hints are ADVISORY—stack-native commands remain the default execution path.",
+      "detectionRules": {
+        "rootMarkers": ["MODULE.bazel", "WORKSPACE.bazel", "WORKSPACE"],
+        "optionalMarkers": [".bazelrc", ".bazelversion"],
+        "notes": "Detection uses repo-root markers only. Nested BUILD files do not trigger Bazel mode."
+      },
+      "optOut": {
+        "description": "Set meta.bazelIntegration.enabled = false in repo config to disable Bazel hints",
+        "configPath": "meta.bazelIntegration.enabled"
+      },
+      "targetConventions": {
+        "description": "Recommended target naming (not assumed to exist). These are illustrative patterns; actual targets are repo-defined.",
+        "lint": "//tools/lint:lint or bazel test //... with lint aspects",
+        "format": "bazel run //tools/format:check",
+        "test": "bazel test //...",
+        "coverage": "bazel coverage //...",
+        "build": "bazel build //..."
+      },
+      "ciContract": {
+        "versionPinning": "Use .bazelversion file for Bazelisk",
+        "configFlag": "--config=ci (define in .bazelrc)",
+        "deterministicFlags": ["--nokeep_going", "--test_output=errors"],
+        "remoteCache": "Optional; not required for CI"
+      },
+      "advisoryNotice": "bazelHints are suggestions, not required execution paths. Consumers should prefer stack-native commands unless explicitly adopting Bazel."
+    }
   },
   "checklist": {
     "core": [
@@ -97,7 +124,14 @@
           "verification": "pyproject.toml (or ruff.toml / .flake8) signals that linting tools are configured for the repository.",
           "requiredFiles": ["pyproject.toml"],
           "optionalFiles": ["ruff.toml", ".flake8"],
-          "requiredScripts": ["lint"]
+          "requiredScripts": ["lint"],
+          "bazelHints": {
+            "commands": [
+              "bazel test //...:ruff_test",
+              "bazel run //tools/lint:ruff -- check ."
+            ],
+            "notes": "Use rules_python with ruff wrapped as py_test or a custom run target."
+          }
         }
       },
       {
@@ -115,7 +149,11 @@
           "notes": "Organize unit tests under a tests/ directory and avoid real network or database calls in this layer.",
           "verification": "Test framework configuration is present; tests/ directory or pytest configuration exists.",
           "optionalFiles": ["pytest.ini", "pyproject.toml", "tests/"],
-          "requiredScripts": ["test"]
+          "requiredScripts": ["test"],
+          "bazelHints": {
+            "commands": ["bazel test //..."],
+            "notes": "Use rules_python py_test for pytest-based tests. Tests are hermetically isolated."
+          }
         }
       },
       {
@@ -181,7 +219,11 @@
           "exampleTools": ["pytest", "pytest-cov", "coverage.py"],
           "exampleConfigFiles": ["pytest.ini", "pyproject.toml"],
           "notes": "Configure coverage reporting for your test suite and surface summary metrics in CI.",
-          "verification": "Run the unit tests with coverage (for example, pytest with pytest-cov) and confirm that coverage reports are generated and referenced in CI to enforce or track thresholds."
+          "verification": "Run the unit tests with coverage (for example, pytest with pytest-cov) and confirm that coverage reports are generated and referenced in CI to enforce or track thresholds.",
+          "bazelHints": {
+            "commands": ["bazel coverage //..."],
+            "notes": "Use rules_python py_test with coverage instrumentation. Combine with --combined_report=lcov."
+          }
         }
       },
       {
@@ -197,7 +239,11 @@
           "exampleTools": [],
           "exampleConfigFiles": [".github/workflows/*", "azure-pipelines.yml"],
           "notes": "Ensure CI runs linting, type checking (if used), tests, and packaging or container checks for Python services before merging.",
-          "verification": "Open the CI configuration and verify there is a job or stage that runs linting, type checking (if used), tests, and any packaging or container checks before merging to main."
+          "verification": "Open the CI configuration and verify there is a job or stage that runs linting, type checking (if used), tests, and any packaging or container checks before merging to main.",
+          "bazelHints": {
+            "commands": ["bazel build //...", "bazel test //..."],
+            "notes": "Bazel py_binary and py_test targets replace traditional Python tooling."
+          }
         }
       },
       {
@@ -213,7 +259,11 @@
           "exampleTools": ["black"],
           "exampleConfigFiles": ["pyproject.toml"],
           "notes": "Use black (or an equivalent opinionated formatter) and treat its output as the single source of truth for code style.",
-          "verification": "Run the configured formatter (for example, `black .` or `black --check .`) and confirm it reports clean formatting on committed code and auto-fixes as expected locally."
+          "verification": "Run the configured formatter (for example, `black .` or `black --check .`) and confirm it reports clean formatting on committed code and auto-fixes as expected locally.",
+          "bazelHints": {
+            "commands": ["bazel run //tools/format:black -- --check ."],
+            "notes": "Wrap black as a py_binary run target for format checking."
+          }
         }
       },
       {
@@ -248,7 +298,14 @@
           "verification": "pyproject.toml (or mypy.ini) signals that mypy configuration is available for the repository.",
           "requiredFiles": ["pyproject.toml"],
           "optionalFiles": ["mypy.ini"],
-          "requiredScripts": ["typecheck"]
+          "requiredScripts": ["typecheck"],
+          "bazelHints": {
+            "commands": [
+              "bazel test //...:mypy_test",
+              "bazel run //tools/typecheck:mypy"
+            ],
+            "notes": "Wrap mypy as a py_test or run target for Bazel-based type checking."
+          }
         }
       },
       {

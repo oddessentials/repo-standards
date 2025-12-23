@@ -102,6 +102,7 @@ The `version` field indicates schema compatibility:
 
 - `1` — Original schema
 - `2` — Adds `anyOfFiles` and `pinningNotes` fields (additive, non-breaking)
+- `3` — Adds `bazelHints` field and `meta.bazelIntegration` section for Bazel support
 
 Consumers should ignore unknown fields for forward compatibility.
 
@@ -141,6 +142,84 @@ For Azure DevOps, Renovate requires one of:
 Required secrets:
 
 - `AZURE_DEVOPS_TOKEN` (PAT with Code Read/Write, PR Contribute)
+
+---
+
+## Bazel Integration
+
+This framework supports Bazel as an **optional build executor** for quality checks.
+
+### Key Concepts
+
+- **Bazel is optional** — Stack-native commands (npm, cargo, etc.) remain the default
+- **Hints are advisory** — `bazelHints` are suggestions, not required execution paths
+- **Commands are illustrative** — Actual Bazel commands are repo-defined; examples show patterns only
+- **Detection is root-level** — Only `MODULE.bazel` / `WORKSPACE*` at repo root triggers Bazel mode
+
+### Detection Rules
+
+Repos are detected as Bazel-managed if the **repository root** contains:
+
+1. `MODULE.bazel` (bzlmod, preferred)
+2. `WORKSPACE.bazel` or `WORKSPACE` (legacy)
+
+Optional markers: `.bazelrc`, `.bazelversion`
+
+> Nested `BUILD.bazel` files (e.g., from vendored deps) do NOT trigger Bazel detection.
+
+### Bazel Commands (Not Assumed Targets)
+
+The `bazelHints.commands` field contains **actual commands to run**:
+
+| Check        | Stack-native           | Bazel Command                    |
+| ------------ | ---------------------- | -------------------------------- |
+| Lint         | `npm run lint`         | `bazel test //... --aspects=...` |
+| Format Check | `npm run format:check` | `bazel run //tools/format:check` |
+| Type Check   | `npm run typecheck`    | `bazel build //...`              |
+| Test         | `npm test`             | `bazel test //...`               |
+| Coverage     | `npm run coverage`     | `bazel coverage //...`           |
+
+> **Note**: Bazel commands shown are **illustrative patterns**. Actual targets (e.g., `//tools/lint:lint`, `//...:format_test`) are repo-defined and may not exist without explicit Bazel setup. `bazelHints` are advisory—consumers should prefer stack-native commands unless explicitly adopting Bazel.
+
+### Minimal `.bazelrc` for CI
+
+```bazelrc
+# .bazelrc
+build:ci --nokeep_going
+build:ci --test_output=errors
+```
+
+### Example GitHub Actions
+
+```yaml
+- uses: bazel-contrib/setup-bazel@0.14.0
+  with:
+    bazelisk-cache: true
+
+- run: bazel test //... --config=ci
+```
+
+### Example Azure DevOps
+
+```yaml
+- script: |
+    curl -Lo bazelisk https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64
+    chmod +x bazelisk && mv bazelisk /usr/local/bin/bazel
+  displayName: "Install Bazelisk"
+
+- script: bazel test //... --config=ci
+  displayName: "Run Bazel Tests"
+```
+
+> Remote cache is optional and not required for basic CI.
+
+### Opt-Out
+
+To disable Bazel hints for a repo that contains Bazel files but uses npm for quality checks:
+
+```json
+{ "meta": { "bazelIntegration": { "enabled": false } } }
+```
 
 ---
 

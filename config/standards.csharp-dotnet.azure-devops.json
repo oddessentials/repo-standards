@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "stack": "csharp-dotnet",
   "stackLabel": "C# / .NET",
   "ciSystems": ["azure-devops"],
@@ -60,7 +60,34 @@
         ],
         "notes": "Tackle recommended items in order of business value; backend-only repos can skip web-focused checks like accessibility. For AI/ML-heavy Python teams, consider extending containerization with data versioning (DVC) and unit tests with data quality checks (e.g., Great Expectations) as part of this step."
       }
-    ]
+    ],
+    "bazelIntegration": {
+      "description": "Bazel build executor support for quality checks. All hints are ADVISORY—stack-native commands remain the default execution path.",
+      "detectionRules": {
+        "rootMarkers": ["MODULE.bazel", "WORKSPACE.bazel", "WORKSPACE"],
+        "optionalMarkers": [".bazelrc", ".bazelversion"],
+        "notes": "Detection uses repo-root markers only. Nested BUILD files do not trigger Bazel mode."
+      },
+      "optOut": {
+        "description": "Set meta.bazelIntegration.enabled = false in repo config to disable Bazel hints",
+        "configPath": "meta.bazelIntegration.enabled"
+      },
+      "targetConventions": {
+        "description": "Recommended target naming (not assumed to exist). These are illustrative patterns; actual targets are repo-defined.",
+        "lint": "//tools/lint:lint or bazel test //... with lint aspects",
+        "format": "bazel run //tools/format:check",
+        "test": "bazel test //...",
+        "coverage": "bazel coverage //...",
+        "build": "bazel build //..."
+      },
+      "ciContract": {
+        "versionPinning": "Use .bazelversion file for Bazelisk",
+        "configFlag": "--config=ci (define in .bazelrc)",
+        "deterministicFlags": ["--nokeep_going", "--test_output=errors"],
+        "remoteCache": "Optional; not required for CI"
+      },
+      "advisoryNotice": "bazelHints are suggestions, not required execution paths. Consumers should prefer stack-native commands unless explicitly adopting Bazel."
+    }
   },
   "checklist": {
     "core": [
@@ -97,7 +124,13 @@
           "verification": ".editorconfig must exist to drive the .NET formatting and analysis tooling.",
           "requiredFiles": [".editorconfig"],
           "optionalFiles": ["Directory.Build.props"],
-          "requiredScripts": ["lint"]
+          "requiredScripts": ["lint"],
+          "bazelHints": {
+            "commands": [
+              "bazel build //... --aspects=@rules_dotnet//dotnet:analyzers.bzl%analyzer_aspect"
+            ],
+            "notes": "Use rules_dotnet analyzer aspects for Roslyn-based linting in Bazel."
+          }
         }
       },
       {
@@ -114,7 +147,11 @@
           "exampleConfigFiles": ["*.Tests.csproj"],
           "notes": "Group unit tests into dedicated test projects and keep them independent from external services.",
           "verification": "Test projects are present in the solution; test configuration is defined.",
-          "optionalFiles": ["*.Tests.csproj"]
+          "optionalFiles": ["*.Tests.csproj"],
+          "bazelHints": {
+            "commands": ["bazel test //..."],
+            "notes": "Use rules_dotnet to define test targets for xUnit/NUnit/MSTest projects."
+          }
         }
       },
       {
@@ -180,7 +217,11 @@
           "exampleTools": ["coverlet", "ReportGenerator"],
           "exampleConfigFiles": ["*.csproj"],
           "notes": "Enable coverage collection for test projects and publish reports in a human-friendly format from CI.",
-          "verification": "Run the test suite with coverage enabled (for example, using coverlet or a similar tool) and verify that coverage reports are generated and used in CI to monitor thresholds."
+          "verification": "Run the test suite with coverage enabled (for example, using coverlet or a similar tool) and verify that coverage reports are generated and used in CI to monitor thresholds.",
+          "bazelHints": {
+            "commands": ["bazel coverage //..."],
+            "notes": "Use rules_dotnet with coverage instrumentation enabled."
+          }
         }
       },
       {
@@ -196,7 +237,11 @@
           "exampleTools": [],
           "exampleConfigFiles": [".github/workflows/*", "azure-pipelines.yml"],
           "notes": "Ensure CI runs analyzers, tests, build, and packaging or container checks before changes can be merged.",
-          "verification": "Open the CI configuration and verify there is a job or stage that runs analyzers, tests, build, and any required packaging or container checks before merging to main."
+          "verification": "Open the CI configuration and verify there is a job or stage that runs analyzers, tests, build, and any required packaging or container checks before merging to main.",
+          "bazelHints": {
+            "commands": ["bazel build //...", "bazel test //..."],
+            "notes": "Bazel handles all analysis, testing, and packaging via defined targets."
+          }
         }
       },
       {
@@ -212,7 +257,13 @@
           "exampleTools": ["dotnet format"],
           "exampleConfigFiles": [".editorconfig"],
           "notes": "Use .editorconfig and dotnet-format to keep C# style consistent across contributors.",
-          "verification": "Run the configured formatter or code style enforcement (for example, `dotnet format`) and confirm that code in the repository conforms to the defined rules."
+          "verification": "Run the configured formatter or code style enforcement (for example, `dotnet format`) and confirm that code in the repository conforms to the defined rules.",
+          "bazelHints": {
+            "commands": [
+              "bazel run //tools/format:dotnet_format -- --verify-no-changes"
+            ],
+            "notes": "Wrap dotnet format as a Bazel run target."
+          }
         }
       },
       {
@@ -251,7 +302,11 @@
           "verification": ".editorconfig must exist; Directory.Build.props is optional for shared build configuration.",
           "requiredFiles": [".editorconfig"],
           "optionalFiles": ["Directory.Build.props"],
-          "requiredScripts": ["typecheck"]
+          "requiredScripts": ["typecheck"],
+          "bazelHints": {
+            "commands": ["bazel build //..."],
+            "notes": "C# type errors surface during bazel build with rules_dotnet. No separate typecheck step needed."
+          }
         }
       },
       {

@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "stack": "rust",
   "stackLabel": "Rust",
   "ciSystems": ["azure-devops", "github-actions"],
@@ -60,7 +60,34 @@
         ],
         "notes": "Tackle recommended items in order of business value; backend-only repos can skip web-focused checks like accessibility. For AI/ML-heavy Python teams, consider extending containerization with data versioning (DVC) and unit tests with data quality checks (e.g., Great Expectations) as part of this step."
       }
-    ]
+    ],
+    "bazelIntegration": {
+      "description": "Bazel build executor support for quality checks. All hints are ADVISORY—stack-native commands remain the default execution path.",
+      "detectionRules": {
+        "rootMarkers": ["MODULE.bazel", "WORKSPACE.bazel", "WORKSPACE"],
+        "optionalMarkers": [".bazelrc", ".bazelversion"],
+        "notes": "Detection uses repo-root markers only. Nested BUILD files do not trigger Bazel mode."
+      },
+      "optOut": {
+        "description": "Set meta.bazelIntegration.enabled = false in repo config to disable Bazel hints",
+        "configPath": "meta.bazelIntegration.enabled"
+      },
+      "targetConventions": {
+        "description": "Recommended target naming (not assumed to exist). These are illustrative patterns; actual targets are repo-defined.",
+        "lint": "//tools/lint:lint or bazel test //... with lint aspects",
+        "format": "bazel run //tools/format:check",
+        "test": "bazel test //...",
+        "coverage": "bazel coverage //...",
+        "build": "bazel build //..."
+      },
+      "ciContract": {
+        "versionPinning": "Use .bazelversion file for Bazelisk",
+        "configFlag": "--config=ci (define in .bazelrc)",
+        "deterministicFlags": ["--nokeep_going", "--test_output=errors"],
+        "remoteCache": "Optional; not required for CI"
+      },
+      "advisoryNotice": "bazelHints are suggestions, not required execution paths. Consumers should prefer stack-native commands unless explicitly adopting Bazel."
+    }
   },
   "checklist": {
     "core": [
@@ -102,7 +129,13 @@
           "notes": "Use Clippy for comprehensive Rust linting. Configure via clippy.toml for project-specific rules. Treat warnings as errors in CI with -D warnings.",
           "verification": "Clippy is available via rustup component. Run 'cargo clippy' to verify linting is configured.",
           "requiredFiles": ["Cargo.toml"],
-          "optionalFiles": ["clippy.toml", ".clippy.toml"]
+          "optionalFiles": ["clippy.toml", ".clippy.toml"],
+          "bazelHints": {
+            "commands": [
+              "bazel build //... --aspects=@rules_rust//rust:defs.bzl%clippy_aspect --output_groups=clippy_checks"
+            ],
+            "notes": "rules_rust includes clippy_aspect for Bazel-native Clippy linting on all Rust targets."
+          }
         }
       },
       {
@@ -123,7 +156,11 @@
           "notes": "Use cargo test as the built-in test runner. Organize tests in tests/ directory for integration tests and inline #[test] functions for unit tests.",
           "verification": "Run 'cargo test' to verify the test suite is configured and passing.",
           "requiredFiles": ["Cargo.toml"],
-          "optionalFiles": ["tests/"]
+          "optionalFiles": ["tests/"],
+          "bazelHints": {
+            "commands": ["bazel test //..."],
+            "notes": "rules_rust rust_test targets run cargo test under Bazel's hermetic environment."
+          }
         }
       },
       {
@@ -201,7 +238,11 @@
           "exampleTools": ["cargo-tarpaulin", "llvm-cov", "grcov"],
           "exampleConfigFiles": ["Cargo.toml"],
           "notes": "Use cargo-tarpaulin or llvm-cov for code coverage. Generate lcov or cobertura reports for CI integration.",
-          "verification": "Run 'cargo tarpaulin' or equivalent and verify coverage reports are generated and thresholds enforced."
+          "verification": "Run 'cargo tarpaulin' or equivalent and verify coverage reports are generated and thresholds enforced.",
+          "bazelHints": {
+            "commands": ["bazel coverage //..."],
+            "notes": "Bazel coverage with rules_rust requires LLVM instrumentation. May need additional toolchain configuration."
+          }
         }
       },
       {
@@ -220,7 +261,11 @@
           "exampleTools": [],
           "exampleConfigFiles": [".github/workflows/*", "azure-pipelines.yml"],
           "notes": "Use 'cargo clippy', 'cargo test', 'cargo build --release' as quality gates. Consider cargo-deny for dependency auditing.",
-          "verification": "Verify CI runs cargo clippy, cargo test, and cargo build before merging to main."
+          "verification": "Verify CI runs cargo clippy, cargo test, and cargo build before merging to main.",
+          "bazelHints": {
+            "commands": ["bazel build //...", "bazel test //..."],
+            "notes": "rules_rust provides rust_library, rust_test, and clippy_aspect for complete CI."
+          }
         }
       },
       {
@@ -239,7 +284,13 @@
           "exampleTools": ["rustfmt"],
           "exampleConfigFiles": ["rustfmt.toml", ".rustfmt.toml"],
           "notes": "Use rustfmt (via 'cargo fmt') as the standard formatter. Configure via rustfmt.toml. Run 'cargo fmt --check' in CI.",
-          "verification": "Run 'cargo fmt --check' and confirm it reports clean formatting. Use 'cargo fmt' to auto-fix."
+          "verification": "Run 'cargo fmt --check' and confirm it reports clean formatting. Use 'cargo fmt' to auto-fix.",
+          "bazelHints": {
+            "commands": [
+              "bazel build //... --aspects=@rules_rust//rust:defs.bzl%rustfmt_aspect --output_groups=rustfmt_checks"
+            ],
+            "notes": "rules_rust includes rustfmt_aspect for Bazel-native format checking."
+          }
         }
       },
       {
@@ -278,7 +329,11 @@
           "exampleConfigFiles": ["Cargo.toml"],
           "notes": "Rust has compile-time type checking built into the language. The borrow checker enforces memory safety. No additional tooling needed for type safety.",
           "verification": "Run 'cargo check' or 'cargo build' to verify type correctness. All Rust code is type-checked by default.",
-          "requiredFiles": ["Cargo.toml"]
+          "requiredFiles": ["Cargo.toml"],
+          "bazelHints": {
+            "commands": ["bazel build //..."],
+            "notes": "Rust type checking is inherent to compilation. bazel build with rules_rust enforces type safety."
+          }
         }
       },
       {

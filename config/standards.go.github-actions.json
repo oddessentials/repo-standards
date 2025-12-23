@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "stack": "go",
   "stackLabel": "Go",
   "ciSystems": ["github-actions"],
@@ -60,7 +60,34 @@
         ],
         "notes": "Tackle recommended items in order of business value; backend-only repos can skip web-focused checks like accessibility. For AI/ML-heavy Python teams, consider extending containerization with data versioning (DVC) and unit tests with data quality checks (e.g., Great Expectations) as part of this step."
       }
-    ]
+    ],
+    "bazelIntegration": {
+      "description": "Bazel build executor support for quality checks. All hints are ADVISORY—stack-native commands remain the default execution path.",
+      "detectionRules": {
+        "rootMarkers": ["MODULE.bazel", "WORKSPACE.bazel", "WORKSPACE"],
+        "optionalMarkers": [".bazelrc", ".bazelversion"],
+        "notes": "Detection uses repo-root markers only. Nested BUILD files do not trigger Bazel mode."
+      },
+      "optOut": {
+        "description": "Set meta.bazelIntegration.enabled = false in repo config to disable Bazel hints",
+        "configPath": "meta.bazelIntegration.enabled"
+      },
+      "targetConventions": {
+        "description": "Recommended target naming (not assumed to exist). These are illustrative patterns; actual targets are repo-defined.",
+        "lint": "//tools/lint:lint or bazel test //... with lint aspects",
+        "format": "bazel run //tools/format:check",
+        "test": "bazel test //...",
+        "coverage": "bazel coverage //...",
+        "build": "bazel build //..."
+      },
+      "ciContract": {
+        "versionPinning": "Use .bazelversion file for Bazelisk",
+        "configFlag": "--config=ci (define in .bazelrc)",
+        "deterministicFlags": ["--nokeep_going", "--test_output=errors"],
+        "remoteCache": "Optional; not required for CI"
+      },
+      "advisoryNotice": "bazelHints are suggestions, not required execution paths. Consumers should prefer stack-native commands unless explicitly adopting Bazel."
+    }
   },
   "checklist": {
     "core": [
@@ -96,7 +123,13 @@
           "notes": "Use golangci-lint as the primary linter aggregator. Configure enabled linters in .golangci.yml for consistent team-wide enforcement.",
           "verification": ".golangci.yml or .golangci.yaml indicates linting is configured. Run 'golangci-lint run' to verify.",
           "requiredFiles": ["go.mod"],
-          "optionalFiles": [".golangci.yml", ".golangci.yaml"]
+          "optionalFiles": [".golangci.yml", ".golangci.yaml"],
+          "bazelHints": {
+            "commands": [
+              "bazel test //... --@io_bazel_rules_go//go/config:nogo=@//:nogo"
+            ],
+            "notes": "Use nogo for static analysis via rules_go. Configure nogo target with desired analyzers."
+          }
         }
       },
       {
@@ -114,7 +147,11 @@
           "notes": "Use 'go test ./...' to run all tests. Place test files alongside source files with _test.go suffix. Keep unit tests fast and isolated.",
           "verification": "Run 'go test ./...' to verify the test suite is configured and passing.",
           "requiredFiles": ["go.mod"],
-          "optionalFiles": []
+          "optionalFiles": [],
+          "bazelHints": {
+            "commands": ["bazel test //..."],
+            "notes": "rules_go go_test targets wrap 'go test' with Bazel's caching and hermeticity."
+          }
         }
       },
       {
@@ -180,7 +217,11 @@
           "exampleTools": ["go test -cover", "go tool cover"],
           "exampleConfigFiles": ["go.mod"],
           "notes": "Use 'go test -coverprofile=coverage.out ./...' for coverage. Generate HTML or integrate with codecov/coveralls.",
-          "verification": "Run 'go test -cover ./...' and verify coverage reports are produced and thresholds monitored."
+          "verification": "Run 'go test -cover ./...' and verify coverage reports are produced and thresholds monitored.",
+          "bazelHints": {
+            "commands": ["bazel coverage //..."],
+            "notes": "rules_go supports coverage via bazel coverage. Use --combined_report=lcov for aggregated output."
+          }
         }
       },
       {
@@ -196,7 +237,11 @@
           "exampleTools": [],
           "exampleConfigFiles": [".github/workflows/*", "azure-pipelines.yml"],
           "notes": "Run 'golangci-lint run', 'go test ./...', 'go build' as quality gates. Use govulncheck for security scanning.",
-          "verification": "Verify CI runs golangci-lint, go test, and go build before merging to main."
+          "verification": "Verify CI runs golangci-lint, go test, and go build before merging to main.",
+          "bazelHints": {
+            "commands": ["bazel build //...", "bazel test //..."],
+            "notes": "rules_go go_binary and go_test targets provide hermetic builds and tests."
+          }
         }
       },
       {
@@ -212,7 +257,11 @@
           "exampleTools": ["gofmt", "goimports"],
           "exampleConfigFiles": [],
           "notes": "Use gofmt (built-in) for formatting. goimports extends gofmt with import organization. Formatting is enforced by convention.",
-          "verification": "Run 'gofmt -d .' or 'goimports -d .' and confirm no output indicates clean formatting."
+          "verification": "Run 'gofmt -d .' or 'goimports -d .' and confirm no output indicates clean formatting.",
+          "bazelHints": {
+            "commands": ["bazel run @go_sdk//:bin/gofmt -- -d ."],
+            "notes": "Run gofmt via the Bazel-managed Go SDK for hermetic formatting checks."
+          }
         }
       },
       {
@@ -245,7 +294,11 @@
           "exampleConfigFiles": ["go.mod"],
           "notes": "Go has compile-time type checking built in. Use 'go vet' for additional static analysis. staticcheck provides enhanced type-related checks.",
           "verification": "Run 'go build ./...' to verify type correctness. Use 'go vet ./...' for additional static analysis.",
-          "requiredFiles": ["go.mod"]
+          "requiredFiles": ["go.mod"],
+          "bazelHints": {
+            "commands": ["bazel build //..."],
+            "notes": "Go type checking is inherent to compilation. bazel build with rules_go enforces type safety."
+          }
         }
       },
       {

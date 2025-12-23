@@ -33,9 +33,9 @@ describe("repo-standards API", () => {
 });
 
 describe("dependency governance items", () => {
-  it("schema version is 2", () => {
+  it("schema version is 3", () => {
     const spec = loadMasterSpec();
-    expect(spec.version).toBe(2);
+    expect(spec.version).toBe(3);
   });
 
   it("recommended section includes both dependency items", () => {
@@ -79,5 +79,63 @@ describe("dependency governance items", () => {
       (s: { step: number }) => s.step === 3,
     );
     expect(step3?.focusIds).toContain("dependency-update-automation");
+  });
+});
+
+describe("bazel integration", () => {
+  it("meta includes bazelIntegration section", () => {
+    const spec = loadMasterSpec();
+    expect(spec.meta?.bazelIntegration).toBeDefined();
+    expect(spec.meta?.bazelIntegration?.detectionRules).toBeDefined();
+  });
+
+  it("bazelIntegration has root markers for detection", () => {
+    const spec = loadMasterSpec();
+    const rootMarkers =
+      spec.meta?.bazelIntegration?.detectionRules?.rootMarkers;
+    expect(rootMarkers).toContain("MODULE.bazel");
+    expect(rootMarkers).toContain("WORKSPACE.bazel");
+    expect(rootMarkers).toContain("WORKSPACE");
+  });
+
+  it("bazelIntegration has opt-out mechanism", () => {
+    const spec = loadMasterSpec();
+    expect(spec.meta?.bazelIntegration?.optOut).toBeDefined();
+    expect(spec.meta?.bazelIntegration?.optOut?.configPath).toBe(
+      "meta.bazelIntegration.enabled",
+    );
+  });
+
+  it("linting item has bazelHints with commands for typescript-js", () => {
+    const spec = loadMasterSpec();
+    const linting = spec.checklist.core.find(
+      (i: { id: string }) => i.id === "linting",
+    );
+    const bazelHints = linting?.stackHints?.["typescript-js"]?.bazelHints;
+    expect(bazelHints).toBeDefined();
+    expect(bazelHints?.commands).toBeDefined();
+    expect(bazelHints?.commands?.length).toBeGreaterThan(0);
+  });
+
+  it("bazelHints uses commands format, not assumed pattern labels", () => {
+    const spec = loadMasterSpec();
+    const unitTest = spec.checklist.core.find(
+      (i: { id: string }) => i.id === "unit-test-runner",
+    );
+    const bazelHints = unitTest?.stackHints?.["typescript-js"]?.bazelHints;
+    // Should be "bazel test //..." not "//...:test"
+    expect(bazelHints?.commands?.[0]).toMatch(/^bazel /);
+  });
+
+  it("ci-quality-gates has bazelHints for all stacks", () => {
+    const spec = loadMasterSpec();
+    const ciGates = spec.checklist.core.find(
+      (i: { id: string }) => i.id === "ci-quality-gates",
+    );
+    const stacks = ["typescript-js", "python", "rust", "go", "csharp-dotnet"];
+    for (const stack of stacks) {
+      const bazelHints = ciGates?.stackHints?.[stack]?.bazelHints;
+      expect(bazelHints?.commands).toBeDefined();
+    }
   });
 });

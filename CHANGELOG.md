@@ -1,3 +1,31 @@
+# [3.0.0](https://github.com/oddessentials/repo-standards/compare/v1.2.1...v3.0.0) (2025-12-23)
+
+### ⚠ BREAKING CHANGES
+
+- Schema version bumped to 3 (matches package.json major version)
+- Added `bazelHints` field to `StackHints` (consumers may encounter new field)
+- Added `meta.bazelIntegration` section
+
+### Features
+
+- **Bazel Integration**: Support for Bazel as optional build executor substrate
+- Root-level Bazel detection via `MODULE.bazel`, `WORKSPACE.bazel`, `WORKSPACE`
+- Per-check `bazelHints` with advisory commands (illustrative, repo-defined)
+- CI contract recommendations (`.bazelversion`, `--config=ci`)
+- Opt-out mechanism via `meta.bazelIntegration.enabled = false`
+- Detection script: `scripts/detect-bazel.ts`
+
+### Testing
+
+- Added fixtures: bzlmod-repo, workspace-repo, no-bazel-repo (regression), hybrid-monorepo
+- Tests ensure non-Bazel repos are unchanged
+- Tests verify bazelHints uses command format (not pattern labels)
+
+### Documentation
+
+- New "Bazel Integration" section in README
+- Realistic CI examples for GitHub Actions and Azure DevOps (Bazelisk install)
+
 ## [1.2.1](https://github.com/oddessentials/repo-standards/compare/v1.2.0...v1.2.1) (2025-12-23)
 
 ### Bug Fixes

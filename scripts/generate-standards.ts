@@ -18,6 +18,20 @@ interface CiHintsForSystem {
 
 type CiHints = Partial<Record<CiSystem, CiHintsForSystem>>;
 
+/**
+ * Bazel execution hints for individual checklist items.
+ * Commands are actual Bazel invocations (e.g., "bazel test //..."),
+ * NOT assumed pattern labels.
+ */
+interface BazelHints {
+  /** Bazel commands to run (e.g., "bazel test //...", "bazel run //tools/lint") */
+  commands?: string[];
+  /** Recommended target conventions (documentation only, not assumed to exist) */
+  recommendedTargets?: string[];
+  /** Usage notes for this check in Bazel context */
+  notes?: string;
+}
+
 interface StackHints {
   exampleTools?: string[];
   exampleConfigFiles?: string[];
@@ -37,6 +51,8 @@ interface StackHints {
     expectExitCode?: number;
     description?: string;
   };
+  // Bazel execution hints (v3+)
+  bazelHints?: BazelHints;
 }
 
 interface ChecklistItemMaster {

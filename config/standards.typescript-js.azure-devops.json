@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "stack": "typescript-js",
   "stackLabel": "TypeScript / JavaScript",
   "ciSystems": ["azure-devops"],
@@ -60,7 +60,34 @@
         ],
         "notes": "Tackle recommended items in order of business value; backend-only repos can skip web-focused checks like accessibility. For AI/ML-heavy Python teams, consider extending containerization with data versioning (DVC) and unit tests with data quality checks (e.g., Great Expectations) as part of this step."
       }
-    ]
+    ],
+    "bazelIntegration": {
+      "description": "Bazel build executor support for quality checks. All hints are ADVISORY—stack-native commands remain the default execution path.",
+      "detectionRules": {
+        "rootMarkers": ["MODULE.bazel", "WORKSPACE.bazel", "WORKSPACE"],
+        "optionalMarkers": [".bazelrc", ".bazelversion"],
+        "notes": "Detection uses repo-root markers only. Nested BUILD files do not trigger Bazel mode."
+      },
+      "optOut": {
+        "description": "Set meta.bazelIntegration.enabled = false in repo config to disable Bazel hints",
+        "configPath": "meta.bazelIntegration.enabled"
+      },
+      "targetConventions": {
+        "description": "Recommended target naming (not assumed to exist). These are illustrative patterns; actual targets are repo-defined.",
+        "lint": "//tools/lint:lint or bazel test //... with lint aspects",
+        "format": "bazel run //tools/format:check",
+        "test": "bazel test //...",
+        "coverage": "bazel coverage //...",
+        "build": "bazel build //..."
+      },
+      "ciContract": {
+        "versionPinning": "Use .bazelversion file for Bazelisk",
+        "configFlag": "--config=ci (define in .bazelrc)",
+        "deterministicFlags": ["--nokeep_going", "--test_output=errors"],
+        "remoteCache": "Optional; not required for CI"
+      },
+      "advisoryNotice": "bazelHints are suggestions, not required execution paths. Consumers should prefer stack-native commands unless explicitly adopting Bazel."
+    }
   },
   "checklist": {
     "core": [
@@ -107,7 +134,14 @@
             "prettier.config.json",
             "prettier.config.yaml"
           ],
-          "requiredScripts": ["lint"]
+          "requiredScripts": ["lint"],
+          "bazelHints": {
+            "commands": [
+              "bazel test //... --aspects=//tools:lint.bzl%eslint_aspect --output_groups=report"
+            ],
+            "recommendedTargets": ["//tools/lint:lint"],
+            "notes": "Wrap eslint via aspect_rules_lint or a custom sh_test rule. Aspect-based linting runs on all source files."
+          }
         }
       },
       {
@@ -130,7 +164,11 @@
             "vitest.config.js",
             "vitest.config.ts"
           ],
-          "requiredScripts": ["test"]
+          "requiredScripts": ["test"],
+          "bazelHints": {
+            "commands": ["bazel test //..."],
+            "notes": "Bazel discovers and runs all test targets. Use rules_js for Jest/Vitest integration."
+          }
         }
       },
       {
@@ -199,7 +237,11 @@
           "exampleTools": ["jest", "nyc"],
           "exampleConfigFiles": ["jest.config.*"],
           "notes": "Collect coverage in lcov or similar format; use diff coverage so legacy gaps are visible but non-blocking.",
-          "verification": "Run the unit tests with coverage enabled and confirm that a coverage report is produced and that the configured threshold (around 80%) is enforced for new changes."
+          "verification": "Run the unit tests with coverage enabled and confirm that a coverage report is produced and that the configured threshold (around 80%) is enforced for new changes.",
+          "bazelHints": {
+            "commands": ["bazel coverage //..."],
+            "notes": "Bazel coverage collects coverage data from all test targets. Use --combined_report=lcov for aggregated reports."
+          }
         }
       },
       {
@@ -215,7 +257,11 @@
           "exampleTools": [],
           "exampleConfigFiles": [".github/workflows/*", "azure-pipelines.yml"],
           "notes": "Expose a single npm script (e.g., `npm run ci`) that mirrors the CI pipeline so contributors can reproduce failures locally.",
-          "verification": "Open the CI configuration and verify there is a job or stage that runs linting, type checking, tests, build, and any required container checks before merging to main."
+          "verification": "Open the CI configuration and verify there is a job or stage that runs linting, type checking, tests, build, and any required container checks before merging to main.",
+          "bazelHints": {
+            "commands": ["bazel build //...", "bazel test //..."],
+            "notes": "Replace npm run ci with Bazel commands. All quality gates run as Bazel targets."
+          }
         }
       },
       {
@@ -231,7 +277,14 @@
           "exampleTools": ["prettier"],
           "exampleConfigFiles": [".prettierrc.*", ".prettierignore"],
           "notes": "Run Prettier in check mode in CI; auto-fix locally via pre-commit hooks or editor integration.",
-          "verification": "Run the formatter in check mode (for example, `npm run format:check`) and confirm it reports clean formatting on committed code and auto-fixes as expected locally."
+          "verification": "Run the formatter in check mode (for example, `npm run format:check`) and confirm it reports clean formatting on committed code and auto-fixes as expected locally.",
+          "bazelHints": {
+            "commands": [
+              "bazel run //tools/format:check",
+              "bazel test //...:format_test"
+            ],
+            "notes": "Wrap Prettier as a run target for formatting checks. Use aspect_rules_lint for format aspects."
+          }
         }
       },
       {
@@ -265,7 +318,11 @@
           "notes": "Enable strict mode ('strict': true) and treat type-check failures as CI failures for new code; gradually expand strictness into legacy modules.",
           "verification": "Presence of tsconfig.json indicates type-checking is configured for the repository.",
           "requiredFiles": ["tsconfig.json"],
-          "requiredScripts": ["typecheck"]
+          "requiredScripts": ["typecheck"],
+          "bazelHints": {
+            "commands": ["bazel build //..."],
+            "notes": "TypeScript type errors surface during bazel build with rules_ts. No separate typecheck step needed."
+          }
         }
       },
       {

@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "meta": {
     "defaultCoverageThreshold": 0.8,
     "complexityChecks": {
@@ -57,7 +57,34 @@
         ],
         "notes": "Tackle recommended items in order of business value; backend-only repos can skip web-focused checks like accessibility. For AI/ML-heavy Python teams, consider extending containerization with data versioning (DVC) and unit tests with data quality checks (e.g., Great Expectations) as part of this step."
       }
-    ]
+    ],
+    "bazelIntegration": {
+      "description": "Bazel build executor support for quality checks. All hints are ADVISORY—stack-native commands remain the default execution path.",
+      "detectionRules": {
+        "rootMarkers": ["MODULE.bazel", "WORKSPACE.bazel", "WORKSPACE"],
+        "optionalMarkers": [".bazelrc", ".bazelversion"],
+        "notes": "Detection uses repo-root markers only. Nested BUILD files do not trigger Bazel mode."
+      },
+      "optOut": {
+        "description": "Set meta.bazelIntegration.enabled = false in repo config to disable Bazel hints",
+        "configPath": "meta.bazelIntegration.enabled"
+      },
+      "targetConventions": {
+        "description": "Recommended target naming (not assumed to exist). These are illustrative patterns; actual targets are repo-defined.",
+        "lint": "//tools/lint:lint or bazel test //... with lint aspects",
+        "format": "bazel run //tools/format:check",
+        "test": "bazel test //...",
+        "coverage": "bazel coverage //...",
+        "build": "bazel build //..."
+      },
+      "ciContract": {
+        "versionPinning": "Use .bazelversion file for Bazelisk",
+        "configFlag": "--config=ci (define in .bazelrc)",
+        "deterministicFlags": ["--nokeep_going", "--test_output=errors"],
+        "remoteCache": "Optional; not required for CI"
+      },
+      "advisoryNotice": "bazelHints are suggestions, not required execution paths. Consumers should prefer stack-native commands unless explicitly adopting Bazel."
+    }
   },
   "ciSystems": ["azure-devops", "github-actions"],
   "stacks": {
@@ -170,7 +197,14 @@
               "prettier.config.json",
               "prettier.config.yaml"
             ],
-            "requiredScripts": ["lint"]
+            "requiredScripts": ["lint"],
+            "bazelHints": {
+              "commands": [
+                "bazel test //... --aspects=//tools:lint.bzl%eslint_aspect --output_groups=report"
+              ],
+              "recommendedTargets": ["//tools/lint:lint"],
+              "notes": "Wrap eslint via aspect_rules_lint or a custom sh_test rule. Aspect-based linting runs on all source files."
+            }
           },
           "csharp-dotnet": {
             "exampleTools": ["Roslyn analyzers", "StyleCop"],
@@ -179,7 +213,13 @@
             "verification": ".editorconfig must exist to drive the .NET formatting and analysis tooling.",
             "requiredFiles": [".editorconfig"],
             "optionalFiles": ["Directory.Build.props"],
-            "requiredScripts": ["lint"]
+            "requiredScripts": ["lint"],
+            "bazelHints": {
+              "commands": [
+                "bazel build //... --aspects=@rules_dotnet//dotnet:analyzers.bzl%analyzer_aspect"
+              ],
+              "notes": "Use rules_dotnet analyzer aspects for Roslyn-based linting in Bazel."
+            }
           },
           "python": {
             "exampleTools": ["ruff", "flake8"],
@@ -188,7 +228,14 @@
             "verification": "pyproject.toml (or ruff.toml / .flake8) signals that linting tools are configured for the repository.",
             "requiredFiles": ["pyproject.toml"],
             "optionalFiles": ["ruff.toml", ".flake8"],
-            "requiredScripts": ["lint"]
+            "requiredScripts": ["lint"],
+            "bazelHints": {
+              "commands": [
+                "bazel test //...:ruff_test",
+                "bazel run //tools/lint:ruff -- check ."
+              ],
+              "notes": "Use rules_python with ruff wrapped as py_test or a custom run target."
+            }
           },
           "rust": {
             "exampleTools": ["clippy", "cargo-clippy"],
@@ -196,7 +243,13 @@
             "notes": "Use Clippy for comprehensive Rust linting. Configure via clippy.toml for project-specific rules. Treat warnings as errors in CI with -D warnings.",
             "verification": "Clippy is available via rustup component. Run 'cargo clippy' to verify linting is configured.",
             "requiredFiles": ["Cargo.toml"],
-            "optionalFiles": ["clippy.toml", ".clippy.toml"]
+            "optionalFiles": ["clippy.toml", ".clippy.toml"],
+            "bazelHints": {
+              "commands": [
+                "bazel build //... --aspects=@rules_rust//rust:defs.bzl%clippy_aspect --output_groups=clippy_checks"
+              ],
+              "notes": "rules_rust includes clippy_aspect for Bazel-native Clippy linting on all Rust targets."
+            }
           },
           "go": {
             "exampleTools": ["golangci-lint", "staticcheck"],
@@ -204,7 +257,13 @@
             "notes": "Use golangci-lint as the primary linter aggregator. Configure enabled linters in .golangci.yml for consistent team-wide enforcement.",
             "verification": ".golangci.yml or .golangci.yaml indicates linting is configured. Run 'golangci-lint run' to verify.",
             "requiredFiles": ["go.mod"],
-            "optionalFiles": [".golangci.yml", ".golangci.yaml"]
+            "optionalFiles": [".golangci.yml", ".golangci.yaml"],
+            "bazelHints": {
+              "commands": [
+                "bazel test //... --@io_bazel_rules_go//go/config:nogo=@//:nogo"
+              ],
+              "notes": "Use nogo for static analysis via rules_go. Configure nogo target with desired analyzers."
+            }
           }
         }
       },
@@ -235,14 +294,22 @@
               "vitest.config.js",
               "vitest.config.ts"
             ],
-            "requiredScripts": ["test"]
+            "requiredScripts": ["test"],
+            "bazelHints": {
+              "commands": ["bazel test //..."],
+              "notes": "Bazel discovers and runs all test targets. Use rules_js for Jest/Vitest integration."
+            }
           },
           "csharp-dotnet": {
             "exampleTools": ["xUnit", "NUnit", "MSTest"],
             "exampleConfigFiles": ["*.Tests.csproj"],
             "notes": "Group unit tests into dedicated test projects and keep them independent from external services.",
             "verification": "Test projects are present in the solution; test configuration is defined.",
-            "optionalFiles": ["*.Tests.csproj"]
+            "optionalFiles": ["*.Tests.csproj"],
+            "bazelHints": {
+              "commands": ["bazel test //..."],
+              "notes": "Use rules_dotnet to define test targets for xUnit/NUnit/MSTest projects."
+            }
           },
           "python": {
             "exampleTools": ["pytest"],
@@ -250,7 +317,11 @@
             "notes": "Organize unit tests under a tests/ directory and avoid real network or database calls in this layer.",
             "verification": "Test framework configuration is present; tests/ directory or pytest configuration exists.",
             "optionalFiles": ["pytest.ini", "pyproject.toml", "tests/"],
-            "requiredScripts": ["test"]
+            "requiredScripts": ["test"],
+            "bazelHints": {
+              "commands": ["bazel test //..."],
+              "notes": "Use rules_python py_test for pytest-based tests. Tests are hermetically isolated."
+            }
           },
           "rust": {
             "exampleTools": ["cargo test"],
@@ -258,7 +329,11 @@
             "notes": "Use cargo test as the built-in test runner. Organize tests in tests/ directory for integration tests and inline #[test] functions for unit tests.",
             "verification": "Run 'cargo test' to verify the test suite is configured and passing.",
             "requiredFiles": ["Cargo.toml"],
-            "optionalFiles": ["tests/"]
+            "optionalFiles": ["tests/"],
+            "bazelHints": {
+              "commands": ["bazel test //..."],
+              "notes": "rules_rust rust_test targets run cargo test under Bazel's hermetic environment."
+            }
           },
           "go": {
             "exampleTools": ["go test"],
@@ -266,7 +341,11 @@
             "notes": "Use 'go test ./...' to run all tests. Place test files alongside source files with _test.go suffix. Keep unit tests fast and isolated.",
             "verification": "Run 'go test ./...' to verify the test suite is configured and passing.",
             "requiredFiles": ["go.mod"],
-            "optionalFiles": []
+            "optionalFiles": [],
+            "bazelHints": {
+              "commands": ["bazel test //..."],
+              "notes": "rules_go go_test targets wrap 'go test' with Bazel's caching and hermeticity."
+            }
           }
         }
       },
@@ -459,31 +538,51 @@
             "exampleTools": ["jest", "nyc"],
             "exampleConfigFiles": ["jest.config.*"],
             "notes": "Collect coverage in lcov or similar format; use diff coverage so legacy gaps are visible but non-blocking.",
-            "verification": "Run the unit tests with coverage enabled and confirm that a coverage report is produced and that the configured threshold (around 80%) is enforced for new changes."
+            "verification": "Run the unit tests with coverage enabled and confirm that a coverage report is produced and that the configured threshold (around 80%) is enforced for new changes.",
+            "bazelHints": {
+              "commands": ["bazel coverage //..."],
+              "notes": "Bazel coverage collects coverage data from all test targets. Use --combined_report=lcov for aggregated reports."
+            }
           },
           "csharp-dotnet": {
             "exampleTools": ["coverlet", "ReportGenerator"],
             "exampleConfigFiles": ["*.csproj"],
             "notes": "Enable coverage collection for test projects and publish reports in a human-friendly format from CI.",
-            "verification": "Run the test suite with coverage enabled (for example, using coverlet or a similar tool) and verify that coverage reports are generated and used in CI to monitor thresholds."
+            "verification": "Run the test suite with coverage enabled (for example, using coverlet or a similar tool) and verify that coverage reports are generated and used in CI to monitor thresholds.",
+            "bazelHints": {
+              "commands": ["bazel coverage //..."],
+              "notes": "Use rules_dotnet with coverage instrumentation enabled."
+            }
           },
           "python": {
             "exampleTools": ["pytest", "pytest-cov", "coverage.py"],
             "exampleConfigFiles": ["pytest.ini", "pyproject.toml"],
             "notes": "Configure coverage reporting for your test suite and surface summary metrics in CI.",
-            "verification": "Run the unit tests with coverage (for example, pytest with pytest-cov) and confirm that coverage reports are generated and referenced in CI to enforce or track thresholds."
+            "verification": "Run the unit tests with coverage (for example, pytest with pytest-cov) and confirm that coverage reports are generated and referenced in CI to enforce or track thresholds.",
+            "bazelHints": {
+              "commands": ["bazel coverage //..."],
+              "notes": "Use rules_python py_test with coverage instrumentation. Combine with --combined_report=lcov."
+            }
           },
           "rust": {
             "exampleTools": ["cargo-tarpaulin", "llvm-cov", "grcov"],
             "exampleConfigFiles": ["Cargo.toml"],
             "notes": "Use cargo-tarpaulin or llvm-cov for code coverage. Generate lcov or cobertura reports for CI integration.",
-            "verification": "Run 'cargo tarpaulin' or equivalent and verify coverage reports are generated and thresholds enforced."
+            "verification": "Run 'cargo tarpaulin' or equivalent and verify coverage reports are generated and thresholds enforced.",
+            "bazelHints": {
+              "commands": ["bazel coverage //..."],
+              "notes": "Bazel coverage with rules_rust requires LLVM instrumentation. May need additional toolchain configuration."
+            }
           },
           "go": {
             "exampleTools": ["go test -cover", "go tool cover"],
             "exampleConfigFiles": ["go.mod"],
             "notes": "Use 'go test -coverprofile=coverage.out ./...' for coverage. Generate HTML or integrate with codecov/coveralls.",
-            "verification": "Run 'go test -cover ./...' and verify coverage reports are produced and thresholds monitored."
+            "verification": "Run 'go test -cover ./...' and verify coverage reports are produced and thresholds monitored.",
+            "bazelHints": {
+              "commands": ["bazel coverage //..."],
+              "notes": "rules_go supports coverage via bazel coverage. Use --combined_report=lcov for aggregated output."
+            }
           }
         }
       },
@@ -510,7 +609,11 @@
               "azure-pipelines.yml"
             ],
             "notes": "Expose a single npm script (e.g., `npm run ci`) that mirrors the CI pipeline so contributors can reproduce failures locally.",
-            "verification": "Open the CI configuration and verify there is a job or stage that runs linting, type checking, tests, build, and any required container checks before merging to main."
+            "verification": "Open the CI configuration and verify there is a job or stage that runs linting, type checking, tests, build, and any required container checks before merging to main.",
+            "bazelHints": {
+              "commands": ["bazel build //...", "bazel test //..."],
+              "notes": "Replace npm run ci with Bazel commands. All quality gates run as Bazel targets."
+            }
           },
           "csharp-dotnet": {
             "exampleTools": [],
@@ -519,7 +622,11 @@
               "azure-pipelines.yml"
             ],
             "notes": "Ensure CI runs analyzers, tests, build, and packaging or container checks before changes can be merged.",
-            "verification": "Open the CI configuration and verify there is a job or stage that runs analyzers, tests, build, and any required packaging or container checks before merging to main."
+            "verification": "Open the CI configuration and verify there is a job or stage that runs analyzers, tests, build, and any required packaging or container checks before merging to main.",
+            "bazelHints": {
+              "commands": ["bazel build //...", "bazel test //..."],
+              "notes": "Bazel handles all analysis, testing, and packaging via defined targets."
+            }
           },
           "python": {
             "exampleTools": [],
@@ -528,7 +635,11 @@
               "azure-pipelines.yml"
             ],
             "notes": "Ensure CI runs linting, type checking (if used), tests, and packaging or container checks for Python services before merging.",
-            "verification": "Open the CI configuration and verify there is a job or stage that runs linting, type checking (if used), tests, and any packaging or container checks before merging to main."
+            "verification": "Open the CI configuration and verify there is a job or stage that runs linting, type checking (if used), tests, and any packaging or container checks before merging to main.",
+            "bazelHints": {
+              "commands": ["bazel build //...", "bazel test //..."],
+              "notes": "Bazel py_binary and py_test targets replace traditional Python tooling."
+            }
           },
           "rust": {
             "exampleTools": [],
@@ -537,7 +648,11 @@
               "azure-pipelines.yml"
             ],
             "notes": "Use 'cargo clippy', 'cargo test', 'cargo build --release' as quality gates. Consider cargo-deny for dependency auditing.",
-            "verification": "Verify CI runs cargo clippy, cargo test, and cargo build before merging to main."
+            "verification": "Verify CI runs cargo clippy, cargo test, and cargo build before merging to main.",
+            "bazelHints": {
+              "commands": ["bazel build //...", "bazel test //..."],
+              "notes": "rules_rust provides rust_library, rust_test, and clippy_aspect for complete CI."
+            }
           },
           "go": {
             "exampleTools": [],
@@ -546,7 +661,11 @@
               "azure-pipelines.yml"
             ],
             "notes": "Run 'golangci-lint run', 'go test ./...', 'go build' as quality gates. Use govulncheck for security scanning.",
-            "verification": "Verify CI runs golangci-lint, go test, and go build before merging to main."
+            "verification": "Verify CI runs golangci-lint, go test, and go build before merging to main.",
+            "bazelHints": {
+              "commands": ["bazel build //...", "bazel test //..."],
+              "notes": "rules_go go_binary and go_test targets provide hermetic builds and tests."
+            }
           }
         }
       },
@@ -570,31 +689,58 @@
             "exampleTools": ["prettier"],
             "exampleConfigFiles": [".prettierrc.*", ".prettierignore"],
             "notes": "Run Prettier in check mode in CI; auto-fix locally via pre-commit hooks or editor integration.",
-            "verification": "Run the formatter in check mode (for example, `npm run format:check`) and confirm it reports clean formatting on committed code and auto-fixes as expected locally."
+            "verification": "Run the formatter in check mode (for example, `npm run format:check`) and confirm it reports clean formatting on committed code and auto-fixes as expected locally.",
+            "bazelHints": {
+              "commands": [
+                "bazel run //tools/format:check",
+                "bazel test //...:format_test"
+              ],
+              "notes": "Wrap Prettier as a run target for formatting checks. Use aspect_rules_lint for format aspects."
+            }
           },
           "csharp-dotnet": {
             "exampleTools": ["dotnet format"],
             "exampleConfigFiles": [".editorconfig"],
             "notes": "Use .editorconfig and dotnet-format to keep C# style consistent across contributors.",
-            "verification": "Run the configured formatter or code style enforcement (for example, `dotnet format`) and confirm that code in the repository conforms to the defined rules."
+            "verification": "Run the configured formatter or code style enforcement (for example, `dotnet format`) and confirm that code in the repository conforms to the defined rules.",
+            "bazelHints": {
+              "commands": [
+                "bazel run //tools/format:dotnet_format -- --verify-no-changes"
+              ],
+              "notes": "Wrap dotnet format as a Bazel run target."
+            }
           },
           "python": {
             "exampleTools": ["black"],
             "exampleConfigFiles": ["pyproject.toml"],
             "notes": "Use black (or an equivalent opinionated formatter) and treat its output as the single source of truth for code style.",
-            "verification": "Run the configured formatter (for example, `black .` or `black --check .`) and confirm it reports clean formatting on committed code and auto-fixes as expected locally."
+            "verification": "Run the configured formatter (for example, `black .` or `black --check .`) and confirm it reports clean formatting on committed code and auto-fixes as expected locally.",
+            "bazelHints": {
+              "commands": ["bazel run //tools/format:black -- --check ."],
+              "notes": "Wrap black as a py_binary run target for format checking."
+            }
           },
           "rust": {
             "exampleTools": ["rustfmt"],
             "exampleConfigFiles": ["rustfmt.toml", ".rustfmt.toml"],
             "notes": "Use rustfmt (via 'cargo fmt') as the standard formatter. Configure via rustfmt.toml. Run 'cargo fmt --check' in CI.",
-            "verification": "Run 'cargo fmt --check' and confirm it reports clean formatting. Use 'cargo fmt' to auto-fix."
+            "verification": "Run 'cargo fmt --check' and confirm it reports clean formatting. Use 'cargo fmt' to auto-fix.",
+            "bazelHints": {
+              "commands": [
+                "bazel build //... --aspects=@rules_rust//rust:defs.bzl%rustfmt_aspect --output_groups=rustfmt_checks"
+              ],
+              "notes": "rules_rust includes rustfmt_aspect for Bazel-native format checking."
+            }
           },
           "go": {
             "exampleTools": ["gofmt", "goimports"],
             "exampleConfigFiles": [],
             "notes": "Use gofmt (built-in) for formatting. goimports extends gofmt with import organization. Formatting is enforced by convention.",
-            "verification": "Run 'gofmt -d .' or 'goimports -d .' and confirm no output indicates clean formatting."
+            "verification": "Run 'gofmt -d .' or 'goimports -d .' and confirm no output indicates clean formatting.",
+            "bazelHints": {
+              "commands": ["bazel run @go_sdk//:bin/gofmt -- -d ."],
+              "notes": "Run gofmt via the Bazel-managed Go SDK for hermetic formatting checks."
+            }
           }
         }
       },
@@ -668,7 +814,11 @@
             "notes": "Enable strict mode ('strict': true) and treat type-check failures as CI failures for new code; gradually expand strictness into legacy modules.",
             "verification": "Presence of tsconfig.json indicates type-checking is configured for the repository.",
             "requiredFiles": ["tsconfig.json"],
-            "requiredScripts": ["typecheck"]
+            "requiredScripts": ["typecheck"],
+            "bazelHints": {
+              "commands": ["bazel build //..."],
+              "notes": "TypeScript type errors surface during bazel build with rules_ts. No separate typecheck step needed."
+            }
           },
           "csharp-dotnet": {
             "exampleTools": ["Roslyn analyzers"],
@@ -681,7 +831,11 @@
             "verification": ".editorconfig must exist; Directory.Build.props is optional for shared build configuration.",
             "requiredFiles": [".editorconfig"],
             "optionalFiles": ["Directory.Build.props"],
-            "requiredScripts": ["typecheck"]
+            "requiredScripts": ["typecheck"],
+            "bazelHints": {
+              "commands": ["bazel build //..."],
+              "notes": "C# type errors surface during bazel build with rules_dotnet. No separate typecheck step needed."
+            }
           },
           "python": {
             "exampleTools": ["mypy"],
@@ -690,21 +844,36 @@
             "verification": "pyproject.toml (or mypy.ini) signals that mypy configuration is available for the repository.",
             "requiredFiles": ["pyproject.toml"],
             "optionalFiles": ["mypy.ini"],
-            "requiredScripts": ["typecheck"]
+            "requiredScripts": ["typecheck"],
+            "bazelHints": {
+              "commands": [
+                "bazel test //...:mypy_test",
+                "bazel run //tools/typecheck:mypy"
+              ],
+              "notes": "Wrap mypy as a py_test or run target for Bazel-based type checking."
+            }
           },
           "rust": {
             "exampleTools": ["rustc (built-in)"],
             "exampleConfigFiles": ["Cargo.toml"],
             "notes": "Rust has compile-time type checking built into the language. The borrow checker enforces memory safety. No additional tooling needed for type safety.",
             "verification": "Run 'cargo check' or 'cargo build' to verify type correctness. All Rust code is type-checked by default.",
-            "requiredFiles": ["Cargo.toml"]
+            "requiredFiles": ["Cargo.toml"],
+            "bazelHints": {
+              "commands": ["bazel build //..."],
+              "notes": "Rust type checking is inherent to compilation. bazel build with rules_rust enforces type safety."
+            }
           },
           "go": {
             "exampleTools": ["go vet", "staticcheck"],
             "exampleConfigFiles": ["go.mod"],
             "notes": "Go has compile-time type checking built in. Use 'go vet' for additional static analysis. staticcheck provides enhanced type-related checks.",
             "verification": "Run 'go build ./...' to verify type correctness. Use 'go vet ./...' for additional static analysis.",
-            "requiredFiles": ["go.mod"]
+            "requiredFiles": ["go.mod"],
+            "bazelHints": {
+              "commands": ["bazel build //..."],
+              "notes": "Go type checking is inherent to compilation. bazel build with rules_go enforces type safety."
+            }
           }
         }
       },
