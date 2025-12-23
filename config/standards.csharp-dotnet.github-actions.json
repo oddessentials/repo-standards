@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "stack": "csharp-dotnet",
   "stackLabel": "C# / .NET",
   "ciSystems": ["github-actions"],
@@ -41,7 +41,8 @@
           "type-checking",
           "unit-test-runner",
           "unit-test-reporter",
-          "dependency-security"
+          "dependency-security",
+          "dependency-update-automation"
         ],
         "notes": "Pin tool and runtime versions in CI and containers to avoid flaky differences across environments."
       },
@@ -329,6 +330,50 @@
       }
     ],
     "recommended": [
+      {
+        "id": "dependency-update-automation",
+        "label": "Dependency Update Automation",
+        "description": "Automate dependency updates using Renovate or Dependabot to keep dependencies current and reduce security exposure window.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci",
+            "notes": "CI hints are suggested mappings; adjust to your workflow structure."
+          }
+        },
+        "stack": {
+          "exampleTools": ["renovate", "dependabot"],
+          "exampleConfigFiles": ["renovate.json", ".github/dependabot.yml"],
+          "notes": "Both support NuGet packages. Renovate has better Central Package Management (Directory.Packages.props) support. For AzDO: use self-hosted Renovate runner.",
+          "verification": "Check for renovate.json OR .github/dependabot.yml. Verify NuGet update PRs.",
+          "anyOfFiles": [
+            "renovate.json",
+            ".renovaterc.json",
+            ".github/dependabot.yml"
+          ],
+          "pinningNotes": "Pin Renovate version in pipeline definition."
+        }
+      },
+      {
+        "id": "dependency-architecture-rules",
+        "label": "Dependency Architecture Rules",
+        "description": "Enforce module boundaries and import constraints to prevent architectural drift and unwanted coupling.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci",
+            "notes": "CI hints are suggested mappings; adjust to your workflow structure."
+          }
+        },
+        "stack": {
+          "exampleTools": ["NsDepCop", "ArchUnitNET"],
+          "exampleConfigFiles": [
+            "NsDepCop.config.nsdepcop",
+            "ArchitectureTests.cs"
+          ],
+          "notes": "NsDepCop enforces namespace dependency rules via config file. ArchUnitNET uses test code for architectural assertions.",
+          "verification": "Build fails on namespace violations, or architecture tests run as part of test suite.",
+          "optionalFiles": ["NsDepCop.config.nsdepcop"]
+        }
+      },
       {
         "id": "integration-testing",
         "label": "Integration Testing",

@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "meta": {
     "defaultCoverageThreshold": 0.8,
     "complexityChecks": {
@@ -38,7 +38,8 @@
           "type-checking",
           "unit-test-runner",
           "unit-test-reporter",
-          "dependency-security"
+          "dependency-security",
+          "dependency-update-automation"
         ],
         "notes": "Pin tool and runtime versions in CI and containers to avoid flaky differences across environments."
       },
@@ -970,6 +971,153 @@
       }
     ],
     "recommended": [
+      {
+        "id": "dependency-update-automation",
+        "label": "Dependency Update Automation",
+        "description": "Automate dependency updates using Renovate or Dependabot to keep dependencies current and reduce security exposure window.",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality",
+            "notes": "CI hints are suggested mappings; adjust to your pipeline topology."
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "CI hints are suggested mappings; adjust to your workflow structure."
+          }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": ["renovate", "dependabot"],
+            "exampleConfigFiles": ["renovate.json", ".github/dependabot.yml"],
+            "notes": "Renovate supports GHA + AzDO (self-hosted or Mend Renovate App). Dependabot is GitHub-native only. For AzDO: use Renovate via self-hosted runner, Docker container job, or Mend's hosted service.",
+            "verification": "Check for renovate.json (or .renovaterc.json) OR .github/dependabot.yml. Verify dependency update PRs are being created.",
+            "anyOfFiles": [
+              "renovate.json",
+              ".renovaterc.json",
+              "renovate.json5",
+              ".renovaterc.json5",
+              ".github/dependabot.yml"
+            ],
+            "pinningNotes": "Pin Renovate Docker image version in AzDO pipelines for determinism."
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["renovate", "dependabot"],
+            "exampleConfigFiles": ["renovate.json", ".github/dependabot.yml"],
+            "notes": "Both support NuGet packages. Renovate has better Central Package Management (Directory.Packages.props) support. For AzDO: use self-hosted Renovate runner.",
+            "verification": "Check for renovate.json OR .github/dependabot.yml. Verify NuGet update PRs.",
+            "anyOfFiles": [
+              "renovate.json",
+              ".renovaterc.json",
+              ".github/dependabot.yml"
+            ],
+            "pinningNotes": "Pin Renovate version in pipeline definition."
+          },
+          "python": {
+            "exampleTools": ["renovate", "dependabot"],
+            "exampleConfigFiles": ["renovate.json", ".github/dependabot.yml"],
+            "notes": "Renovate supports pyproject.toml, requirements.txt, Pipfile, poetry.lock. For AzDO: self-hosted Renovate or schedule-triggered pipeline.",
+            "verification": "Check for renovate.json OR .github/dependabot.yml. Verify Python dependency PRs.",
+            "anyOfFiles": [
+              "renovate.json",
+              ".renovaterc.json",
+              ".github/dependabot.yml"
+            ],
+            "pinningNotes": "Use requirements.txt with pinned versions or poetry.lock for deterministic installs."
+          },
+          "rust": {
+            "exampleTools": ["renovate", "dependabot"],
+            "exampleConfigFiles": ["renovate.json", ".github/dependabot.yml"],
+            "notes": "Both support Cargo.toml/Cargo.lock. Works with cargo workspaces. Security scanning is covered by dependency-security (cargo-audit/cargo-deny).",
+            "verification": "Check for renovate.json OR .github/dependabot.yml. Verify Cargo dependency PRs.",
+            "anyOfFiles": [
+              "renovate.json",
+              ".renovaterc.json",
+              ".github/dependabot.yml"
+            ]
+          },
+          "go": {
+            "exampleTools": ["renovate", "dependabot"],
+            "exampleConfigFiles": ["renovate.json", ".github/dependabot.yml"],
+            "notes": "Both support go.mod/go.sum. Renovate handles replace directives better. Security scanning is covered by dependency-security (govulncheck).",
+            "verification": "Check for renovate.json OR .github/dependabot.yml. Verify Go module PRs.",
+            "anyOfFiles": [
+              "renovate.json",
+              ".renovaterc.json",
+              ".github/dependabot.yml"
+            ]
+          }
+        }
+      },
+      {
+        "id": "dependency-architecture-rules",
+        "label": "Dependency Architecture Rules",
+        "description": "Enforce module boundaries and import constraints to prevent architectural drift and unwanted coupling.",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality",
+            "notes": "CI hints are suggested mappings; adjust to your pipeline topology."
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "CI hints are suggested mappings; adjust to your workflow structure."
+          }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": ["dependency-cruiser"],
+            "exampleConfigFiles": [
+              ".dependency-cruiser.cjs",
+              ".dependency-cruiser.js",
+              "dependency-cruiser.config.cjs"
+            ],
+            "notes": "Define forbidden imports, layer rules, and circular dependency bans. Run in CI as blocking check.",
+            "verification": "Run 'npx depcruise --validate' or equivalent. Verify architectural rules are documented and enforced.",
+            "anyOfFiles": [
+              ".dependency-cruiser.cjs",
+              ".dependency-cruiser.js",
+              "dependency-cruiser.config.cjs",
+              ".dependency-cruiser.mjs"
+            ],
+            "pinningNotes": "Pin dependency-cruiser version in package.json devDependencies."
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["NsDepCop", "ArchUnitNET"],
+            "exampleConfigFiles": [
+              "NsDepCop.config.nsdepcop",
+              "ArchitectureTests.cs"
+            ],
+            "notes": "NsDepCop enforces namespace dependency rules via config file. ArchUnitNET uses test code for architectural assertions.",
+            "verification": "Build fails on namespace violations, or architecture tests run as part of test suite.",
+            "optionalFiles": ["NsDepCop.config.nsdepcop"]
+          },
+          "python": {
+            "exampleTools": ["import-linter", "pydeps"],
+            "exampleConfigFiles": ["pyproject.toml", ".importlinter"],
+            "notes": "Configure [tool.importlinter] in pyproject.toml OR use standalone .importlinter file. pydeps is visualization-only.",
+            "verification": "Run 'lint-imports' successfully. Config must exist in pyproject.toml [tool.importlinter] section OR .importlinter file.",
+            "optionalFiles": ["pyproject.toml", ".importlinter"]
+          },
+          "rust": {
+            "exampleTools": ["cargo-deny"],
+            "exampleConfigFiles": ["deny.toml"],
+            "notes": "cargo-deny's [bans] section enforces dependency graph rules (deny specific crates, wildcards). Extend existing config if using for security scanning.",
+            "verification": "Run 'cargo deny check bans' to verify dependency constraints.",
+            "optionalFiles": ["deny.toml"]
+          },
+          "go": {
+            "exampleTools": ["depaware", "go-mod-check"],
+            "exampleConfigFiles": [],
+            "notes": "Go's module system is simpler. Use internal/ packages for visibility. depaware provides transitive dep analysis. Standard practice: 'go mod tidy && git diff --exit-code go.mod go.sum'.",
+            "verification": "Run 'go mod verify' and 'go mod tidy' with diff check in CI."
+          }
+        }
+      },
       {
         "id": "integration-testing",
         "label": "Integration Testing",

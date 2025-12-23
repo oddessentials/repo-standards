@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "stack": "typescript-js",
   "stackLabel": "TypeScript / JavaScript",
   "ciSystems": ["azure-devops"],
@@ -41,7 +41,8 @@
           "type-checking",
           "unit-test-runner",
           "unit-test-reporter",
-          "dependency-security"
+          "dependency-security",
+          "dependency-update-automation"
         ],
         "notes": "Pin tool and runtime versions in CI and containers to avoid flaky differences across environments."
       },
@@ -347,6 +348,59 @@
       }
     ],
     "recommended": [
+      {
+        "id": "dependency-update-automation",
+        "label": "Dependency Update Automation",
+        "description": "Automate dependency updates using Renovate or Dependabot to keep dependencies current and reduce security exposure window.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality",
+            "notes": "CI hints are suggested mappings; adjust to your pipeline topology."
+          }
+        },
+        "stack": {
+          "exampleTools": ["renovate", "dependabot"],
+          "exampleConfigFiles": ["renovate.json", ".github/dependabot.yml"],
+          "notes": "Renovate supports GHA + AzDO (self-hosted or Mend Renovate App). Dependabot is GitHub-native only. For AzDO: use Renovate via self-hosted runner, Docker container job, or Mend's hosted service.",
+          "verification": "Check for renovate.json (or .renovaterc.json) OR .github/dependabot.yml. Verify dependency update PRs are being created.",
+          "anyOfFiles": [
+            "renovate.json",
+            ".renovaterc.json",
+            "renovate.json5",
+            ".renovaterc.json5",
+            ".github/dependabot.yml"
+          ],
+          "pinningNotes": "Pin Renovate Docker image version in AzDO pipelines for determinism."
+        }
+      },
+      {
+        "id": "dependency-architecture-rules",
+        "label": "Dependency Architecture Rules",
+        "description": "Enforce module boundaries and import constraints to prevent architectural drift and unwanted coupling.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality",
+            "notes": "CI hints are suggested mappings; adjust to your pipeline topology."
+          }
+        },
+        "stack": {
+          "exampleTools": ["dependency-cruiser"],
+          "exampleConfigFiles": [
+            ".dependency-cruiser.cjs",
+            ".dependency-cruiser.js",
+            "dependency-cruiser.config.cjs"
+          ],
+          "notes": "Define forbidden imports, layer rules, and circular dependency bans. Run in CI as blocking check.",
+          "verification": "Run 'npx depcruise --validate' or equivalent. Verify architectural rules are documented and enforced.",
+          "anyOfFiles": [
+            ".dependency-cruiser.cjs",
+            ".dependency-cruiser.js",
+            "dependency-cruiser.config.cjs",
+            ".dependency-cruiser.mjs"
+          ],
+          "pinningNotes": "Pin dependency-cruiser version in package.json devDependencies."
+        }
+      },
       {
         "id": "integration-testing",
         "label": "Integration Testing",

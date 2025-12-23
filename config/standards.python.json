@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "stack": "python",
   "stackLabel": "Python",
   "ciSystems": ["azure-devops", "github-actions"],
@@ -41,7 +41,8 @@
           "type-checking",
           "unit-test-runner",
           "unit-test-reporter",
-          "dependency-security"
+          "dependency-security",
+          "dependency-update-automation"
         ],
         "notes": "Pin tool and runtime versions in CI and containers to avoid flaky differences across environments."
       },
@@ -380,6 +381,55 @@
       }
     ],
     "recommended": [
+      {
+        "id": "dependency-update-automation",
+        "label": "Dependency Update Automation",
+        "description": "Automate dependency updates using Renovate or Dependabot to keep dependencies current and reduce security exposure window.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality",
+            "notes": "CI hints are suggested mappings; adjust to your pipeline topology."
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "CI hints are suggested mappings; adjust to your workflow structure."
+          }
+        },
+        "stack": {
+          "exampleTools": ["renovate", "dependabot"],
+          "exampleConfigFiles": ["renovate.json", ".github/dependabot.yml"],
+          "notes": "Renovate supports pyproject.toml, requirements.txt, Pipfile, poetry.lock. For AzDO: self-hosted Renovate or schedule-triggered pipeline.",
+          "verification": "Check for renovate.json OR .github/dependabot.yml. Verify Python dependency PRs.",
+          "anyOfFiles": [
+            "renovate.json",
+            ".renovaterc.json",
+            ".github/dependabot.yml"
+          ],
+          "pinningNotes": "Use requirements.txt with pinned versions or poetry.lock for deterministic installs."
+        }
+      },
+      {
+        "id": "dependency-architecture-rules",
+        "label": "Dependency Architecture Rules",
+        "description": "Enforce module boundaries and import constraints to prevent architectural drift and unwanted coupling.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality",
+            "notes": "CI hints are suggested mappings; adjust to your pipeline topology."
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "CI hints are suggested mappings; adjust to your workflow structure."
+          }
+        },
+        "stack": {
+          "exampleTools": ["import-linter", "pydeps"],
+          "exampleConfigFiles": ["pyproject.toml", ".importlinter"],
+          "notes": "Configure [tool.importlinter] in pyproject.toml OR use standalone .importlinter file. pydeps is visualization-only.",
+          "verification": "Run 'lint-imports' successfully. Config must exist in pyproject.toml [tool.importlinter] section OR .importlinter file.",
+          "optionalFiles": ["pyproject.toml", ".importlinter"]
+        }
+      },
       {
         "id": "integration-testing",
         "label": "Integration Testing",
