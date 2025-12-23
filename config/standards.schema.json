@@ -111,8 +111,8 @@
             "$ref": "#/$defs/MigrationStep"
           }
         },
-        "bazelIntegration": {
-          "$ref": "#/$defs/BazelIntegration"
+        "executorHints": {
+          "$ref": "#/$defs/ExecutorHints"
         }
       }
     },
@@ -143,13 +143,10 @@
         }
       }
     },
-    "BazelIntegration": {
+    "BazelExecutorConfig": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "description": {
-          "type": "string"
-        },
         "detectionRules": {
           "type": "object",
           "additionalProperties": false,
@@ -213,6 +210,21 @@
         },
         "advisoryNotice": {
           "type": "string"
+        }
+      }
+    },
+    "ExecutorHints": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Advisory execution substrate hints. Bazel is the first supported executor; future monorepo executors may follow the same pattern.",
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "Container-level description of the executor hints system."
+        },
+        "bazel": {
+          "$ref": "#/$defs/BazelExecutorConfig",
+          "description": "Bazel executor configuration (first supported instance)."
         }
       }
     },

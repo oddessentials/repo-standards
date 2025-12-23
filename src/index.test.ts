@@ -84,26 +84,26 @@ describe("dependency governance items", () => {
 });
 
 describe("bazel integration", () => {
-  it("meta includes bazelIntegration section", () => {
+  it("meta includes executorHints.bazel section", () => {
     const spec = loadMasterSpec();
-    expect(spec.meta?.bazelIntegration).toBeDefined();
-    expect(spec.meta?.bazelIntegration?.detectionRules).toBeDefined();
+    expect(spec.meta?.executorHints?.bazel).toBeDefined();
+    expect(spec.meta?.executorHints?.bazel?.detectionRules).toBeDefined();
   });
 
-  it("bazelIntegration has root markers for detection", () => {
+  it("executorHints.bazel has root markers for detection", () => {
     const spec = loadMasterSpec();
     const rootMarkers =
-      spec.meta?.bazelIntegration?.detectionRules?.rootMarkers;
+      spec.meta?.executorHints?.bazel?.detectionRules?.rootMarkers;
     expect(rootMarkers).toContain("MODULE.bazel");
     expect(rootMarkers).toContain("WORKSPACE.bazel");
     expect(rootMarkers).toContain("WORKSPACE");
   });
 
-  it("bazelIntegration has opt-out mechanism", () => {
+  it("executorHints.bazel has opt-out mechanism", () => {
     const spec = loadMasterSpec();
-    expect(spec.meta?.bazelIntegration?.optOut).toBeDefined();
-    expect(spec.meta?.bazelIntegration?.optOut?.configPath).toBe(
-      "meta.bazelIntegration.enabled",
+    expect(spec.meta?.executorHints?.bazel?.optOut).toBeDefined();
+    expect(spec.meta?.executorHints?.bazel?.optOut?.configPath).toBe(
+      "meta.executorHints.bazel.enabled",
     );
   });
 

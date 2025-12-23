@@ -48,8 +48,7 @@ export interface MigrationStep {
 }
 
 /** Bazel integration configuration */
-export interface BazelIntegration {
-  description?: string;
+export interface BazelExecutorConfig {
   detectionRules?: {
     rootMarkers?: string[];
     optionalMarkers?: string[];
@@ -67,6 +66,18 @@ export interface BazelIntegration {
     remoteCache?: string;
   };
   advisoryNotice?: string;
+}
+
+/**
+ * Executor hints container.
+ * Bazel is the first (and currently only) supported executor.
+ * Future monorepo executors may be added following the same pattern.
+ */
+export interface ExecutorHints {
+  /** Container-level description of the executor hints system */
+  description?: string;
+  /** Bazel executor configuration (first supported instance) */
+  bazel?: BazelExecutorConfig;
 }
 
 /**
@@ -93,7 +104,7 @@ export interface Meta {
     description?: string;
   };
   migrationGuide?: MigrationStep[];
-  bazelIntegration?: BazelIntegration;
+  executorHints?: ExecutorHints;
 }
 
 export interface MasterJson {

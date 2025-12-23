@@ -102,7 +102,7 @@ The `version` field indicates schema compatibility:
 
 - `1` — Original schema
 - `2` — Adds `bazelHints`, `meta.bazelIntegration` for Bazel support, `anyOfFiles`, `pinningNotes`
-- `3` — Enforces strict validation with `additionalProperties: false`. Adds enforcement/severity levels, ratio-based coverage thresholds, and Rust/Go stacks
+- `3` — Enforces strict validation with `additionalProperties: false`. Adds enforcement/severity levels, ratio-based coverage thresholds, Rust/Go stacks, and refactors `bazelIntegration` → `executorHints.bazel`
 
 Consumers should ignore unknown fields for forward compatibility.
 
@@ -218,7 +218,7 @@ build:ci --test_output=errors
 To disable Bazel hints for a repo that contains Bazel files but uses npm for quality checks:
 
 ```json
-{ "meta": { "bazelIntegration": { "enabled": false } } }
+{ "meta": { "executorHints": { "bazel": { "enabled": false } } } }
 ```
 
 ---
