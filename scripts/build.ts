@@ -35,12 +35,10 @@ function sortObject(obj: unknown): unknown {
   }
   return obj;
 }
-
 /**
- * Sync schema version with package.json major version.
- * Only UPGRADES schema version when package.json major is higher.
- * This allows schema to lead during breaking change development,
- * then semantic-release bumps package.json to match.
+ * Ensure schema version matches package.json major version.
+ * - Auto-upgrades schema when package.json major is higher (for semantic-release)
+ * - Fails if schema is ahead of package (prevents manual drift)
  */
 function syncSchemaVersion(rootDir: string): void {
   const pkgPath = join(rootDir, "package.json");
@@ -49,23 +47,27 @@ function syncSchemaVersion(rootDir: string): void {
   const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
   const standards = JSON.parse(readFileSync(standardsPath, "utf8"));
 
-  // Extract major version from package.json (e.g., "2.0.0" -> 2)
+  // Extract major version from package.json (e.g., "2.1.0" -> 2)
   const pkgMajor = parseInt(pkg.version.split(".")[0], 10);
 
   if (pkgMajor > standards.version) {
-    // Only upgrade schema version when package.json is ahead
+    // Auto-upgrade schema version when semantic-release bumps package.json
     console.log(
       `Upgrading schema version: ${standards.version} -> ${pkgMajor} (from package.json)`,
     );
     standards.version = pkgMajor;
     writeFileSync(standardsPath, JSON.stringify(standards, null, 2) + "\n");
   } else if (standards.version > pkgMajor) {
-    // Schema leads (breaking change in development) - this is expected
-    console.log(
-      `Schema version ${standards.version} leads package.json ${pkgMajor} (breaking change pending)`,
+    // Schema ahead of package = manual drift, fail build
+    throw new Error(
+      `Schema version drift: standards.json version=${standards.version} ` +
+        `is ahead of package.json major=${pkgMajor}. ` +
+        `This should not happen - schema version is set by CI.`,
     );
   } else {
-    console.log(`Schema version ${standards.version} matches package.json`);
+    console.log(
+      `Schema version ${standards.version} matches package.json major`,
+    );
   }
 }
 

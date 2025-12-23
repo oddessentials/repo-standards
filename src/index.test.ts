@@ -34,9 +34,9 @@ describe("repo-standards API", () => {
 });
 
 describe("dependency governance items", () => {
-  it("schema version is 3", () => {
+  it("schema version is 2", () => {
     const spec = loadMasterSpec();
-    expect(spec.version).toBe(3);
+    expect(spec.version).toBe(2);
   });
 
   it("recommended section includes both dependency items", () => {
@@ -305,5 +305,17 @@ describe("documentation sync (prevents version drift)", () => {
     // Check that the version list includes the current version
     const versionListPattern = new RegExp(`-\\s*\`${actualVersion}\`\\s*—`);
     expect(readme).toMatch(versionListPattern);
+  });
+
+  it("schema version matches package.json major version", async () => {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+
+    const spec = loadMasterSpec();
+    const pkgPath = path.resolve(process.cwd(), "package.json");
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
+    const pkgMajor = parseInt(pkg.version.split(".")[0], 10);
+
+    expect(spec.version).toBe(pkgMajor);
   });
 });
