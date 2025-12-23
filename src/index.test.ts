@@ -14,6 +14,8 @@ describe("repo-standards API", () => {
     expect(stacks).toContain("typescript-js");
     expect(stacks).toContain("csharp-dotnet");
     expect(stacks).toContain("python");
+    expect(stacks).toContain("rust");
+    expect(stacks).toContain("go");
   });
 
   it("listSupportedCiSystems returns expected CI systems", () => {

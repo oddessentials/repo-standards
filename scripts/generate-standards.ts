@@ -3,7 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-type StackId = "typescript-js" | "csharp-dotnet" | "python";
+type StackId = "typescript-js" | "csharp-dotnet" | "python" | "rust" | "go";
 type CiSystem = "azure-devops" | "github-actions";
 
 interface StackMeta {
@@ -195,6 +195,10 @@ const STACK_ALIASES: Record<string, StackId> = {
   py: "python",
   "typescript-js": "typescript-js",
   "csharp-dotnet": "csharp-dotnet",
+  rust: "rust",
+  rs: "rust",
+  go: "go",
+  golang: "go",
 };
 
 const rawArg = process.argv[2] || "typescript-js";
@@ -203,7 +207,7 @@ const targetStack = STACK_ALIASES[rawArg.toLowerCase()];
 if (!targetStack) {
   console.error(`Unknown stack: ${rawArg}`);
   console.error(
-    `Available stacks: ${["typescript-js", "csharp-dotnet", "python"].join(", ")}`,
+    `Available stacks: ${["typescript-js", "csharp-dotnet", "python", "rust", "go"].join(", ")}`,
   );
   process.exit(1);
 }
