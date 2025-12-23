@@ -1,3 +1,9 @@
+## [1.2.1](https://github.com/oddessentials/repo-standards/compare/v1.2.0...v1.2.1) (2025-12-23)
+
+### Bug Fixes
+
+- semantic release ([339df72](https://github.com/oddessentials/repo-standards/commit/339df720cccc5fb1ff6e7ee18ec4c44f9b880ed0))
+
 # [1.2.0](https://github.com/oddessentials/repo-standards/compare/v1.1.0...v1.2.0) (2025-12-23)
 
 ### Features
