@@ -1,10 +1,12 @@
 {
-  "version": 2,
+  "version": 3,
   "stack": "python",
   "stackLabel": "Python",
   "ciSystems": ["azure-devops", "github-actions"],
   "meta": {
     "defaultCoverageThreshold": 0.8,
+    "coverageThresholdUnit": "ratio",
+    "coverageThresholdDescription": "Expressed as a ratio (0-1), e.g., 0.8 = 80% coverage. Must be between 0 and 1.",
     "complexityChecks": {
       "enabledByDefault": true,
       "description": "When supported by the stack, run cyclomatic complexity or similar metrics in CI as a warning-only check initially."
@@ -61,32 +63,34 @@
         "notes": "Tackle recommended items in order of business value; backend-only repos can skip web-focused checks like accessibility. For AI/ML-heavy Python teams, consider extending containerization with data versioning (DVC) and unit tests with data quality checks (e.g., Great Expectations) as part of this step."
       }
     ],
-    "bazelIntegration": {
-      "description": "Bazel build executor support for quality checks. All hints are ADVISORY—stack-native commands remain the default execution path.",
-      "detectionRules": {
-        "rootMarkers": ["MODULE.bazel", "WORKSPACE.bazel", "WORKSPACE"],
-        "optionalMarkers": [".bazelrc", ".bazelversion"],
-        "notes": "Detection uses repo-root markers only. Nested BUILD files do not trigger Bazel mode."
-      },
-      "optOut": {
-        "description": "Set meta.bazelIntegration.enabled = false in repo config to disable Bazel hints",
-        "configPath": "meta.bazelIntegration.enabled"
-      },
-      "targetConventions": {
-        "description": "Recommended target naming (not assumed to exist). These are illustrative patterns; actual targets are repo-defined.",
-        "lint": "//tools/lint:lint or bazel test //... with lint aspects",
-        "format": "bazel run //tools/format:check",
-        "test": "bazel test //...",
-        "coverage": "bazel coverage //...",
-        "build": "bazel build //..."
-      },
-      "ciContract": {
-        "versionPinning": "Use .bazelversion file for Bazelisk",
-        "configFlag": "--config=ci (define in .bazelrc)",
-        "deterministicFlags": ["--nokeep_going", "--test_output=errors"],
-        "remoteCache": "Optional; not required for CI"
-      },
-      "advisoryNotice": "bazelHints are suggestions, not required execution paths. Consumers should prefer stack-native commands unless explicitly adopting Bazel."
+    "executorHints": {
+      "description": "Advisory execution substrate hints. Bazel is the first supported executor; future monorepo executors may follow the same pattern.",
+      "bazel": {
+        "detectionRules": {
+          "rootMarkers": ["MODULE.bazel", "WORKSPACE.bazel", "WORKSPACE"],
+          "optionalMarkers": [".bazelrc", ".bazelversion"],
+          "notes": "Detection uses repo-root markers only. Nested BUILD files do not trigger Bazel mode."
+        },
+        "optOut": {
+          "description": "Set meta.executorHints.bazel.enabled = false in repo config to disable Bazel hints",
+          "configPath": "meta.executorHints.bazel.enabled"
+        },
+        "targetConventions": {
+          "description": "Recommended target naming (not assumed to exist). These are illustrative patterns; actual targets are repo-defined.",
+          "lint": "//tools/lint:lint or bazel test //... with lint aspects",
+          "format": "bazel run //tools/format:check",
+          "test": "bazel test //...",
+          "coverage": "bazel coverage //...",
+          "build": "bazel build //..."
+        },
+        "ciContract": {
+          "versionPinning": "Use .bazelversion file for Bazelisk",
+          "configFlag": "--config=ci (define in .bazelrc)",
+          "deterministicFlags": ["--nokeep_going", "--test_output=errors"],
+          "remoteCache": "Optional; not required for CI"
+        },
+        "advisoryNotice": "bazelHints are suggestions, not required execution paths. Consumers should prefer stack-native commands unless explicitly adopting Bazel."
+      }
     }
   },
   "checklist": {

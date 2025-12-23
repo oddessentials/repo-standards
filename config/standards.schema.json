@@ -1,0 +1,457 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://oddessentials.com/schemas/repo-standards/v3/standards.schema.json",
+  "title": "Repository Standards Configuration",
+  "description": "Schema for repo-standards master configuration (v3+). Enforces strict validation with additionalProperties: false.",
+  "type": "object",
+  "required": ["version", "ciSystems", "stacks", "checklist"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer",
+      "minimum": 3,
+      "description": "Schema version. Must be 3+ for strict validation with additionalProperties: false."
+    },
+    "meta": {
+      "$ref": "#/$defs/Meta"
+    },
+    "ciSystems": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/CiSystem"
+      },
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "Supported CI systems for this configuration."
+    },
+    "stacks": {
+      "type": "object",
+      "additionalProperties": false,
+      "propertyNames": {
+        "$ref": "#/$defs/StackId"
+      },
+      "patternProperties": {
+        "^(typescript-js|csharp-dotnet|python|rust|go)$": {
+          "$ref": "#/$defs/StackMeta"
+        }
+      },
+      "description": "Stack definitions with labels and language families."
+    },
+    "checklist": {
+      "$ref": "#/$defs/Checklist"
+    }
+  },
+  "$defs": {
+    "CiSystem": {
+      "type": "string",
+      "enum": ["azure-devops", "github-actions"],
+      "description": "Supported CI system identifier."
+    },
+    "StackId": {
+      "type": "string",
+      "enum": ["typescript-js", "csharp-dotnet", "python", "rust", "go"],
+      "description": "Supported stack identifier."
+    },
+    "Enforcement": {
+      "type": "string",
+      "enum": ["required", "recommended", "optional"],
+      "description": "Enforcement level for a checklist item."
+    },
+    "Severity": {
+      "type": "string",
+      "enum": ["error", "warn", "info"],
+      "description": "Severity level for violations."
+    },
+    "Meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "defaultCoverageThreshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Default code coverage threshold expressed as a ratio (0-1). E.g., 0.8 = 80%."
+        },
+        "coverageThresholdUnit": {
+          "type": "string",
+          "const": "ratio",
+          "description": "Documents that coverage threshold is a ratio (0-1), not a percentage (0-100)."
+        },
+        "coverageThresholdDescription": {
+          "type": "string",
+          "description": "Human-readable explanation of coverage threshold semantics."
+        },
+        "complexityChecks": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabledByDefault": {
+              "type": "boolean"
+            },
+            "description": {
+              "type": "string"
+            }
+          }
+        },
+        "qualityGatePolicy": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "preferSoftFailOnLegacy": {
+              "type": "boolean"
+            },
+            "description": {
+              "type": "string"
+            }
+          }
+        },
+        "migrationGuide": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MigrationStep"
+          }
+        },
+        "executorHints": {
+          "$ref": "#/$defs/ExecutorHints"
+        }
+      }
+    },
+    "MigrationStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["step", "title", "description"],
+      "properties": {
+        "step": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "focusIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "References to checklist item IDs. Validated separately for existence."
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "BazelExecutorConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "detectionRules": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "rootMarkers": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Files at repo root that trigger Bazel detection."
+            },
+            "optionalMarkers": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        },
+        "optOut": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "configPath": {
+              "type": "string"
+            }
+          }
+        },
+        "targetConventions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "ciContract": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "versionPinning": {
+              "type": "string"
+            },
+            "configFlag": {
+              "type": "string"
+            },
+            "deterministicFlags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "remoteCache": {
+              "type": "string"
+            }
+          }
+        },
+        "advisoryNotice": {
+          "type": "string"
+        }
+      }
+    },
+    "ExecutorHints": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Advisory execution substrate hints. Bazel is the first supported executor; future monorepo executors may follow the same pattern.",
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "Container-level description of the executor hints system."
+        },
+        "bazel": {
+          "$ref": "#/$defs/BazelExecutorConfig",
+          "description": "Bazel executor configuration (first supported instance)."
+        }
+      }
+    },
+    "StackMeta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "languageFamily"],
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "languageFamily": {
+          "type": "string"
+        }
+      }
+    },
+    "Checklist": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["core", "recommended", "optionalEnhancements"],
+      "properties": {
+        "core": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ChecklistItem"
+          }
+        },
+        "recommended": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ChecklistItem"
+          }
+        },
+        "optionalEnhancements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ChecklistItem"
+          }
+        }
+      }
+    },
+    "ChecklistItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "description", "appliesTo"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "description": "Unique identifier for the checklist item."
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "enforcement": {
+          "$ref": "#/$defs/Enforcement",
+          "description": "Enforcement level. Defaults: core=required, recommended=recommended, optionalEnhancements=optional."
+        },
+        "severity": {
+          "$ref": "#/$defs/Severity",
+          "description": "Violation severity. Defaults: core=error, recommended=warn, optionalEnhancements=info."
+        },
+        "appliesTo": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["stacks"],
+          "properties": {
+            "stacks": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/StackId"
+              },
+              "minItems": 1
+            },
+            "ciSystems": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/CiSystem"
+              }
+            }
+          }
+        },
+        "ciHints": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "azure-devops": {
+              "$ref": "#/$defs/CiHint"
+            },
+            "github-actions": {
+              "$ref": "#/$defs/CiHint"
+            }
+          }
+        },
+        "stackHints": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "typescript-js": {
+              "$ref": "#/$defs/StackHints"
+            },
+            "csharp-dotnet": {
+              "$ref": "#/$defs/StackHints"
+            },
+            "python": {
+              "$ref": "#/$defs/StackHints"
+            },
+            "rust": {
+              "$ref": "#/$defs/StackHints"
+            },
+            "go": {
+              "$ref": "#/$defs/StackHints"
+            }
+          }
+        }
+      }
+    },
+    "CiHint": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "stage": {
+          "type": "string"
+        },
+        "job": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "StackHints": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "exampleTools": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "exampleConfigFiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "notes": {
+          "type": "string"
+        },
+        "verification": {
+          "type": "string"
+        },
+        "requiredFiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "All listed files MUST exist for compliance."
+        },
+        "anyOfFiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "At least ONE of the listed files must exist for compliance."
+        },
+        "optionalFiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Informational only; presence is not required."
+        },
+        "requiredScripts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "pinningNotes": {
+          "type": "string"
+        },
+        "machineCheck": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "command": {
+              "type": "string"
+            },
+            "expectExitCode": {
+              "type": "integer"
+            },
+            "description": {
+              "type": "string"
+            }
+          }
+        },
+        "bazelHints": {
+          "$ref": "#/$defs/BazelHints"
+        }
+      }
+    },
+    "BazelHints": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "commands": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "recommendedTargets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
