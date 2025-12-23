@@ -1,5 +1,25 @@
 # [2.0.0](https://github.com/oddessentials/repo-standards/compare/v1.2.1...v2.0.0) (2025-12-23)
 
+### Features
+
+- add bazel ([7a34875](https://github.com/oddessentials/repo-standards/commit/7a34875b79adac0a3868c6fb2cd42a92942ac62b))
+- **bazel:** add Bazel as optional build executor substrate ([4cbfa75](https://github.com/oddessentials/repo-standards/commit/4cbfa754069678016397d35d230f3acb6e8a6341))
+
+### BREAKING CHANGES
+
+- **bazel:** Added bazelHints field to StackHints and meta.bazelIntegration section.
+  Schema version now syncs with package.json major version during build.
+
+* Root-level Bazel detection via MODULE.bazel, WORKSPACE.bazel, WORKSPACE
+* Per-check bazelHints with advisory commands (illustrative, repo-defined)
+* CI contract recommendations (.bazelversion, --config=ci)
+* Opt-out via meta.bazelIntegration.enabled = false
+* Detection script: scripts/detect-bazel.ts
+* Test fixtures: bzlmod-repo, workspace-repo, no-bazel-repo, hybrid-monorepo
+* Build-time schema version sync with package.json major version
+
+# [2.0.0](https://github.com/oddessentials/repo-standards/compare/v1.2.1...v2.0.0) (2025-12-23)
+
 ### ⚠ BREAKING CHANGES
 
 - Schema version reflects package.json major version (now synchronized)
