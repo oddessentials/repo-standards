@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 2,
   "stack": "rust",
   "stackLabel": "Rust",
   "ciSystems": ["github-actions"],
