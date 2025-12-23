@@ -1,7 +1,9 @@
 {
-  "version": 2,
+  "version": 3,
   "meta": {
     "defaultCoverageThreshold": 0.8,
+    "coverageThresholdUnit": "ratio",
+    "coverageThresholdDescription": "Expressed as a ratio (0-1), e.g., 0.8 = 80% coverage. Must be between 0 and 1.",
     "complexityChecks": {
       "enabledByDefault": true,
       "description": "When supported by the stack, run cyclomatic complexity or similar metrics in CI as a warning-only check initially."
@@ -115,6 +117,8 @@
         "id": "gitignore-and-dockerignore",
         "label": "Git and Docker Ignore Files",
         "description": "Maintain proper .gitignore and .dockerignore files to prevent committing secrets, build artifacts, or unnecessary files.",
+        "enforcement": "required",
+        "severity": "error",
         "appliesTo": {
           "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
         },
@@ -273,7 +277,9 @@
               "notes": "Use nogo for static analysis via rules_go. Configure nogo target with desired analyzers."
             }
           }
-        }
+        },
+        "enforcement": "required",
+        "severity": "error"
       },
       {
         "id": "unit-test-runner",
@@ -354,7 +360,9 @@
               "notes": "rules_go go_test targets wrap 'go test' with Bazel's caching and hermeticity."
             }
           }
-        }
+        },
+        "enforcement": "required",
+        "severity": "error"
       },
       {
         "id": "containerization",
@@ -412,7 +420,9 @@
             "requiredFiles": ["Dockerfile"],
             "optionalFiles": ["docker-compose.yml"]
           }
-        }
+        },
+        "enforcement": "required",
+        "severity": "error"
       },
       {
         "id": "semantic-versioning",
@@ -472,7 +482,9 @@
             "notes": "Go uses git tags for versioning (v1.2.3 format). Use goreleaser for automated releases with changelog generation. Tag versions consistently.",
             "verification": "Check that git tags follow vMAJOR.MINOR.PATCH format and goreleaser or similar tool generates releases and changelogs."
           }
-        }
+        },
+        "enforcement": "required",
+        "severity": "error"
       },
       {
         "id": "commit-linting",
@@ -523,7 +535,9 @@
             "notes": "Use commitlint with pre-commit hooks for enforcing Conventional Commits. Consistent with goreleaser changelog generation.",
             "verification": "Test that non-conforming commit messages are rejected by the configured hooks or CI check."
           }
-        }
+        },
+        "enforcement": "required",
+        "severity": "error"
       },
       {
         "id": "unit-test-reporter",
@@ -591,7 +605,9 @@
               "notes": "rules_go supports coverage via bazel coverage. Use --combined_report=lcov for aggregated output."
             }
           }
-        }
+        },
+        "enforcement": "required",
+        "severity": "error"
       },
       {
         "id": "ci-quality-gates",
@@ -674,7 +690,9 @@
               "notes": "rules_go go_binary and go_test targets provide hermetic builds and tests."
             }
           }
-        }
+        },
+        "enforcement": "required",
+        "severity": "error"
       },
       {
         "id": "code-formatter",
@@ -749,7 +767,9 @@
               "notes": "Run gofmt via the Bazel-managed Go SDK for hermetic formatting checks."
             }
           }
-        }
+        },
+        "enforcement": "required",
+        "severity": "error"
       },
       {
         "id": "pre-commit-hooks",
@@ -797,7 +817,9 @@
             "notes": "Use pre-commit with go hooks for gofmt, goimports, and golangci-lint on staged files.",
             "verification": "Inspect hooks configuration and confirm that go fmt and golangci-lint run before commits."
           }
-        }
+        },
+        "enforcement": "required",
+        "severity": "error"
       },
       {
         "id": "type-checking",
@@ -880,7 +902,9 @@
               "notes": "Go type checking is inherent to compilation. bazel build with rules_go enforces type safety."
             }
           }
-        }
+        },
+        "enforcement": "required",
+        "severity": "error"
       },
       {
         "id": "dependency-security",
@@ -936,8 +960,9 @@
             "exampleConfigFiles": ["Cargo.lock", "deny.toml"],
             "notes": "Use cargo-audit for vulnerability scanning or cargo-deny for comprehensive dependency checking (licenses, advisories, bans). Cargo.lock locks versions.",
             "verification": "Cargo.lock is present; run 'cargo audit' or 'cargo deny check' to verify security scanning.",
-            "requiredFiles": ["Cargo.lock"],
-            "optionalFiles": ["deny.toml"]
+            "optionalFiles": ["deny.toml"],
+            "anyOfFiles": ["Cargo.lock"],
+            "pinningNotes": "Required for binaries/services; optional for libraries (add to .gitignore for libs). See https://doc.rust-lang.org/cargo/faq.html#why-have-cargolock-in-version-control"
           },
           "go": {
             "exampleTools": ["govulncheck", "nancy"],
@@ -946,7 +971,9 @@
             "verification": "go.sum is present; run 'govulncheck ./...' to verify security scanning.",
             "requiredFiles": ["go.sum"]
           }
-        }
+        },
+        "enforcement": "required",
+        "severity": "error"
       },
       {
         "id": "runtime-version",
@@ -1005,7 +1032,9 @@
             "requiredFiles": ["go.mod"],
             "optionalFiles": [".go-version"]
           }
-        }
+        },
+        "enforcement": "required",
+        "severity": "error"
       },
       {
         "id": "documentation",
@@ -1063,7 +1092,9 @@
             "requiredFiles": ["README.md"],
             "optionalFiles": ["docs/"]
           }
-        }
+        },
+        "enforcement": "required",
+        "severity": "error"
       },
       {
         "id": "repository-governance",
@@ -1141,7 +1172,9 @@
             "requiredFiles": ["LICENSE"],
             "optionalFiles": ["CODE_OF_CONDUCT.md", "CONTRIBUTING.md"]
           }
-        }
+        },
+        "enforcement": "required",
+        "severity": "error"
       }
     ],
     "recommended": [
@@ -1223,7 +1256,9 @@
               ".github/dependabot.yml"
             ]
           }
-        }
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
       },
       {
         "id": "dependency-architecture-rules",
@@ -1290,7 +1325,9 @@
             "notes": "Go's module system is simpler. Use internal/ packages for visibility. depaware provides transitive dep analysis. Standard practice: 'go mod tidy && git diff --exit-code go.mod go.sum'.",
             "verification": "Run 'go mod verify' and 'go mod tidy' with diff check in CI."
           }
-        }
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
       },
       {
         "id": "integration-testing",
@@ -1338,7 +1375,9 @@
             "notes": "Use build tags (//go:build integration) or separate test directories for integration tests. Run with 'go test -tags=integration ./...'.",
             "verification": "Confirm integration tests exist and run 'go test -tags=integration ./...' to verify."
           }
-        }
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
       },
       {
         "id": "performance-baselining",
@@ -1386,7 +1425,9 @@
             "notes": "Use 'go test -bench=. ./...' for benchmarks. Use benchstat to compare results across runs.",
             "verification": "Run 'go test -bench=. ./...' and verify benchmark results are tracked over time."
           }
-        }
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
       },
       {
         "id": "complexity-analysis",
@@ -1434,7 +1475,9 @@
             "notes": "Use gocyclo or golangci-lint's gocyclo linter to measure cyclomatic complexity. Configure threshold in .golangci.yml.",
             "verification": "Run 'gocyclo' or 'golangci-lint run' and review complexity reports, ensuring new code doesn't exceed thresholds."
           }
-        }
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
       },
       {
         "id": "accessibility-auditing",
@@ -1482,7 +1525,9 @@
             "notes": "For Go web apps, use headless browser-based accessibility tools to audit rendered HTML from templates.",
             "verification": "For web-facing Go apps, run accessibility audits against key routes using axe or pa11y."
           }
-        }
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
       }
     ],
     "optionalEnhancements": [
@@ -1535,7 +1580,9 @@
             "notes": "Use slog (stdlib) or zap/zerolog for structured logging. Configure JSON output for production and text for development.",
             "verification": "Confirm that a structured logging library is configured with appropriate output format and log levels."
           }
-        }
+        },
+        "enforcement": "optional",
+        "severity": "info"
       }
     ]
   }

@@ -1,10 +1,12 @@
 {
-  "version": 2,
+  "version": 3,
   "stack": "typescript-js",
   "stackLabel": "TypeScript / JavaScript",
   "ciSystems": ["azure-devops", "github-actions"],
   "meta": {
     "defaultCoverageThreshold": 0.8,
+    "coverageThresholdUnit": "ratio",
+    "coverageThresholdDescription": "Expressed as a ratio (0-1), e.g., 0.8 = 80% coverage. Must be between 0 and 1.",
     "complexityChecks": {
       "enabledByDefault": true,
       "description": "When supported by the stack, run cyclomatic complexity or similar metrics in CI as a warning-only check initially."

@@ -1,0 +1,9 @@
+# This BUILD file exists in a nested directory only
+# It should NOT trigger Bazel detection since there are no root markers
+
+load("@rules_python//python:defs.bzl", "py_library")
+
+py_library(
+    name = "lib",
+    srcs = ["lib.py"],
+)

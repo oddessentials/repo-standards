@@ -50,4 +50,12 @@ describe("detectBazel", () => {
     const result = detectBazel(path.join(fixtures, "bzlmod-repo"));
     expect(result.mode).toBe("bzlmod");
   });
+
+  it("does NOT detect Bazel when only nested BUILD files exist (no root markers)", () => {
+    // This validates the documented contract: detection uses repo-root markers only
+    const result = detectBazel(path.join(fixtures, "nested-build-only"));
+    expect(result.detected).toBe(false);
+    expect(result.mode).toBeUndefined();
+    expect(result.markers).toHaveLength(0);
+  });
 });

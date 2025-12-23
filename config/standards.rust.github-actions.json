@@ -1,10 +1,12 @@
 {
-  "version": 2,
+  "version": 3,
   "stack": "rust",
   "stackLabel": "Rust",
   "ciSystems": ["github-actions"],
   "meta": {
     "defaultCoverageThreshold": 0.8,
+    "coverageThresholdUnit": "ratio",
+    "coverageThresholdDescription": "Expressed as a ratio (0-1), e.g., 0.8 = 80% coverage. Must be between 0 and 1.",
     "complexityChecks": {
       "enabledByDefault": true,
       "description": "When supported by the stack, run cyclomatic complexity or similar metrics in CI as a warning-only check initially."
@@ -317,8 +319,9 @@
           "exampleConfigFiles": ["Cargo.lock", "deny.toml"],
           "notes": "Use cargo-audit for vulnerability scanning or cargo-deny for comprehensive dependency checking (licenses, advisories, bans). Cargo.lock locks versions.",
           "verification": "Cargo.lock is present; run 'cargo audit' or 'cargo deny check' to verify security scanning.",
-          "requiredFiles": ["Cargo.lock"],
-          "optionalFiles": ["deny.toml"]
+          "optionalFiles": ["deny.toml"],
+          "anyOfFiles": ["Cargo.lock"],
+          "pinningNotes": "Required for binaries/services; optional for libraries (add to .gitignore for libs). See https://doc.rust-lang.org/cargo/faq.html#why-have-cargolock-in-version-control"
         }
       },
       {
