@@ -429,7 +429,7 @@
       {
         "id": "semantic-versioning",
         "label": "Semantic Versioning",
-        "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history.",
+        "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history. Maintain a single canonical version source (for example, package.json or VERSION) that all release artifacts use.",
         "appliesTo": {
           "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
         },
@@ -449,8 +449,11 @@
               "package.json",
               "CHANGELOG.md"
             ],
-            "notes": "Automate version bumping and changelog generation from Conventional Commits using semantic-release or standard-version. Configure CI to automatically bump package.json version, generate/update CHANGELOG.md, create git tags, and publish release artifacts. Protect release branches and ensure release tooling only runs there.",
-            "verification": "Check that the version field follows SemVer, and trigger the configured release workflow (for example, a dry run of semantic-release or standard-version) to confirm it automatically generates the expected next version, updates package.json, and creates/updates CHANGELOG.md with commit-based entries."
+            "notes": "Automate version bumping and changelog generation from Conventional Commits using semantic-release or standard-version. Keep package.json (or a VERSION file) as the single canonical version source and have CI publish npm/GitHub/Docker artifacts from that same version. Protect release branches and ensure release tooling only runs there.",
+            "verification": "Check that the canonical version field follows SemVer, and trigger the configured release workflow (for example, a dry run of semantic-release or standard-version) to confirm it generates the expected next version, updates package.json or VERSION, and creates/updates CHANGELOG.md with commit-based entries.",
+            "requiredFiles": ["package.json"],
+            "optionalFiles": ["VERSION", "CHANGELOG.md"],
+            "requiredScripts": ["release"]
           },
           "csharp-dotnet": {
             "exampleTools": ["GitVersion"],
@@ -459,8 +462,15 @@
               "*.csproj",
               "CHANGELOG.md"
             ],
-            "notes": "Use GitVersion to automatically compute SemVer from git history and feed it into assembly/package versions. Configure CI to auto-generate or update CHANGELOG.md from commit messages and git tags. Integrate with release pipeline to automatically version assemblies, NuGet packages, and create release notes.",
-            "verification": "Check that versioning is driven by a SemVer-aware tool (for example, GitVersion) and verify that running the release/versioning step locally or in CI automatically produces the expected version metadata, updates project files, and generates changelog entries from commit history."
+            "notes": "Use GitVersion (or Directory.Build.props) as the single canonical version source, computed from git history, and feed it into assembly/package versions. Configure CI to auto-generate or update CHANGELOG.md from commit messages and git tags. Integrate with the release pipeline to version assemblies, NuGet packages, and publish GitHub releases from the same version.",
+            "verification": "Check that versioning is driven by a SemVer-aware tool (for example, GitVersion) and verify that running the release/versioning step locally or in CI produces the expected version metadata, updates project files, and generates changelog entries from commit history.",
+            "requiredFiles": ["*.csproj"],
+            "optionalFiles": [
+              "GitVersion.yml",
+              "Directory.Build.props",
+              "CHANGELOG.md"
+            ],
+            "requiredScripts": ["release"]
           },
           "python": {
             "exampleTools": ["bumpversion", "setuptools_scm", "towncrier"],
@@ -469,20 +479,113 @@
               "setup.cfg",
               "CHANGELOG.md"
             ],
-            "notes": "Automate version bumping and changelog generation using setuptools_scm (git-tag based) or bumpversion with towncrier for changelog fragments. Configure CI to automatically update version in pyproject.toml, generate/update CHANGELOG.md from commit messages or changelog fragments, and create git tags. Maintain a single source of truth for versioning.",
-            "verification": "Check that the package version in pyproject or setup configuration follows SemVer and verify that the configured tool (for example, setuptools_scm or bumpversion) automatically computes or bumps the version and generates changelog entries from commit history or fragments."
+            "notes": "Automate version bumping and changelog generation using setuptools_scm (git-tag based) or bumpversion with towncrier for changelog fragments. Keep pyproject.toml (or VERSION) as the single canonical version source, and have CI publish GitHub/PyPI/Docker artifacts from that same version.",
+            "verification": "Check that the canonical version in pyproject.toml or VERSION follows SemVer and verify that the configured tool (for example, setuptools_scm or bumpversion) computes or bumps the version and generates changelog entries from commit history or fragments.",
+            "requiredFiles": ["pyproject.toml"],
+            "optionalFiles": ["VERSION", "CHANGELOG.md"],
+            "requiredScripts": ["release"]
           },
           "rust": {
             "exampleTools": ["cargo-release", "semantic-release"],
             "exampleConfigFiles": ["Cargo.toml", "CHANGELOG.md"],
-            "notes": "Version is defined in Cargo.toml. Use cargo-release or semantic-release-cargo for automated versioning. Follow Conventional Commits for changelog generation.",
-            "verification": "Check that Cargo.toml version follows SemVer and verify changelog generation from commit history."
+            "notes": "Version is defined in Cargo.toml as the canonical source. Use cargo-release or semantic-release-cargo for automated versioning and GitHub release publishing, and follow Conventional Commits for changelog generation.",
+            "verification": "Check that Cargo.toml version follows SemVer and verify changelog generation from commit history.",
+            "requiredFiles": ["Cargo.toml"],
+            "optionalFiles": ["CHANGELOG.md"],
+            "requiredScripts": ["release"]
           },
           "go": {
             "exampleTools": ["goreleaser", "semantic-release"],
             "exampleConfigFiles": [".goreleaser.yml", "CHANGELOG.md"],
-            "notes": "Go uses git tags for versioning (v1.2.3 format). Use goreleaser for automated releases with changelog generation. Tag versions consistently.",
-            "verification": "Check that git tags follow vMAJOR.MINOR.PATCH format and goreleaser or similar tool generates releases and changelogs."
+            "notes": "Go uses git tags (v1.2.3) as the canonical version source. Use goreleaser for automated releases with changelog generation and publish GitHub/Docker artifacts from the same tag.",
+            "verification": "Check that git tags follow vMAJOR.MINOR.PATCH format and goreleaser or similar tooling generates releases and changelogs.",
+            "optionalFiles": [".goreleaser.yml", "CHANGELOG.md"],
+            "requiredScripts": ["release"]
+          }
+        },
+        "enforcement": "required",
+        "severity": "error"
+      },
+      {
+        "id": "unified-release-workflow",
+        "label": "Unified Release Workflow",
+        "description": "Use a single CI release pipeline that publishes all artifacts (GitHub releases, packages, containers) from the same canonical version source.",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "ciHints": {
+          "azure-devops": {
+            "stage": "release"
+          },
+          "github-actions": {
+            "job": "release"
+          }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": [
+              "semantic-release",
+              "changesets",
+              "npm publish",
+              "docker buildx"
+            ],
+            "exampleConfigFiles": [
+              ".github/workflows/release.yml",
+              "azure-pipelines.yml"
+            ],
+            "notes": "Release workflow must publish npm packages, GitHub releases, and Docker images from the same canonical version (package.json or VERSION). Avoid separate manual steps or ad-hoc scripts for different artifacts.",
+            "verification": "Trigger the release pipeline and confirm all artifacts share the same version number and tag.",
+            "requiredScripts": ["release"],
+            "optionalFiles": ["CHANGELOG.md", "VERSION"]
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["GitVersion", "dotnet pack", "dotnet nuget push"],
+            "exampleConfigFiles": [
+              "azure-pipelines.yml",
+              ".github/workflows/release.yml"
+            ],
+            "notes": "Use a single release pipeline to publish NuGet packages, GitHub releases, and Docker images from the canonical version source (GitVersion or Directory.Build.props).",
+            "verification": "Trigger the release pipeline and confirm all artifacts share the same version number and tag.",
+            "requiredScripts": ["release"],
+            "optionalFiles": ["GitVersion.yml", "Directory.Build.props"]
+          },
+          "python": {
+            "exampleTools": [
+              "setuptools_scm",
+              "twine",
+              "build",
+              "docker buildx"
+            ],
+            "exampleConfigFiles": [
+              ".github/workflows/release.yml",
+              "azure-pipelines.yml"
+            ],
+            "notes": "Use a single release pipeline to publish PyPI packages, GitHub releases, and Docker images from the canonical version source (pyproject.toml or VERSION).",
+            "verification": "Trigger the release pipeline and confirm all artifacts share the same version number and tag.",
+            "requiredScripts": ["release"],
+            "optionalFiles": ["CHANGELOG.md", "VERSION"]
+          },
+          "rust": {
+            "exampleTools": ["cargo-release", "cargo publish", "docker buildx"],
+            "exampleConfigFiles": [
+              ".github/workflows/release.yml",
+              "azure-pipelines.yml"
+            ],
+            "notes": "Use a single release pipeline to publish crates.io packages, GitHub releases, and Docker images from the Cargo.toml version.",
+            "verification": "Trigger the release pipeline and confirm all artifacts share the same version number and tag.",
+            "requiredScripts": ["release"],
+            "optionalFiles": ["CHANGELOG.md"]
+          },
+          "go": {
+            "exampleTools": ["goreleaser", "docker buildx"],
+            "exampleConfigFiles": [
+              ".github/workflows/release.yml",
+              "azure-pipelines.yml"
+            ],
+            "notes": "Use a single release pipeline (goreleaser or equivalent) to publish GitHub releases and Docker images from the same git tag.",
+            "verification": "Trigger the release pipeline and confirm all artifacts share the same version number and tag.",
+            "requiredScripts": ["release"],
+            "optionalFiles": [".goreleaser.yml", "CHANGELOG.md"]
           }
         },
         "enforcement": "required",
@@ -491,7 +594,7 @@
       {
         "id": "commit-linting",
         "label": "Commit Linting",
-        "description": "Enforce structured commit messages such as Conventional Commits.",
+        "description": "Enforce structured commit messages such as Conventional Commits via commit-msg hooks and CI. This is required for deterministic versioning and changelog generation.",
         "appliesTo": {
           "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
         },
@@ -510,32 +613,71 @@
               "@commitlint/config-conventional"
             ],
             "exampleConfigFiles": ["commitlint.config.*"],
-            "notes": "Enforce commit message format via commit-msg hooks (e.g., Husky) before CI.",
-            "verification": "Create a test commit using the documented convention and ensure the commit message passes the configured commit linting or wizard (for example, commitlint or commitizen)."
+            "notes": "Enforce Conventional Commits via commit-msg hooks (e.g., Husky) and a CI job so versioning/changelog automation is deterministic.",
+            "verification": "Create a test commit using the documented convention and ensure the commit message passes both local commit-msg hooks and CI checks.",
+            "anyOfFiles": [
+              "commitlint.config.js",
+              "commitlint.config.cjs",
+              "commitlint.config.mjs",
+              "commitlint.config.json"
+            ],
+            "requiredScripts": ["commitlint"]
           },
           "csharp-dotnet": {
             "exampleTools": ["commitlint", "commitizen"],
             "exampleConfigFiles": ["commitlint.config.*", ".cz.toml"],
-            "notes": "Document your commit convention and wire up a helper tool so contributors can easily follow it.",
-            "verification": "Create a test commit following the documented commit convention and confirm that any configured commit message checks (local hooks or CI) accept the message."
+            "notes": "Document your Conventional Commit convention and enforce it via commit-msg hooks and CI so release tooling can compute versions deterministically.",
+            "verification": "Create a test commit following the documented convention and confirm that commit-msg hooks and CI checks accept it.",
+            "anyOfFiles": [
+              "commitlint.config.js",
+              "commitlint.config.cjs",
+              "commitlint.config.mjs",
+              "commitlint.config.json",
+              ".cz.toml"
+            ],
+            "requiredScripts": ["commitlint"]
           },
           "python": {
             "exampleTools": ["commitizen"],
             "exampleConfigFiles": [".cz.toml", "pyproject.toml"],
-            "notes": "Standardize commit messages using commitizen or a similar helper and document the required types and scopes.",
-            "verification": "Use the configured commit helper (for example, commitizen) or hooks to create a test commit and confirm that non-conforming messages are rejected while valid ones are accepted."
+            "notes": "Standardize Conventional Commits using commitizen or commitlint with commit-msg hooks plus CI so changelog generation is deterministic.",
+            "verification": "Use the configured commit helper or hooks to create a test commit and confirm that non-conforming messages are rejected locally and in CI.",
+            "anyOfFiles": [
+              ".cz.toml",
+              "commitlint.config.js",
+              "commitlint.config.cjs",
+              "commitlint.config.mjs",
+              "commitlint.config.json"
+            ],
+            "requiredScripts": ["commitlint"]
           },
           "rust": {
             "exampleTools": ["commitlint", "commitizen"],
             "exampleConfigFiles": ["commitlint.config.js", ".cz.toml"],
-            "notes": "Use commitlint with husky or pre-commit for enforcing Conventional Commits. Works consistently with cargo workspaces.",
-            "verification": "Test that non-conforming commit messages are rejected by the configured hooks or CI check."
+            "notes": "Use commitlint with husky or pre-commit for enforcing Conventional Commits and add a CI check to keep version/changelog automation deterministic.",
+            "verification": "Test that non-conforming commit messages are rejected by the configured hooks and CI check.",
+            "anyOfFiles": [
+              "commitlint.config.js",
+              "commitlint.config.cjs",
+              "commitlint.config.mjs",
+              "commitlint.config.json",
+              ".cz.toml"
+            ],
+            "requiredScripts": ["commitlint"]
           },
           "go": {
             "exampleTools": ["commitlint", "commitizen"],
             "exampleConfigFiles": ["commitlint.config.js", ".cz.toml"],
-            "notes": "Use commitlint with pre-commit hooks for enforcing Conventional Commits. Consistent with goreleaser changelog generation.",
-            "verification": "Test that non-conforming commit messages are rejected by the configured hooks or CI check."
+            "notes": "Use commitlint with commit-msg or pre-commit hooks plus a CI check. Conventional Commits keep goreleaser changelog generation deterministic.",
+            "verification": "Test that non-conforming commit messages are rejected by the configured hooks and CI check.",
+            "anyOfFiles": [
+              "commitlint.config.js",
+              "commitlint.config.cjs",
+              "commitlint.config.mjs",
+              "commitlint.config.json",
+              ".cz.toml"
+            ],
+            "requiredScripts": ["commitlint"]
           }
         },
         "enforcement": "required",
@@ -826,7 +968,7 @@
       {
         "id": "type-checking",
         "label": "Type Checking",
-        "description": "Use static type checking to catch errors before runtime and enforce strictness on new code.",
+        "description": "Use static type checking to catch errors before runtime and enforce strictness on new code. For JS/TS stacks, require a TypeScript-first policy with strict mode and a CI typecheck step; allow JSDoc/checkJs migration for legacy JS.",
         "appliesTo": {
           "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
         },
@@ -842,8 +984,8 @@
           "typescript-js": {
             "exampleTools": ["TypeScript compiler (tsc)"],
             "exampleConfigFiles": ["tsconfig.json"],
-            "notes": "Enable strict mode ('strict': true) and treat type-check failures as CI failures for new code; gradually expand strictness into legacy modules.",
-            "verification": "Presence of tsconfig.json indicates type-checking is configured for the repository.",
+            "notes": "Adopt a TypeScript-first policy. Require tsconfig.json with strict mode enabled ('strict': true) and enforce `npm run typecheck` (or equivalent) in CI. For legacy JS, allow JSDoc + `checkJs` or staged migration with `allowJs` while incrementally increasing coverage.",
+            "verification": "tsconfig.json exists with strict mode enabled and CI runs the typecheck script; legacy JS modules use JSDoc/checkJs or allowJs as an explicit migration path.",
             "requiredFiles": ["tsconfig.json"],
             "requiredScripts": ["typecheck"],
             "bazelHints": {
@@ -874,6 +1016,7 @@
             "verification": "pyproject.toml (or mypy.ini) signals that mypy configuration is available for the repository.",
             "requiredFiles": ["pyproject.toml"],
             "optionalFiles": ["mypy.ini"],
+            "requiredScripts": ["typecheck"],
             "bazelHints": {
               "commands": [
                 "bazel test //...:mypy_test",
@@ -976,6 +1119,261 @@
         },
         "enforcement": "required",
         "severity": "error"
+      },
+      {
+        "id": "deterministic-builds",
+        "label": "Deterministic & Hermetic Builds",
+        "description": "Ensure builds are reproducible by pinning dependencies, base images, and tool/runtime versions. Avoid network/time variance and fail when lockfiles drift.",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "ciHints": {
+          "azure-devops": {
+            "stage": "build"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": [
+              "npm ci",
+              "pnpm install --frozen-lockfile",
+              "yarn --immutable"
+            ],
+            "exampleConfigFiles": [
+              "package-lock.json",
+              "pnpm-lock.yaml",
+              "yarn.lock"
+            ],
+            "notes": "Require a lockfile and pinned Node/tool versions (.nvmrc or .tool-versions). Pin base images in Dockerfiles and avoid non-deterministic install flags.",
+            "verification": "Lockfile is present and CI uses a frozen/immutable install. Dockerfiles reference pinned base images.",
+            "anyOfFiles": ["package-lock.json", "pnpm-lock.yaml", "yarn.lock"],
+            "optionalFiles": [".nvmrc", ".tool-versions"]
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["dotnet restore --locked-mode"],
+            "exampleConfigFiles": ["packages.lock.json", "global.json"],
+            "notes": "Enable packages.lock.json and use locked restore. Pin SDK versions via global.json and pin base images in Dockerfiles.",
+            "verification": "packages.lock.json or equivalent lock files exist and restore runs in locked mode. SDK versions are pinned.",
+            "optionalFiles": ["packages.lock.json", "global.json"]
+          },
+          "python": {
+            "exampleTools": ["pip-tools", "poetry", "uv"],
+            "exampleConfigFiles": [
+              "requirements.txt",
+              "poetry.lock",
+              "Pipfile.lock"
+            ],
+            "notes": "Use pinned lockfiles (requirements.txt or poetry.lock) and pin Python version (.python-version or tool-versions). Avoid non-deterministic installs in CI.",
+            "verification": "Lockfile is present and CI installs with pinned versions only. Python runtime is pinned.",
+            "anyOfFiles": ["requirements.txt", "poetry.lock", "Pipfile.lock"],
+            "optionalFiles": [".python-version", ".tool-versions"]
+          },
+          "rust": {
+            "exampleTools": ["cargo build --locked"],
+            "exampleConfigFiles": ["Cargo.lock", "rust-toolchain.toml"],
+            "notes": "Commit Cargo.lock for binaries/services and pin Rust versions with rust-toolchain.toml. Use --locked in CI.",
+            "verification": "Cargo.lock is present and CI uses --locked. Rust toolchain is pinned.",
+            "requiredFiles": ["Cargo.lock"],
+            "optionalFiles": ["rust-toolchain.toml"]
+          },
+          "go": {
+            "exampleTools": ["go env -w GOPROXY=off", "go mod download"],
+            "exampleConfigFiles": ["go.sum", "go.mod", ".go-version"],
+            "notes": "Use go.sum for deterministic module versions and pin Go versions (go.mod + .go-version). Avoid network variance by caching modules and pinning proxies.",
+            "verification": "go.sum is present and builds use pinned Go versions; module downloads are cached.",
+            "requiredFiles": ["go.sum"],
+            "optionalFiles": [".go-version"]
+          }
+        },
+        "enforcement": "required",
+        "severity": "error"
+      },
+      {
+        "id": "provenance-security",
+        "label": "Provenance & Security Metadata",
+        "description": "Produce SBOMs or provenance metadata, enable secret/code scanning, and sign tags or commits for critical repos.",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "ciHints": {
+          "azure-devops": {
+            "stage": "security"
+          },
+          "github-actions": {
+            "job": "security"
+          }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": [
+              "syft",
+              "cyclonedx-npm",
+              "codeql",
+              "gitleaks",
+              "cosign"
+            ],
+            "exampleConfigFiles": [
+              ".github/workflows/codeql.yml",
+              ".github/workflows/provenance.yml"
+            ],
+            "notes": "Generate SBOM/provenance for npm and container artifacts, enable secret scanning, and sign tags/commits for protected branches.",
+            "verification": "SBOM/provenance artifacts are published alongside releases, and CI runs secret/code scanning.",
+            "optionalFiles": ["SECURITY.md", ".github/workflows/codeql.yml"]
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["sbom-tool", "codeql", "gitleaks", "cosign"],
+            "exampleConfigFiles": [
+              ".github/workflows/codeql.yml",
+              ".github/workflows/provenance.yml"
+            ],
+            "notes": "Generate SBOM/provenance for NuGet and container artifacts, enable secret scanning, and sign tags/commits for critical repos.",
+            "verification": "SBOM/provenance artifacts are published alongside releases, and CI runs secret/code scanning.",
+            "optionalFiles": ["SECURITY.md", ".github/workflows/codeql.yml"]
+          },
+          "python": {
+            "exampleTools": [
+              "cyclonedx-python",
+              "syft",
+              "codeql",
+              "gitleaks",
+              "cosign"
+            ],
+            "exampleConfigFiles": [
+              ".github/workflows/codeql.yml",
+              ".github/workflows/provenance.yml"
+            ],
+            "notes": "Generate SBOM/provenance for PyPI and container artifacts, enable secret scanning, and sign tags/commits for critical repos.",
+            "verification": "SBOM/provenance artifacts are published alongside releases, and CI runs secret/code scanning.",
+            "optionalFiles": ["SECURITY.md", ".github/workflows/codeql.yml"]
+          },
+          "rust": {
+            "exampleTools": [
+              "cargo-cyclonedx",
+              "syft",
+              "codeql",
+              "gitleaks",
+              "cosign"
+            ],
+            "exampleConfigFiles": [
+              ".github/workflows/codeql.yml",
+              ".github/workflows/provenance.yml"
+            ],
+            "notes": "Generate SBOM/provenance for crates and container artifacts, enable secret scanning, and sign tags/commits for critical repos.",
+            "verification": "SBOM/provenance artifacts are published alongside releases, and CI runs secret/code scanning.",
+            "optionalFiles": ["SECURITY.md", ".github/workflows/codeql.yml"]
+          },
+          "go": {
+            "exampleTools": [
+              "syft",
+              "cyclonedx-gomod",
+              "codeql",
+              "gitleaks",
+              "cosign"
+            ],
+            "exampleConfigFiles": [
+              ".github/workflows/codeql.yml",
+              ".github/workflows/provenance.yml"
+            ],
+            "notes": "Generate SBOM/provenance for Go binaries and container artifacts, enable secret scanning, and sign tags/commits for critical repos.",
+            "verification": "SBOM/provenance artifacts are published alongside releases, and CI runs secret/code scanning.",
+            "optionalFiles": ["SECURITY.md", ".github/workflows/codeql.yml"]
+          }
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
+      },
+      {
+        "id": "ci-templates-automation",
+        "label": "CI Templates & Automation",
+        "description": "Adopt standard CI templates and config samples to scale across repositories, minimizing bespoke pipeline logic.",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "ciHints": {
+          "azure-devops": {
+            "stage": "ci"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": [
+              "GitHub Actions reusable workflows",
+              "Azure DevOps templates"
+            ],
+            "exampleConfigFiles": [
+              ".github/workflows/ci.yml",
+              "azure-pipelines.yml"
+            ],
+            "notes": "Use shared CI templates for lint/test/build/release stages and keep repo-specific overrides minimal.",
+            "verification": "CI pipeline references a shared template or reusable workflow and follows the standard job naming.",
+            "anyOfFiles": [".github/workflows/ci.yml", "azure-pipelines.yml"],
+            "requiredScripts": ["ci"]
+          },
+          "csharp-dotnet": {
+            "exampleTools": [
+              "GitHub Actions reusable workflows",
+              "Azure DevOps templates"
+            ],
+            "exampleConfigFiles": [
+              ".github/workflows/ci.yml",
+              "azure-pipelines.yml"
+            ],
+            "notes": "Use shared CI templates for build/test/pack/release stages to standardize across .NET repos.",
+            "verification": "CI pipeline references a shared template or reusable workflow and follows the standard job naming.",
+            "anyOfFiles": [".github/workflows/ci.yml", "azure-pipelines.yml"],
+            "requiredScripts": ["ci"]
+          },
+          "python": {
+            "exampleTools": [
+              "GitHub Actions reusable workflows",
+              "Azure DevOps templates"
+            ],
+            "exampleConfigFiles": [
+              ".github/workflows/ci.yml",
+              "azure-pipelines.yml"
+            ],
+            "notes": "Use shared CI templates for lint/test/typecheck/release stages to standardize across Python repos.",
+            "verification": "CI pipeline references a shared template or reusable workflow and follows the standard job naming.",
+            "anyOfFiles": [".github/workflows/ci.yml", "azure-pipelines.yml"],
+            "requiredScripts": ["ci"]
+          },
+          "rust": {
+            "exampleTools": [
+              "GitHub Actions reusable workflows",
+              "Azure DevOps templates"
+            ],
+            "exampleConfigFiles": [
+              ".github/workflows/ci.yml",
+              "azure-pipelines.yml"
+            ],
+            "notes": "Use shared CI templates for build/test/release stages to standardize across Rust repos.",
+            "verification": "CI pipeline references a shared template or reusable workflow and follows the standard job naming.",
+            "anyOfFiles": [".github/workflows/ci.yml", "azure-pipelines.yml"],
+            "requiredScripts": ["ci"]
+          },
+          "go": {
+            "exampleTools": [
+              "GitHub Actions reusable workflows",
+              "Azure DevOps templates"
+            ],
+            "exampleConfigFiles": [
+              ".github/workflows/ci.yml",
+              "azure-pipelines.yml"
+            ],
+            "notes": "Use shared CI templates for build/test/release stages to standardize across Go repos.",
+            "verification": "CI pipeline references a shared template or reusable workflow and follows the standard job naming.",
+            "anyOfFiles": [".github/workflows/ci.yml", "azure-pipelines.yml"],
+            "requiredScripts": ["ci"]
+          }
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
       },
       {
         "id": "runtime-version",
