@@ -1,3 +1,13 @@
+# [3.1.0](https://github.com/oddessentials/repo-standards/compare/v3.0.0...v3.1.0) (2026-01-01)
+
+### Bug Fixes
+
+- align schema version and enforcement ([02ce408](https://github.com/oddessentials/repo-standards/commit/02ce40849016e40c543300b37f2a19d8d90e9f86))
+
+### Features
+
+- expand release and build standards ([d2acb6a](https://github.com/oddessentials/repo-standards/commit/d2acb6a00b4fb861c7f94a020c9fa687e81159da))
+
 # [3.0.0](https://github.com/oddessentials/repo-standards/compare/v2.1.0...v3.0.0) (2025-12-23)
 
 - fix!: align schema version with package.json major version ([aa703dd](https://github.com/oddessentials/repo-standards/commit/aa703dd8eece0288539fd78c30931adbac30f2c4))
