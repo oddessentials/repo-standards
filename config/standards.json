@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "meta": {
     "defaultCoverageThreshold": 0.8,
     "coverageThresholdUnit": "ratio",
@@ -1282,8 +1282,8 @@
             "optionalFiles": ["SECURITY.md", ".github/workflows/codeql.yml"]
           }
         },
-        "enforcement": "recommended",
-        "severity": "warn"
+        "enforcement": "required",
+        "severity": "error"
       },
       {
         "id": "ci-templates-automation",
@@ -1372,8 +1372,8 @@
             "requiredScripts": ["ci"]
           }
         },
-        "enforcement": "recommended",
-        "severity": "warn"
+        "enforcement": "required",
+        "severity": "error"
       },
       {
         "id": "runtime-version",
