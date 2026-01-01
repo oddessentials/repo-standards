@@ -16,6 +16,18 @@ interface StackHints {
   requiredFiles?: string[];
   optionalFiles?: string[];
   requiredScripts?: string[];
+  anyOfFiles?: string[];
+  pinningNotes?: string;
+  machineCheck?: {
+    command: string;
+    expectExitCode?: number;
+    description?: string;
+  };
+  bazelHints?: {
+    commands?: string[];
+    recommendedTargets?: string[];
+    notes?: string;
+  };
 }
 
 interface ChecklistItem {
@@ -48,17 +60,24 @@ function generateBullets(item: ChecklistItem): string[] {
   // Bullet 1: Core purpose from description
   bullets.push(item.description);
 
-  // Bullet 2: Required files if any
-  if (stack?.requiredFiles?.length) {
-    const files = stack.requiredFiles.join(", ");
-    bullets.push(`Ensure ${files} exists in the repository.`);
+  // Bullet 2: Verification guidance
+  if (stack?.verification) {
+    bullets.push(`Verify with: ${stack.verification}`);
   }
 
-  // Bullet 3: Optional files mention
-  if (stack?.optionalFiles?.length) {
-    const files = stack.optionalFiles.slice(0, 3).join(", ");
-    const more = stack.optionalFiles.length > 3 ? " and others" : "";
-    bullets.push(`Consider adding ${files}${more} if applicable.`);
+  // Bullet 3: Required files / any-of files
+  if (stack?.requiredFiles?.length || stack?.anyOfFiles?.length) {
+    const requiredFiles = stack?.requiredFiles?.join(", ");
+    const anyOfFiles = stack?.anyOfFiles?.join(", ");
+    if (requiredFiles && anyOfFiles) {
+      bullets.push(
+        `Ensure ${requiredFiles} exists, and at least one of ${anyOfFiles} is present.`,
+      );
+    } else if (requiredFiles) {
+      bullets.push(`Ensure ${requiredFiles} exists in the repository.`);
+    } else if (anyOfFiles) {
+      bullets.push(`Ensure at least one of ${anyOfFiles} is present.`);
+    }
   }
 
   // Bullet 4: Required scripts
@@ -67,7 +86,54 @@ function generateBullets(item: ChecklistItem): string[] {
     bullets.push(`Define a ${scripts} script or equivalent command.`);
   }
 
-  // Bullet 5: Notes-based guidance (if short enough)
+  // Bullet 5: Machine check hint
+  if (stack?.machineCheck) {
+    const description = stack.machineCheck.description
+      ? `${stack.machineCheck.description} `
+      : "";
+    const expectCode = stack.machineCheck.expectExitCode ?? 0;
+    bullets.push(
+      `${description}Run \`${stack.machineCheck.command}\` (expect exit code ${expectCode}).`,
+    );
+  }
+
+  if (stack?.exampleTools?.length || stack?.exampleConfigFiles?.length) {
+    const tools = stack.exampleTools?.join(", ");
+    const configs = stack.exampleConfigFiles?.join(", ");
+    if (tools && configs) {
+      bullets.push(`Common tools: ${tools}. Example config files: ${configs}.`);
+    } else if (tools) {
+      bullets.push(`Common tools: ${tools}.`);
+    } else if (configs) {
+      bullets.push(`Example config files: ${configs}.`);
+    }
+  }
+
+  if (stack?.pinningNotes) {
+    bullets.push(stack.pinningNotes);
+  }
+
+  if (stack?.optionalFiles?.length) {
+    const files = stack.optionalFiles.slice(0, 3).join(", ");
+    const more = stack.optionalFiles.length > 3 ? " and others" : "";
+    bullets.push(`Consider adding ${files}${more} if applicable.`);
+  }
+
+  if (stack?.bazelHints?.commands?.length) {
+    const commands = stack.bazelHints.commands.map((cmd) => `\`${cmd}\``);
+    bullets.push(`Bazel commands: ${commands.join(", ")}.`);
+  }
+
+  if (stack?.bazelHints?.recommendedTargets?.length) {
+    const targets = stack.bazelHints.recommendedTargets.join(", ");
+    bullets.push(`Recommended Bazel targets: ${targets}.`);
+  }
+
+  if (stack?.bazelHints?.notes) {
+    bullets.push(stack.bazelHints.notes);
+  }
+
+  // Notes-based guidance (if short enough)
   if (stack?.notes && stack.notes.length < 150) {
     bullets.push(stack.notes);
   }

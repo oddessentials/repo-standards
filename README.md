@@ -68,7 +68,7 @@ The master spec includes a `meta` block that defines system-wide expectations:
 
 ## Structure of `config/standards.json`
 
-- `version` — schema version (currently `2`)
+- `version` — schema version (currently `3`)
 - `meta` — global rules and migration policy
 - `ciSystems` — supported CI platforms
   _(currently `github-actions`, `azure-devops`)_
@@ -102,6 +102,7 @@ The `version` field indicates schema compatibility:
 
 - `1` — Original schema
 - `2` — Adds `bazelHints`, `meta.executorHints.bazel` for Bazel support, `anyOfFiles`, `pinningNotes`, enforcement/severity levels, ratio-based coverage thresholds, Rust/Go stacks. Enforces strict validation with `additionalProperties: false`.
+- `3` — Aligns schema major version with package major version.
 
 Consumers should ignore unknown fields for forward compatibility.
 

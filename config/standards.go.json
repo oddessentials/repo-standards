@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "stack": "go",
   "stackLabel": "Go",
   "ciSystems": ["azure-devops", "github-actions"],

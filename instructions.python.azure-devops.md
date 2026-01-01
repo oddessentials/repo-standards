@@ -1,7 +1,7 @@
 # Repository Standards Instructions
 
-> Auto-generated from `config/standards.python.github-actions.json`
-> Stack: Python | CI: github-actions
+> Auto-generated from `config/standards.python.azure-devops.json`
+> Stack: Python | CI: azure-devops
 
 This document provides high-level guidance for an autonomous coding agent to bring a repository into compliance with the defined standards.
 

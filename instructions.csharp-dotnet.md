@@ -1,7 +1,7 @@
 # Repository Standards Instructions
 
-> Auto-generated from `config/standards.csharp-dotnet.github-actions.json`
-> Stack: C# / .NET | CI: github-actions
+> Auto-generated from `config/standards.csharp-dotnet.json`
+> Stack: C# / .NET | CI: azure-devops, github-actions
 
 This document provides high-level guidance for an autonomous coding agent to bring a repository into compliance with the defined standards.
 

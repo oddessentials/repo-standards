@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "stack": "csharp-dotnet",
   "stackLabel": "C# / .NET",
   "ciSystems": ["azure-devops", "github-actions"],

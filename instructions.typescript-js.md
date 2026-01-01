@@ -1,7 +1,7 @@
 # Repository Standards Instructions
 
-> Auto-generated from `config/standards.typescript-js.github-actions.json`
-> Stack: TypeScript / JavaScript | CI: github-actions
+> Auto-generated from `config/standards.typescript-js.json`
+> Stack: TypeScript / JavaScript | CI: azure-devops, github-actions
 
 This document provides high-level guidance for an autonomous coding agent to bring a repository into compliance with the defined standards.
 
