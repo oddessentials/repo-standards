@@ -179,7 +179,7 @@
       {
         "id": "semantic-versioning",
         "label": "Semantic Versioning",
-        "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history.",
+        "description": "Use MAJOR.MINOR.PATCH versioning with a single canonical version source, automated changelog generation, and synchronized artifact publishing.",
         "ciHints": {
           "azure-devops": {
             "stage": "release"
@@ -188,7 +188,7 @@
         "stack": {
           "exampleTools": ["cargo-release", "semantic-release"],
           "exampleConfigFiles": ["Cargo.toml", "CHANGELOG.md"],
-          "notes": "Version is defined in Cargo.toml. Use cargo-release or semantic-release-cargo for automated versioning. Follow Conventional Commits for changelog generation.",
+          "notes": "Cargo.toml is the canonical version source. Use cargo-release or semantic-release-cargo to bump versions, generate changelog entries from Conventional Commits, tag releases, and publish artifacts together.",
           "verification": "Check that Cargo.toml version follows SemVer and verify changelog generation from commit history."
         }
       },
@@ -204,8 +204,40 @@
         "stack": {
           "exampleTools": ["commitlint", "commitizen"],
           "exampleConfigFiles": ["commitlint.config.js", ".cz.toml"],
-          "notes": "Use commitlint with husky or pre-commit for enforcing Conventional Commits. Works consistently with cargo workspaces.",
+          "notes": "Use commitlint with husky or pre-commit for enforcing Conventional Commits. Release automation depends on Conventional Commits for versioning and changelog generation.",
           "verification": "Test that non-conforming commit messages are rejected by the configured hooks or CI check."
+        }
+      },
+      {
+        "id": "deterministic-builds",
+        "label": "Deterministic/Hermetic Builds",
+        "description": "Ensure builds are reproducible and hermetic by pinning toolchains, locking dependencies, and avoiding hidden network inputs.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "build"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": ["Cargo.lock", "rust-toolchain.toml"],
+          "notes": "Pin Rust/tooling versions, use Cargo.lock, and build in clean CI environments so outputs are reproducible and hermetic.",
+          "verification": "Re-run the build in CI and confirm outputs are consistent across runs."
+        }
+      },
+      {
+        "id": "provenance-security-scanning",
+        "label": "Provenance & Security Scanning",
+        "description": "Generate provenance/attestations for release artifacts and scan dependencies/artifacts for security issues before publishing.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "release"
+          }
+        },
+        "stack": {
+          "exampleTools": ["slsa-provenance", "cosign", "syft", "grype"],
+          "exampleConfigFiles": [".github/workflows/*", "azure-pipelines.yml"],
+          "notes": "Publish SBOMs and provenance attestations with release artifacts and scan dependencies/images before publishing.",
+          "verification": "Release workflows emit provenance/SBOM artifacts and security scans complete without untriaged critical findings."
         }
       },
       {

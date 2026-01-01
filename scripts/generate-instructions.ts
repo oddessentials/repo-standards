@@ -67,8 +67,8 @@ function generateBullets(item: ChecklistItem): string[] {
     bullets.push(`Define a ${scripts} script or equivalent command.`);
   }
 
-  // Bullet 5: Notes-based guidance (if short enough)
-  if (stack?.notes && stack.notes.length < 150) {
+  // Bullet 5: Notes-based guidance
+  if (stack?.notes) {
     bullets.push(stack.notes);
   }
 

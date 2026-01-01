@@ -107,6 +107,27 @@ Consumers should ignore unknown fields for forward compatibility.
 
 ---
 
+## Release, Versioning, Provenance, and Determinism
+
+The master spec now defines explicit **release/versioning/provenance/determinism** expectations. These map directly to checklist IDs in `config/standards.json`:
+
+- **Canonical version source & SemVer rules** → `semantic-versioning`
+  - Stack hints specify the canonical version source (e.g., package.json, git tags, Cargo.toml) and enforce SemVer.
+- **Automated changelog generation** → `semantic-versioning`
+  - Release tooling generates/updates `CHANGELOG.md` from commit history.
+- **Synchronized artifact publishing** → `semantic-versioning`
+  - Release workflows publish versioned artifacts in the same run that tags versions.
+- **Commit linting tied to release automation** → `commit-linting`
+  - Conventional Commits are required for automated versioning/changelog workflows.
+- **TypeScript-first expectations** → `type-checking` (TypeScript/JS stack hints)
+  - Prefer TypeScript for new/changed code; enforce strict type checks.
+- **Deterministic/hermetic build requirements** → `deterministic-builds` (plus `runtime-version`, `dependency-security`)
+  - Pin toolchains, lock dependencies, and run clean CI builds for reproducibility.
+- **Provenance/security scanning** → `provenance-security-scanning` (plus `dependency-security`)
+  - Generate SBOM/provenance and scan artifacts before publishing.
+
+---
+
 ## Dependency Governance (Recommended Items)
 
 Two recommended checklist items support supply-chain governance:

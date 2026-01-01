@@ -429,7 +429,7 @@
       {
         "id": "semantic-versioning",
         "label": "Semantic Versioning",
-        "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history.",
+        "description": "Use MAJOR.MINOR.PATCH versioning with a single canonical version source, automated changelog generation, and synchronized artifact publishing.",
         "appliesTo": {
           "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
         },
@@ -449,7 +449,7 @@
               "package.json",
               "CHANGELOG.md"
             ],
-            "notes": "Automate version bumping and changelog generation from Conventional Commits using semantic-release or standard-version. Configure CI to automatically bump package.json version, generate/update CHANGELOG.md, create git tags, and publish release artifacts. Protect release branches and ensure release tooling only runs there.",
+            "notes": "Treat package.json as the canonical version source. Automate version bumping and changelog generation from Conventional Commits using semantic-release or standard-version. Configure CI to bump package.json, update CHANGELOG.md, create git tags, and publish release artifacts in the same workflow.",
             "verification": "Check that the version field follows SemVer, and trigger the configured release workflow (for example, a dry run of semantic-release or standard-version) to confirm it automatically generates the expected next version, updates package.json, and creates/updates CHANGELOG.md with commit-based entries."
           },
           "csharp-dotnet": {
@@ -459,7 +459,7 @@
               "*.csproj",
               "CHANGELOG.md"
             ],
-            "notes": "Use GitVersion to automatically compute SemVer from git history and feed it into assembly/package versions. Configure CI to auto-generate or update CHANGELOG.md from commit messages and git tags. Integrate with release pipeline to automatically version assemblies, NuGet packages, and create release notes.",
+            "notes": "Treat GitVersion (git history/tags) as the canonical version source; avoid manual assembly version edits. Configure CI to generate/update CHANGELOG.md from commit messages and git tags, version assemblies/NuGet packages, and publish release artifacts as part of the release pipeline.",
             "verification": "Check that versioning is driven by a SemVer-aware tool (for example, GitVersion) and verify that running the release/versioning step locally or in CI automatically produces the expected version metadata, updates project files, and generates changelog entries from commit history."
           },
           "python": {
@@ -469,19 +469,19 @@
               "setup.cfg",
               "CHANGELOG.md"
             ],
-            "notes": "Automate version bumping and changelog generation using setuptools_scm (git-tag based) or bumpversion with towncrier for changelog fragments. Configure CI to automatically update version in pyproject.toml, generate/update CHANGELOG.md from commit messages or changelog fragments, and create git tags. Maintain a single source of truth for versioning.",
+            "notes": "Treat pyproject.toml/setuptools_scm as the canonical version source (git tags or bumpversion). Configure CI to update versions, generate/update CHANGELOG.md, create git tags, and publish release artifacts in one workflow. Maintain a single source of truth for versioning.",
             "verification": "Check that the package version in pyproject or setup configuration follows SemVer and verify that the configured tool (for example, setuptools_scm or bumpversion) automatically computes or bumps the version and generates changelog entries from commit history or fragments."
           },
           "rust": {
             "exampleTools": ["cargo-release", "semantic-release"],
             "exampleConfigFiles": ["Cargo.toml", "CHANGELOG.md"],
-            "notes": "Version is defined in Cargo.toml. Use cargo-release or semantic-release-cargo for automated versioning. Follow Conventional Commits for changelog generation.",
+            "notes": "Cargo.toml is the canonical version source. Use cargo-release or semantic-release-cargo to bump versions, generate changelog entries from Conventional Commits, tag releases, and publish artifacts together.",
             "verification": "Check that Cargo.toml version follows SemVer and verify changelog generation from commit history."
           },
           "go": {
             "exampleTools": ["goreleaser", "semantic-release"],
             "exampleConfigFiles": [".goreleaser.yml", "CHANGELOG.md"],
-            "notes": "Go uses git tags for versioning (v1.2.3 format). Use goreleaser for automated releases with changelog generation. Tag versions consistently.",
+            "notes": "Git tags (vMAJOR.MINOR.PATCH) are the canonical version source. Use goreleaser or semantic-release to generate changelogs, tag releases, and publish artifacts in a synchronized workflow.",
             "verification": "Check that git tags follow vMAJOR.MINOR.PATCH format and goreleaser or similar tool generates releases and changelogs."
           }
         },
@@ -510,32 +510,155 @@
               "@commitlint/config-conventional"
             ],
             "exampleConfigFiles": ["commitlint.config.*"],
-            "notes": "Enforce commit message format via commit-msg hooks (e.g., Husky) before CI.",
+            "notes": "Enforce commit message format via commit-msg hooks (e.g., Husky) before CI. Release automation depends on Conventional Commits for versioning and changelog generation.",
             "verification": "Create a test commit using the documented convention and ensure the commit message passes the configured commit linting or wizard (for example, commitlint or commitizen)."
           },
           "csharp-dotnet": {
             "exampleTools": ["commitlint", "commitizen"],
             "exampleConfigFiles": ["commitlint.config.*", ".cz.toml"],
-            "notes": "Document your commit convention and wire up a helper tool so contributors can easily follow it.",
+            "notes": "Document your commit convention and wire up a helper tool so contributors can easily follow it. Release automation depends on Conventional Commits for versioning and changelog generation.",
             "verification": "Create a test commit following the documented commit convention and confirm that any configured commit message checks (local hooks or CI) accept the message."
           },
           "python": {
             "exampleTools": ["commitizen"],
             "exampleConfigFiles": [".cz.toml", "pyproject.toml"],
-            "notes": "Standardize commit messages using commitizen or a similar helper and document the required types and scopes.",
+            "notes": "Standardize commit messages using commitizen or a similar helper and document the required types and scopes. Release automation depends on commit messages for versioning and changelog generation.",
             "verification": "Use the configured commit helper (for example, commitizen) or hooks to create a test commit and confirm that non-conforming messages are rejected while valid ones are accepted."
           },
           "rust": {
             "exampleTools": ["commitlint", "commitizen"],
             "exampleConfigFiles": ["commitlint.config.js", ".cz.toml"],
-            "notes": "Use commitlint with husky or pre-commit for enforcing Conventional Commits. Works consistently with cargo workspaces.",
+            "notes": "Use commitlint with husky or pre-commit for enforcing Conventional Commits. Release automation depends on Conventional Commits for versioning and changelog generation.",
             "verification": "Test that non-conforming commit messages are rejected by the configured hooks or CI check."
           },
           "go": {
             "exampleTools": ["commitlint", "commitizen"],
             "exampleConfigFiles": ["commitlint.config.js", ".cz.toml"],
-            "notes": "Use commitlint with pre-commit hooks for enforcing Conventional Commits. Consistent with goreleaser changelog generation.",
+            "notes": "Use commitlint with pre-commit hooks for enforcing Conventional Commits. Release automation and goreleaser changelogs depend on Conventional Commit history.",
             "verification": "Test that non-conforming commit messages are rejected by the configured hooks or CI check."
+          }
+        },
+        "enforcement": "required",
+        "severity": "error"
+      },
+      {
+        "id": "deterministic-builds",
+        "label": "Deterministic/Hermetic Builds",
+        "description": "Ensure builds are reproducible and hermetic by pinning toolchains, locking dependencies, and avoiding hidden network inputs.",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "ciHints": {
+          "azure-devops": {
+            "stage": "build"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": [],
+            "exampleConfigFiles": [
+              "package-lock.json",
+              "pnpm-lock.yaml",
+              "yarn.lock"
+            ],
+            "notes": "Pin Node/tooling versions, use a lockfile, and run builds in clean CI containers so outputs are reproducible and hermetic.",
+            "verification": "Re-run the build in CI and confirm outputs are consistent across runs."
+          },
+          "csharp-dotnet": {
+            "exampleTools": [],
+            "exampleConfigFiles": ["global.json", "packages.lock.json"],
+            "notes": "Pin SDK versions, use lock files, and build in clean CI environments so outputs are reproducible and hermetic.",
+            "verification": "Re-run the build in CI and confirm outputs are consistent across runs."
+          },
+          "python": {
+            "exampleTools": [],
+            "exampleConfigFiles": [
+              "requirements.txt",
+              "poetry.lock",
+              "Pipfile.lock"
+            ],
+            "notes": "Pin Python/tooling versions, use lockfiles, and build in clean CI environments so outputs are reproducible and hermetic.",
+            "verification": "Re-run the build in CI and confirm outputs are consistent across runs."
+          },
+          "rust": {
+            "exampleTools": [],
+            "exampleConfigFiles": ["Cargo.lock", "rust-toolchain.toml"],
+            "notes": "Pin Rust/tooling versions, use Cargo.lock, and build in clean CI environments so outputs are reproducible and hermetic.",
+            "verification": "Re-run the build in CI and confirm outputs are consistent across runs."
+          },
+          "go": {
+            "exampleTools": [],
+            "exampleConfigFiles": ["go.sum", ".go-version"],
+            "notes": "Pin Go/tooling versions, rely on go.sum, and build in clean CI environments so outputs are reproducible and hermetic.",
+            "verification": "Re-run the build in CI and confirm outputs are consistent across runs."
+          }
+        },
+        "enforcement": "required",
+        "severity": "error"
+      },
+      {
+        "id": "provenance-security-scanning",
+        "label": "Provenance & Security Scanning",
+        "description": "Generate provenance/attestations for release artifacts and scan dependencies/artifacts for security issues before publishing.",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "ciHints": {
+          "azure-devops": {
+            "stage": "release"
+          },
+          "github-actions": {
+            "job": "release"
+          }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": ["slsa-provenance", "cosign", "syft", "grype"],
+            "exampleConfigFiles": [
+              ".github/workflows/*",
+              "azure-pipelines.yml"
+            ],
+            "notes": "Publish SBOMs and provenance attestations with release artifacts and scan dependencies/images before publishing.",
+            "verification": "Release workflows emit provenance/SBOM artifacts and security scans complete without untriaged critical findings."
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["slsa-provenance", "cosign", "syft", "grype"],
+            "exampleConfigFiles": [
+              ".github/workflows/*",
+              "azure-pipelines.yml"
+            ],
+            "notes": "Publish SBOMs and provenance attestations with release artifacts and scan dependencies/images before publishing.",
+            "verification": "Release workflows emit provenance/SBOM artifacts and security scans complete without untriaged critical findings."
+          },
+          "python": {
+            "exampleTools": ["slsa-provenance", "cosign", "syft", "grype"],
+            "exampleConfigFiles": [
+              ".github/workflows/*",
+              "azure-pipelines.yml"
+            ],
+            "notes": "Publish SBOMs and provenance attestations with release artifacts and scan dependencies/images before publishing.",
+            "verification": "Release workflows emit provenance/SBOM artifacts and security scans complete without untriaged critical findings."
+          },
+          "rust": {
+            "exampleTools": ["slsa-provenance", "cosign", "syft", "grype"],
+            "exampleConfigFiles": [
+              ".github/workflows/*",
+              "azure-pipelines.yml"
+            ],
+            "notes": "Publish SBOMs and provenance attestations with release artifacts and scan dependencies/images before publishing.",
+            "verification": "Release workflows emit provenance/SBOM artifacts and security scans complete without untriaged critical findings."
+          },
+          "go": {
+            "exampleTools": ["slsa-provenance", "cosign", "syft", "grype"],
+            "exampleConfigFiles": [
+              ".github/workflows/*",
+              "azure-pipelines.yml"
+            ],
+            "notes": "Publish SBOMs and provenance attestations with release artifacts and scan dependencies/images before publishing.",
+            "verification": "Release workflows emit provenance/SBOM artifacts and security scans complete without untriaged critical findings."
           }
         },
         "enforcement": "required",
@@ -842,7 +965,7 @@
           "typescript-js": {
             "exampleTools": ["TypeScript compiler (tsc)"],
             "exampleConfigFiles": ["tsconfig.json"],
-            "notes": "Enable strict mode ('strict': true) and treat type-check failures as CI failures for new code; gradually expand strictness into legacy modules.",
+            "notes": "Enable strict mode ('strict': true) and treat type-check failures as CI failures for new code; gradually expand strictness into legacy modules. Prefer TypeScript-first development over new plain JavaScript.",
             "verification": "Presence of tsconfig.json indicates type-checking is configured for the repository.",
             "requiredFiles": ["tsconfig.json"],
             "requiredScripts": ["typecheck"],

@@ -201,7 +201,7 @@
       {
         "id": "semantic-versioning",
         "label": "Semantic Versioning",
-        "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history.",
+        "description": "Use MAJOR.MINOR.PATCH versioning with a single canonical version source, automated changelog generation, and synchronized artifact publishing.",
         "ciHints": {
           "azure-devops": {
             "stage": "release"
@@ -210,7 +210,7 @@
         "stack": {
           "exampleTools": ["semantic-release", "standard-version"],
           "exampleConfigFiles": [".releaserc", "package.json", "CHANGELOG.md"],
-          "notes": "Automate version bumping and changelog generation from Conventional Commits using semantic-release or standard-version. Configure CI to automatically bump package.json version, generate/update CHANGELOG.md, create git tags, and publish release artifacts. Protect release branches and ensure release tooling only runs there.",
+          "notes": "Treat package.json as the canonical version source. Automate version bumping and changelog generation from Conventional Commits using semantic-release or standard-version. Configure CI to bump package.json, update CHANGELOG.md, create git tags, and publish release artifacts in the same workflow.",
           "verification": "Check that the version field follows SemVer, and trigger the configured release workflow (for example, a dry run of semantic-release or standard-version) to confirm it automatically generates the expected next version, updates package.json, and creates/updates CHANGELOG.md with commit-based entries."
         }
       },
@@ -229,8 +229,44 @@
             "@commitlint/config-conventional"
           ],
           "exampleConfigFiles": ["commitlint.config.*"],
-          "notes": "Enforce commit message format via commit-msg hooks (e.g., Husky) before CI.",
+          "notes": "Enforce commit message format via commit-msg hooks (e.g., Husky) before CI. Release automation depends on Conventional Commits for versioning and changelog generation.",
           "verification": "Create a test commit using the documented convention and ensure the commit message passes the configured commit linting or wizard (for example, commitlint or commitizen)."
+        }
+      },
+      {
+        "id": "deterministic-builds",
+        "label": "Deterministic/Hermetic Builds",
+        "description": "Ensure builds are reproducible and hermetic by pinning toolchains, locking dependencies, and avoiding hidden network inputs.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "build"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": [
+            "package-lock.json",
+            "pnpm-lock.yaml",
+            "yarn.lock"
+          ],
+          "notes": "Pin Node/tooling versions, use a lockfile, and run builds in clean CI containers so outputs are reproducible and hermetic.",
+          "verification": "Re-run the build in CI and confirm outputs are consistent across runs."
+        }
+      },
+      {
+        "id": "provenance-security-scanning",
+        "label": "Provenance & Security Scanning",
+        "description": "Generate provenance/attestations for release artifacts and scan dependencies/artifacts for security issues before publishing.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "release"
+          }
+        },
+        "stack": {
+          "exampleTools": ["slsa-provenance", "cosign", "syft", "grype"],
+          "exampleConfigFiles": [".github/workflows/*", "azure-pipelines.yml"],
+          "notes": "Publish SBOMs and provenance attestations with release artifacts and scan dependencies/images before publishing.",
+          "verification": "Release workflows emit provenance/SBOM artifacts and security scans complete without untriaged critical findings."
         }
       },
       {
@@ -324,7 +360,7 @@
         "stack": {
           "exampleTools": ["TypeScript compiler (tsc)"],
           "exampleConfigFiles": ["tsconfig.json"],
-          "notes": "Enable strict mode ('strict': true) and treat type-check failures as CI failures for new code; gradually expand strictness into legacy modules.",
+          "notes": "Enable strict mode ('strict': true) and treat type-check failures as CI failures for new code; gradually expand strictness into legacy modules. Prefer TypeScript-first development over new plain JavaScript.",
           "verification": "Presence of tsconfig.json indicates type-checking is configured for the repository.",
           "requiredFiles": ["tsconfig.json"],
           "requiredScripts": ["typecheck"],

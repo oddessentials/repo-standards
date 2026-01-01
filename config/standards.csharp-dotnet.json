@@ -190,7 +190,7 @@
       {
         "id": "semantic-versioning",
         "label": "Semantic Versioning",
-        "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history.",
+        "description": "Use MAJOR.MINOR.PATCH versioning with a single canonical version source, automated changelog generation, and synchronized artifact publishing.",
         "ciHints": {
           "azure-devops": {
             "stage": "release"
@@ -202,7 +202,7 @@
         "stack": {
           "exampleTools": ["GitVersion"],
           "exampleConfigFiles": ["GitVersion.yml", "*.csproj", "CHANGELOG.md"],
-          "notes": "Use GitVersion to automatically compute SemVer from git history and feed it into assembly/package versions. Configure CI to auto-generate or update CHANGELOG.md from commit messages and git tags. Integrate with release pipeline to automatically version assemblies, NuGet packages, and create release notes.",
+          "notes": "Treat GitVersion (git history/tags) as the canonical version source; avoid manual assembly version edits. Configure CI to generate/update CHANGELOG.md from commit messages and git tags, version assemblies/NuGet packages, and publish release artifacts as part of the release pipeline.",
           "verification": "Check that versioning is driven by a SemVer-aware tool (for example, GitVersion) and verify that running the release/versioning step locally or in CI automatically produces the expected version metadata, updates project files, and generates changelog entries from commit history."
         }
       },
@@ -221,8 +221,46 @@
         "stack": {
           "exampleTools": ["commitlint", "commitizen"],
           "exampleConfigFiles": ["commitlint.config.*", ".cz.toml"],
-          "notes": "Document your commit convention and wire up a helper tool so contributors can easily follow it.",
+          "notes": "Document your commit convention and wire up a helper tool so contributors can easily follow it. Release automation depends on Conventional Commits for versioning and changelog generation.",
           "verification": "Create a test commit following the documented commit convention and confirm that any configured commit message checks (local hooks or CI) accept the message."
+        }
+      },
+      {
+        "id": "deterministic-builds",
+        "label": "Deterministic/Hermetic Builds",
+        "description": "Ensure builds are reproducible and hermetic by pinning toolchains, locking dependencies, and avoiding hidden network inputs.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "build"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": ["global.json", "packages.lock.json"],
+          "notes": "Pin SDK versions, use lock files, and build in clean CI environments so outputs are reproducible and hermetic.",
+          "verification": "Re-run the build in CI and confirm outputs are consistent across runs."
+        }
+      },
+      {
+        "id": "provenance-security-scanning",
+        "label": "Provenance & Security Scanning",
+        "description": "Generate provenance/attestations for release artifacts and scan dependencies/artifacts for security issues before publishing.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "release"
+          },
+          "github-actions": {
+            "job": "release"
+          }
+        },
+        "stack": {
+          "exampleTools": ["slsa-provenance", "cosign", "syft", "grype"],
+          "exampleConfigFiles": [".github/workflows/*", "azure-pipelines.yml"],
+          "notes": "Publish SBOMs and provenance attestations with release artifacts and scan dependencies/images before publishing.",
+          "verification": "Release workflows emit provenance/SBOM artifacts and security scans complete without untriaged critical findings."
         }
       },
       {

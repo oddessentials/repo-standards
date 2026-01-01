@@ -191,7 +191,7 @@
       {
         "id": "semantic-versioning",
         "label": "Semantic Versioning",
-        "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history.",
+        "description": "Use MAJOR.MINOR.PATCH versioning with a single canonical version source, automated changelog generation, and synchronized artifact publishing.",
         "ciHints": {
           "azure-devops": {
             "stage": "release"
@@ -203,7 +203,7 @@
         "stack": {
           "exampleTools": ["goreleaser", "semantic-release"],
           "exampleConfigFiles": [".goreleaser.yml", "CHANGELOG.md"],
-          "notes": "Go uses git tags for versioning (v1.2.3 format). Use goreleaser for automated releases with changelog generation. Tag versions consistently.",
+          "notes": "Git tags (vMAJOR.MINOR.PATCH) are the canonical version source. Use goreleaser or semantic-release to generate changelogs, tag releases, and publish artifacts in a synchronized workflow.",
           "verification": "Check that git tags follow vMAJOR.MINOR.PATCH format and goreleaser or similar tool generates releases and changelogs."
         }
       },
@@ -222,8 +222,46 @@
         "stack": {
           "exampleTools": ["commitlint", "commitizen"],
           "exampleConfigFiles": ["commitlint.config.js", ".cz.toml"],
-          "notes": "Use commitlint with pre-commit hooks for enforcing Conventional Commits. Consistent with goreleaser changelog generation.",
+          "notes": "Use commitlint with pre-commit hooks for enforcing Conventional Commits. Release automation and goreleaser changelogs depend on Conventional Commit history.",
           "verification": "Test that non-conforming commit messages are rejected by the configured hooks or CI check."
+        }
+      },
+      {
+        "id": "deterministic-builds",
+        "label": "Deterministic/Hermetic Builds",
+        "description": "Ensure builds are reproducible and hermetic by pinning toolchains, locking dependencies, and avoiding hidden network inputs.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "build"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": ["go.sum", ".go-version"],
+          "notes": "Pin Go/tooling versions, rely on go.sum, and build in clean CI environments so outputs are reproducible and hermetic.",
+          "verification": "Re-run the build in CI and confirm outputs are consistent across runs."
+        }
+      },
+      {
+        "id": "provenance-security-scanning",
+        "label": "Provenance & Security Scanning",
+        "description": "Generate provenance/attestations for release artifacts and scan dependencies/artifacts for security issues before publishing.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "release"
+          },
+          "github-actions": {
+            "job": "release"
+          }
+        },
+        "stack": {
+          "exampleTools": ["slsa-provenance", "cosign", "syft", "grype"],
+          "exampleConfigFiles": [".github/workflows/*", "azure-pipelines.yml"],
+          "notes": "Publish SBOMs and provenance attestations with release artifacts and scan dependencies/images before publishing.",
+          "verification": "Release workflows emit provenance/SBOM artifacts and security scans complete without untriaged critical findings."
         }
       },
       {

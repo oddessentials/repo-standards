@@ -1,6 +1,6 @@
 # Repository Standards Instructions
 
-> Auto-generated from `config\standards.typescript-js.github-actions.json`
+> Auto-generated from `config/standards.typescript-js.github-actions.json`
 > Stack: TypeScript / JavaScript | CI: github-actions
 
 This document provides high-level guidance for an autonomous coding agent to bring a repository into compliance with the defined standards.
@@ -12,12 +12,12 @@ This document provides high-level guidance for an autonomous coding agent to bri
 - Maintain proper .gitignore and .dockerignore files to prevent committing secrets, build artifacts, or unnecessary files.
 - Ensure .gitignore exists in the repository.
 - Consider adding .dockerignore if applicable.
+- Use the official github/gitignore Node template as a base and add .env*, node_modules, dist/, coverage/, *.log, npm-debug.log\*, etc. .dockerignore must exclude node_modules, .git, and local build output.
 
 ### Linting
 
 - Run static code linting to enforce consistency and catch common issues early.
-- Ensure eslint.config.js exists in the repository.
-- Consider adding .eslintrc.js, .eslintrc.cjs, .eslintrc.json and others if applicable.
+- Consider adding .prettierrc, prettier.config.js, prettier.config.cjs and others if applicable.
 - Define a `lint` script or equivalent command.
 - Treat new lint errors as CI failures; keep existing issues as warnings until addressed.
 
@@ -37,12 +37,23 @@ This document provides high-level guidance for an autonomous coding agent to bri
 
 ### Semantic Versioning
 
-- Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history.
+- Use MAJOR.MINOR.PATCH versioning with a single canonical version source, automated changelog generation, and synchronized artifact publishing.
+- Treat package.json as the canonical version source. Automate version bumping and changelog generation from Conventional Commits using semantic-release or standard-version. Configure CI to bump package.json, update CHANGELOG.md, create git tags, and publish release artifacts in the same workflow.
 
 ### Commit Linting
 
 - Enforce structured commit messages such as Conventional Commits.
-- Enforce commit message format via commit-msg hooks (e.g., Husky) before CI.
+- Enforce commit message format via commit-msg hooks (e.g., Husky) before CI. Release automation depends on Conventional Commits for versioning and changelog generation.
+
+### Deterministic/Hermetic Builds
+
+- Ensure builds are reproducible and hermetic by pinning toolchains, locking dependencies, and avoiding hidden network inputs.
+- Pin Node/tooling versions, use a lockfile, and run builds in clean CI containers so outputs are reproducible and hermetic.
+
+### Provenance & Security Scanning
+
+- Generate provenance/attestations for release artifacts and scan dependencies/artifacts for security issues before publishing.
+- Publish SBOMs and provenance attestations with release artifacts and scan dependencies/images before publishing.
 
 ### Unit Test Reporter / Coverage
 
@@ -69,7 +80,7 @@ This document provides high-level guidance for an autonomous coding agent to bri
 - Use static type checking to catch errors before runtime and enforce strictness on new code.
 - Ensure tsconfig.json exists in the repository.
 - Define a `typecheck` script or equivalent command.
-- Enable strict mode ('strict': true) and treat type-check failures as CI failures for new code; gradually expand strictness into legacy modules.
+- Enable strict mode ('strict': true) and treat type-check failures as CI failures for new code; gradually expand strictness into legacy modules. Prefer TypeScript-first development over new plain JavaScript.
 
 ### Dependency Management & Vulnerability Scanning
 
@@ -81,6 +92,7 @@ This document provides high-level guidance for an autonomous coding agent to bri
 
 - Specify required runtime/engine versions in package manifests to ensure environment stability and prevent version-related issues across development teams.
 - Ensure package.json exists in the repository.
+- Specify the 'engines' field in package.json to define the required Node.js version (e.g., "engines": { "node": ">=18.0.0" }). This helps prevent environment-related bugs and ensures all developers use compatible Node.js versions.
 
 ### Documentation Standards
 
@@ -97,6 +109,16 @@ This document provides high-level guidance for an autonomous coding agent to bri
 - Use an SPDX license identifier in package.json and describe review expectations, tests, and docs requirements in CONTRIBUTING.md.
 
 ## Recommended Practices
+
+### Dependency Update Automation
+
+- Automate dependency updates using Renovate or Dependabot to keep dependencies current and reduce security exposure window.
+- Renovate supports GHA + AzDO (self-hosted or Mend Renovate App). Dependabot is GitHub-native only. For AzDO: use Renovate via self-hosted runner, Docker container job, or Mend's hosted service.
+
+### Dependency Architecture Rules
+
+- Enforce module boundaries and import constraints to prevent architectural drift and unwanted coupling.
+- Define forbidden imports, layer rules, and circular dependency bans. Run in CI as blocking check.
 
 ### Integration Testing
 

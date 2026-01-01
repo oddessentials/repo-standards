@@ -1,6 +1,6 @@
 # Repository Standards Instructions
 
-> Auto-generated from `config\standards.python.github-actions.json`
+> Auto-generated from `config/standards.python.github-actions.json`
 > Stack: Python | CI: github-actions
 
 This document provides high-level guidance for an autonomous coding agent to bring a repository into compliance with the defined standards.
@@ -12,20 +12,17 @@ This document provides high-level guidance for an autonomous coding agent to bri
 - Maintain proper .gitignore and .dockerignore files to prevent committing secrets, build artifacts, or unnecessary files.
 - Ensure .gitignore exists in the repository.
 - Consider adding .dockerignore if applicable.
+- Use the official github/gitignore Python template. Include **pycache**, .venv/, .pytest_cache, .env, and similar local-only files. .dockerignore must exclude .git, virtual environments, and caches.
 
 ### Linting
 
 - Run static code linting to enforce consistency and catch common issues early.
-- Ensure pyproject.toml exists in the repository.
-- Consider adding ruff.toml, .flake8 if applicable.
-- Define a `lint` script or equivalent command.
 - Configure a primary linter (such as ruff) and keep rules focused on catching real issues without overwhelming developers.
 
 ### Unit Test Runner
 
 - Provide a deterministic unit test framework with a single command to run all tests.
 - Consider adding pytest.ini, pyproject.toml, tests/ if applicable.
-- Define a `test` script or equivalent command.
 - Organize unit tests under a tests/ directory and avoid real network or database calls in this layer.
 
 ### Containerization (Docker / Docker Compose)
@@ -37,12 +34,23 @@ This document provides high-level guidance for an autonomous coding agent to bri
 
 ### Semantic Versioning
 
-- Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history.
+- Use MAJOR.MINOR.PATCH versioning with a single canonical version source, automated changelog generation, and synchronized artifact publishing.
+- Treat pyproject.toml/setuptools_scm as the canonical version source (git tags or bumpversion). Configure CI to update versions, generate/update CHANGELOG.md, create git tags, and publish release artifacts in one workflow. Maintain a single source of truth for versioning.
 
 ### Commit Linting
 
 - Enforce structured commit messages such as Conventional Commits.
-- Standardize commit messages using commitizen or a similar helper and document the required types and scopes.
+- Standardize commit messages using commitizen or a similar helper and document the required types and scopes. Release automation depends on commit messages for versioning and changelog generation.
+
+### Deterministic/Hermetic Builds
+
+- Ensure builds are reproducible and hermetic by pinning toolchains, locking dependencies, and avoiding hidden network inputs.
+- Pin Python/tooling versions, use lockfiles, and build in clean CI environments so outputs are reproducible and hermetic.
+
+### Provenance & Security Scanning
+
+- Generate provenance/attestations for release artifacts and scan dependencies/artifacts for security issues before publishing.
+- Publish SBOMs and provenance attestations with release artifacts and scan dependencies/images before publishing.
 
 ### Unit Test Reporter / Coverage
 
@@ -69,7 +77,6 @@ This document provides high-level guidance for an autonomous coding agent to bri
 - Use static type checking to catch errors before runtime and enforce strictness on new code.
 - Ensure pyproject.toml exists in the repository.
 - Consider adding mypy.ini if applicable.
-- Define a `typecheck` script or equivalent command.
 - Adopt gradual typing with type hints and mypy, focusing first on critical modules and new code paths.
 
 ### Dependency Management & Vulnerability Scanning
@@ -83,6 +90,7 @@ This document provides high-level guidance for an autonomous coding agent to bri
 - Specify required runtime/engine versions in package manifests to ensure environment stability and prevent version-related issues across development teams.
 - Ensure pyproject.toml exists in the repository.
 - Consider adding .python-version if applicable.
+- Specify python_requires in pyproject.toml (e.g., requires-python = ">=3.9") or setup.py (e.g., python_requires='>=3.9'). Consider adding .python-version for pyenv users to automatically switch to the correct Python version.
 
 ### Documentation Standards
 
@@ -99,6 +107,17 @@ This document provides high-level guidance for an autonomous coding agent to bri
 - Spell out contributor responsibilities for tests, documentation, and review so expectations are clear for Python-focused teams.
 
 ## Recommended Practices
+
+### Dependency Update Automation
+
+- Automate dependency updates using Renovate or Dependabot to keep dependencies current and reduce security exposure window.
+- Renovate supports pyproject.toml, requirements.txt, Pipfile, poetry.lock. For AzDO: self-hosted Renovate or schedule-triggered pipeline.
+
+### Dependency Architecture Rules
+
+- Enforce module boundaries and import constraints to prevent architectural drift and unwanted coupling.
+- Consider adding pyproject.toml, .importlinter if applicable.
+- Configure [tool.importlinter] in pyproject.toml OR use standalone .importlinter file. pydeps is visualization-only.
 
 ### Integration Testing
 
