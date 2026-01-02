@@ -1,3 +1,16 @@
+# [4.0.0](https://github.com/oddessentials/repo-standards/compare/v3.1.0...v4.0.0) (2026-01-02)
+
+- feat!: harden standards API with stable contract and Node 22 LTS ([e6d589b](https://github.com/oddessentials/repo-standards/commit/e6d589b9f024dfc4605bda7955b6bdd1422700c7))
+
+### BREAKING CHANGES
+
+- Node engine changed from >=20 <21 to >=22 <23
+
+* Add src/version.ts with exported STANDARDS_VERSION (avoids package.json imports)
+* Add getStandards() and getSchema() as semver-governed public API
+* Update scripts/build.ts to generate version.ts at build time
+* Engine now requires Node 22 LTS for reproducibility across all repos
+
 # [3.1.0](https://github.com/oddessentials/repo-standards/compare/v3.0.0...v3.1.0) (2026-01-01)
 
 ### Bug Fixes
