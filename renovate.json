@@ -1,0 +1,31 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "schedule": ["before 5am on monday"],
+  "timezone": "America/New_York",
+  "labels": ["dependencies"],
+  "packageRules": [
+    {
+      "description": "Group all @oddessentials packages",
+      "matchPackagePatterns": ["^@oddessentials/"],
+      "groupName": "oddessentials",
+      "automerge": false
+    },
+    {
+      "description": "Auto-merge patch updates for dev dependencies",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["patch"],
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "Pin major versions for stability",
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security"]
+  }
+}
