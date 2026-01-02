@@ -7,9 +7,13 @@ import type {
   StackId,
   CiSystem,
 } from "./types.js";
+import { STANDARDS_VERSION, STANDARDS_SCHEMA_VERSION } from "./version.js";
 
 // Re-export types for consumers
 export type { MasterJson, StackChecklistJson, StackId, CiSystem };
+
+// Re-export version info (stable API contract)
+export { STANDARDS_VERSION, STANDARDS_SCHEMA_VERSION };
 
 // ESM equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -50,6 +54,27 @@ export function listSupportedStacks(): readonly StackId[] {
 export function listSupportedCiSystems(): readonly CiSystem[] {
   const spec = loadMasterSpec();
   return spec.ciSystems as CiSystem[];
+}
+
+/**
+ * PUBLIC API CONTRACT (semver-governed)
+ * Alias for loadBaseline - loads stack-specific standards checklist.
+ * Breaking changes to this function signature require a major version bump.
+ */
+export function getStandards(
+  stack: StackId,
+  ci?: CiSystem,
+): StackChecklistJson {
+  return loadBaseline(stack, ci);
+}
+
+/**
+ * PUBLIC API CONTRACT (semver-governed)
+ * Alias for loadMasterSpec - loads the master standards schema.
+ * Breaking changes to this function signature require a major version bump.
+ */
+export function getSchema(): MasterJson {
+  return loadMasterSpec();
 }
 
 /** Optional CLI entry point for debugging */

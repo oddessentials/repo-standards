@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "stack": "go",
   "stackLabel": "Go",
   "ciSystems": ["azure-devops", "github-actions"],
@@ -191,7 +191,7 @@
       {
         "id": "semantic-versioning",
         "label": "Semantic Versioning",
-        "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history.",
+        "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history. Maintain a single canonical version source (for example, package.json or VERSION) that all release artifacts use.",
         "ciHints": {
           "azure-devops": {
             "stage": "release"
@@ -203,14 +203,40 @@
         "stack": {
           "exampleTools": ["goreleaser", "semantic-release"],
           "exampleConfigFiles": [".goreleaser.yml", "CHANGELOG.md"],
-          "notes": "Go uses git tags for versioning (v1.2.3 format). Use goreleaser for automated releases with changelog generation. Tag versions consistently.",
-          "verification": "Check that git tags follow vMAJOR.MINOR.PATCH format and goreleaser or similar tool generates releases and changelogs."
+          "notes": "Go uses git tags (v1.2.3) as the canonical version source. Use goreleaser for automated releases with changelog generation and publish GitHub/Docker artifacts from the same tag.",
+          "verification": "Check that git tags follow vMAJOR.MINOR.PATCH format and goreleaser or similar tooling generates releases and changelogs.",
+          "optionalFiles": [".goreleaser.yml", "CHANGELOG.md"],
+          "requiredScripts": ["release"]
+        }
+      },
+      {
+        "id": "unified-release-workflow",
+        "label": "Unified Release Workflow",
+        "description": "Use a single CI release pipeline that publishes all artifacts (GitHub releases, packages, containers) from the same canonical version source.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "release"
+          },
+          "github-actions": {
+            "job": "release"
+          }
+        },
+        "stack": {
+          "exampleTools": ["goreleaser", "docker buildx"],
+          "exampleConfigFiles": [
+            ".github/workflows/release.yml",
+            "azure-pipelines.yml"
+          ],
+          "notes": "Use a single release pipeline (goreleaser or equivalent) to publish GitHub releases and Docker images from the same git tag.",
+          "verification": "Trigger the release pipeline and confirm all artifacts share the same version number and tag.",
+          "requiredScripts": ["release"],
+          "optionalFiles": [".goreleaser.yml", "CHANGELOG.md"]
         }
       },
       {
         "id": "commit-linting",
         "label": "Commit Linting",
-        "description": "Enforce structured commit messages such as Conventional Commits.",
+        "description": "Enforce structured commit messages such as Conventional Commits via commit-msg hooks and CI. This is required for deterministic versioning and changelog generation.",
         "ciHints": {
           "azure-devops": {
             "stage": "quality"
@@ -222,8 +248,16 @@
         "stack": {
           "exampleTools": ["commitlint", "commitizen"],
           "exampleConfigFiles": ["commitlint.config.js", ".cz.toml"],
-          "notes": "Use commitlint with pre-commit hooks for enforcing Conventional Commits. Consistent with goreleaser changelog generation.",
-          "verification": "Test that non-conforming commit messages are rejected by the configured hooks or CI check."
+          "notes": "Use commitlint with commit-msg or pre-commit hooks plus a CI check. Conventional Commits keep goreleaser changelog generation deterministic.",
+          "verification": "Test that non-conforming commit messages are rejected by the configured hooks and CI check.",
+          "anyOfFiles": [
+            "commitlint.config.js",
+            "commitlint.config.cjs",
+            "commitlint.config.mjs",
+            "commitlint.config.json",
+            ".cz.toml"
+          ],
+          "requiredScripts": ["commitlint"]
         }
       },
       {
@@ -317,7 +351,7 @@
       {
         "id": "type-checking",
         "label": "Type Checking",
-        "description": "Use static type checking to catch errors before runtime and enforce strictness on new code.",
+        "description": "Use static type checking to catch errors before runtime and enforce strictness on new code. For JS/TS stacks, require a TypeScript-first policy with strict mode and a CI typecheck step; allow JSDoc/checkJs migration for legacy JS.",
         "ciHints": {
           "azure-devops": {
             "stage": "quality"
@@ -356,6 +390,83 @@
           "notes": "Use govulncheck (official Go tool) for vulnerability scanning. go.sum locks dependency checksums for reproducible builds.",
           "verification": "go.sum is present; run 'govulncheck ./...' to verify security scanning.",
           "requiredFiles": ["go.sum"]
+        }
+      },
+      {
+        "id": "deterministic-builds",
+        "label": "Deterministic & Hermetic Builds",
+        "description": "Ensure builds are reproducible by pinning dependencies, base images, and tool/runtime versions. Avoid network/time variance and fail when lockfiles drift.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "build"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["go env -w GOPROXY=off", "go mod download"],
+          "exampleConfigFiles": ["go.sum", "go.mod", ".go-version"],
+          "notes": "Use go.sum for deterministic module versions and pin Go versions (go.mod + .go-version). Avoid network variance by caching modules and pinning proxies.",
+          "verification": "go.sum is present and builds use pinned Go versions; module downloads are cached.",
+          "requiredFiles": ["go.sum"],
+          "optionalFiles": [".go-version"]
+        }
+      },
+      {
+        "id": "provenance-security",
+        "label": "Provenance & Security Metadata",
+        "description": "Produce SBOMs or provenance metadata, enable secret/code scanning, and sign tags or commits for critical repos.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "security"
+          },
+          "github-actions": {
+            "job": "security"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "syft",
+            "cyclonedx-gomod",
+            "codeql",
+            "gitleaks",
+            "cosign"
+          ],
+          "exampleConfigFiles": [
+            ".github/workflows/codeql.yml",
+            ".github/workflows/provenance.yml"
+          ],
+          "notes": "Generate SBOM/provenance for Go binaries and container artifacts, enable secret scanning, and sign tags/commits for critical repos.",
+          "verification": "SBOM/provenance artifacts are published alongside releases, and CI runs secret/code scanning.",
+          "optionalFiles": ["SECURITY.md", ".github/workflows/codeql.yml"]
+        }
+      },
+      {
+        "id": "ci-templates-automation",
+        "label": "CI Templates & Automation",
+        "description": "Adopt standard CI templates and config samples to scale across repositories, minimizing bespoke pipeline logic.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "ci"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "GitHub Actions reusable workflows",
+            "Azure DevOps templates"
+          ],
+          "exampleConfigFiles": [
+            ".github/workflows/ci.yml",
+            "azure-pipelines.yml"
+          ],
+          "notes": "Use shared CI templates for build/test/release stages to standardize across Go repos.",
+          "verification": "CI pipeline references a shared template or reusable workflow and follows the standard job naming.",
+          "anyOfFiles": [".github/workflows/ci.yml", "azure-pipelines.yml"],
+          "requiredScripts": ["ci"]
         }
       },
       {

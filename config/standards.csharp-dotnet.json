@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "stack": "csharp-dotnet",
   "stackLabel": "C# / .NET",
   "ciSystems": ["azure-devops", "github-actions"],
@@ -190,7 +190,7 @@
       {
         "id": "semantic-versioning",
         "label": "Semantic Versioning",
-        "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history.",
+        "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history. Maintain a single canonical version source (for example, package.json or VERSION) that all release artifacts use.",
         "ciHints": {
           "azure-devops": {
             "stage": "release"
@@ -202,14 +202,45 @@
         "stack": {
           "exampleTools": ["GitVersion"],
           "exampleConfigFiles": ["GitVersion.yml", "*.csproj", "CHANGELOG.md"],
-          "notes": "Use GitVersion to automatically compute SemVer from git history and feed it into assembly/package versions. Configure CI to auto-generate or update CHANGELOG.md from commit messages and git tags. Integrate with release pipeline to automatically version assemblies, NuGet packages, and create release notes.",
-          "verification": "Check that versioning is driven by a SemVer-aware tool (for example, GitVersion) and verify that running the release/versioning step locally or in CI automatically produces the expected version metadata, updates project files, and generates changelog entries from commit history."
+          "notes": "Use GitVersion (or Directory.Build.props) as the single canonical version source, computed from git history, and feed it into assembly/package versions. Configure CI to auto-generate or update CHANGELOG.md from commit messages and git tags. Integrate with the release pipeline to version assemblies, NuGet packages, and publish GitHub releases from the same version.",
+          "verification": "Check that versioning is driven by a SemVer-aware tool (for example, GitVersion) and verify that running the release/versioning step locally or in CI produces the expected version metadata, updates project files, and generates changelog entries from commit history.",
+          "requiredFiles": ["*.csproj"],
+          "optionalFiles": [
+            "GitVersion.yml",
+            "Directory.Build.props",
+            "CHANGELOG.md"
+          ],
+          "requiredScripts": ["release"]
+        }
+      },
+      {
+        "id": "unified-release-workflow",
+        "label": "Unified Release Workflow",
+        "description": "Use a single CI release pipeline that publishes all artifacts (GitHub releases, packages, containers) from the same canonical version source.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "release"
+          },
+          "github-actions": {
+            "job": "release"
+          }
+        },
+        "stack": {
+          "exampleTools": ["GitVersion", "dotnet pack", "dotnet nuget push"],
+          "exampleConfigFiles": [
+            "azure-pipelines.yml",
+            ".github/workflows/release.yml"
+          ],
+          "notes": "Use a single release pipeline to publish NuGet packages, GitHub releases, and Docker images from the canonical version source (GitVersion or Directory.Build.props).",
+          "verification": "Trigger the release pipeline and confirm all artifacts share the same version number and tag.",
+          "requiredScripts": ["release"],
+          "optionalFiles": ["GitVersion.yml", "Directory.Build.props"]
         }
       },
       {
         "id": "commit-linting",
         "label": "Commit Linting",
-        "description": "Enforce structured commit messages such as Conventional Commits.",
+        "description": "Enforce structured commit messages such as Conventional Commits via commit-msg hooks and CI. This is required for deterministic versioning and changelog generation.",
         "ciHints": {
           "azure-devops": {
             "stage": "quality"
@@ -221,8 +252,16 @@
         "stack": {
           "exampleTools": ["commitlint", "commitizen"],
           "exampleConfigFiles": ["commitlint.config.*", ".cz.toml"],
-          "notes": "Document your commit convention and wire up a helper tool so contributors can easily follow it.",
-          "verification": "Create a test commit following the documented commit convention and confirm that any configured commit message checks (local hooks or CI) accept the message."
+          "notes": "Document your Conventional Commit convention and enforce it via commit-msg hooks and CI so release tooling can compute versions deterministically.",
+          "verification": "Create a test commit following the documented convention and confirm that commit-msg hooks and CI checks accept it.",
+          "anyOfFiles": [
+            "commitlint.config.js",
+            "commitlint.config.cjs",
+            "commitlint.config.mjs",
+            "commitlint.config.json",
+            ".cz.toml"
+          ],
+          "requiredScripts": ["commitlint"]
         }
       },
       {
@@ -318,7 +357,7 @@
       {
         "id": "type-checking",
         "label": "Type Checking",
-        "description": "Use static type checking to catch errors before runtime and enforce strictness on new code.",
+        "description": "Use static type checking to catch errors before runtime and enforce strictness on new code. For JS/TS stacks, require a TypeScript-first policy with strict mode and a CI typecheck step; allow JSDoc/checkJs migration for legacy JS.",
         "ciHints": {
           "azure-devops": {
             "stage": "quality"
@@ -362,6 +401,76 @@
           "notes": "Enable package lock files and use vulnerability scanning to track and remediate high-risk dependencies.",
           "verification": "Dependency lockfile or package reference is present; security scanning is configured.",
           "optionalFiles": ["packages.lock.json"]
+        }
+      },
+      {
+        "id": "deterministic-builds",
+        "label": "Deterministic & Hermetic Builds",
+        "description": "Ensure builds are reproducible by pinning dependencies, base images, and tool/runtime versions. Avoid network/time variance and fail when lockfiles drift.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "build"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["dotnet restore --locked-mode"],
+          "exampleConfigFiles": ["packages.lock.json", "global.json"],
+          "notes": "Enable packages.lock.json and use locked restore. Pin SDK versions via global.json and pin base images in Dockerfiles.",
+          "verification": "packages.lock.json or equivalent lock files exist and restore runs in locked mode. SDK versions are pinned.",
+          "optionalFiles": ["packages.lock.json", "global.json"]
+        }
+      },
+      {
+        "id": "provenance-security",
+        "label": "Provenance & Security Metadata",
+        "description": "Produce SBOMs or provenance metadata, enable secret/code scanning, and sign tags or commits for critical repos.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "security"
+          },
+          "github-actions": {
+            "job": "security"
+          }
+        },
+        "stack": {
+          "exampleTools": ["sbom-tool", "codeql", "gitleaks", "cosign"],
+          "exampleConfigFiles": [
+            ".github/workflows/codeql.yml",
+            ".github/workflows/provenance.yml"
+          ],
+          "notes": "Generate SBOM/provenance for NuGet and container artifacts, enable secret scanning, and sign tags/commits for critical repos.",
+          "verification": "SBOM/provenance artifacts are published alongside releases, and CI runs secret/code scanning.",
+          "optionalFiles": ["SECURITY.md", ".github/workflows/codeql.yml"]
+        }
+      },
+      {
+        "id": "ci-templates-automation",
+        "label": "CI Templates & Automation",
+        "description": "Adopt standard CI templates and config samples to scale across repositories, minimizing bespoke pipeline logic.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "ci"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "GitHub Actions reusable workflows",
+            "Azure DevOps templates"
+          ],
+          "exampleConfigFiles": [
+            ".github/workflows/ci.yml",
+            "azure-pipelines.yml"
+          ],
+          "notes": "Use shared CI templates for build/test/pack/release stages to standardize across .NET repos.",
+          "verification": "CI pipeline references a shared template or reusable workflow and follows the standard job naming.",
+          "anyOfFiles": [".github/workflows/ci.yml", "azure-pipelines.yml"],
+          "requiredScripts": ["ci"]
         }
       },
       {

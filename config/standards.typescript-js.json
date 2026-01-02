@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "stack": "typescript-js",
   "stackLabel": "TypeScript / JavaScript",
   "ciSystems": ["azure-devops", "github-actions"],
@@ -213,7 +213,7 @@
       {
         "id": "semantic-versioning",
         "label": "Semantic Versioning",
-        "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history.",
+        "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history. Maintain a single canonical version source (for example, package.json or VERSION) that all release artifacts use.",
         "ciHints": {
           "azure-devops": {
             "stage": "release"
@@ -225,14 +225,46 @@
         "stack": {
           "exampleTools": ["semantic-release", "standard-version"],
           "exampleConfigFiles": [".releaserc", "package.json", "CHANGELOG.md"],
-          "notes": "Automate version bumping and changelog generation from Conventional Commits using semantic-release or standard-version. Configure CI to automatically bump package.json version, generate/update CHANGELOG.md, create git tags, and publish release artifacts. Protect release branches and ensure release tooling only runs there.",
-          "verification": "Check that the version field follows SemVer, and trigger the configured release workflow (for example, a dry run of semantic-release or standard-version) to confirm it automatically generates the expected next version, updates package.json, and creates/updates CHANGELOG.md with commit-based entries."
+          "notes": "Automate version bumping and changelog generation from Conventional Commits using semantic-release or standard-version. Keep package.json (or a VERSION file) as the single canonical version source and have CI publish npm/GitHub/Docker artifacts from that same version. Protect release branches and ensure release tooling only runs there.",
+          "verification": "Check that the canonical version field follows SemVer, and trigger the configured release workflow (for example, a dry run of semantic-release or standard-version) to confirm it generates the expected next version, updates package.json or VERSION, and creates/updates CHANGELOG.md with commit-based entries.",
+          "requiredFiles": ["package.json"],
+          "optionalFiles": ["VERSION", "CHANGELOG.md"],
+          "requiredScripts": ["release"]
+        }
+      },
+      {
+        "id": "unified-release-workflow",
+        "label": "Unified Release Workflow",
+        "description": "Use a single CI release pipeline that publishes all artifacts (GitHub releases, packages, containers) from the same canonical version source.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "release"
+          },
+          "github-actions": {
+            "job": "release"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "semantic-release",
+            "changesets",
+            "npm publish",
+            "docker buildx"
+          ],
+          "exampleConfigFiles": [
+            ".github/workflows/release.yml",
+            "azure-pipelines.yml"
+          ],
+          "notes": "Release workflow must publish npm packages, GitHub releases, and Docker images from the same canonical version (package.json or VERSION). Avoid separate manual steps or ad-hoc scripts for different artifacts.",
+          "verification": "Trigger the release pipeline and confirm all artifacts share the same version number and tag.",
+          "requiredScripts": ["release"],
+          "optionalFiles": ["CHANGELOG.md", "VERSION"]
         }
       },
       {
         "id": "commit-linting",
         "label": "Commit Linting",
-        "description": "Enforce structured commit messages such as Conventional Commits.",
+        "description": "Enforce structured commit messages such as Conventional Commits via commit-msg hooks and CI. This is required for deterministic versioning and changelog generation.",
         "ciHints": {
           "azure-devops": {
             "stage": "quality"
@@ -247,8 +279,15 @@
             "@commitlint/config-conventional"
           ],
           "exampleConfigFiles": ["commitlint.config.*"],
-          "notes": "Enforce commit message format via commit-msg hooks (e.g., Husky) before CI.",
-          "verification": "Create a test commit using the documented convention and ensure the commit message passes the configured commit linting or wizard (for example, commitlint or commitizen)."
+          "notes": "Enforce Conventional Commits via commit-msg hooks (e.g., Husky) and a CI job so versioning/changelog automation is deterministic.",
+          "verification": "Create a test commit using the documented convention and ensure the commit message passes both local commit-msg hooks and CI checks.",
+          "anyOfFiles": [
+            "commitlint.config.js",
+            "commitlint.config.cjs",
+            "commitlint.config.mjs",
+            "commitlint.config.json"
+          ],
+          "requiredScripts": ["commitlint"]
         }
       },
       {
@@ -345,7 +384,7 @@
       {
         "id": "type-checking",
         "label": "Type Checking",
-        "description": "Use static type checking to catch errors before runtime and enforce strictness on new code.",
+        "description": "Use static type checking to catch errors before runtime and enforce strictness on new code. For JS/TS stacks, require a TypeScript-first policy with strict mode and a CI typecheck step; allow JSDoc/checkJs migration for legacy JS.",
         "ciHints": {
           "azure-devops": {
             "stage": "quality"
@@ -357,8 +396,8 @@
         "stack": {
           "exampleTools": ["TypeScript compiler (tsc)"],
           "exampleConfigFiles": ["tsconfig.json"],
-          "notes": "Enable strict mode ('strict': true) and treat type-check failures as CI failures for new code; gradually expand strictness into legacy modules.",
-          "verification": "Presence of tsconfig.json indicates type-checking is configured for the repository.",
+          "notes": "Adopt a TypeScript-first policy. Require tsconfig.json with strict mode enabled ('strict': true) and enforce `npm run typecheck` (or equivalent) in CI. For legacy JS, allow JSDoc + `checkJs` or staged migration with `allowJs` while incrementally increasing coverage.",
+          "verification": "tsconfig.json exists with strict mode enabled and CI runs the typecheck script; legacy JS modules use JSDoc/checkJs or allowJs as an explicit migration path.",
           "requiredFiles": ["tsconfig.json"],
           "requiredScripts": ["typecheck"],
           "bazelHints": {
@@ -389,6 +428,91 @@
           "notes": "Require a lockfile for reproducible installs and pin Node.js/tooling versions; block merges on new high-severity vulnerabilities.",
           "verification": "Dependency lockfile is present; security scanning is configured in CI or project tooling.",
           "optionalFiles": ["package-lock.json", "pnpm-lock.yaml", "yarn.lock"]
+        }
+      },
+      {
+        "id": "deterministic-builds",
+        "label": "Deterministic & Hermetic Builds",
+        "description": "Ensure builds are reproducible by pinning dependencies, base images, and tool/runtime versions. Avoid network/time variance and fail when lockfiles drift.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "build"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "npm ci",
+            "pnpm install --frozen-lockfile",
+            "yarn --immutable"
+          ],
+          "exampleConfigFiles": [
+            "package-lock.json",
+            "pnpm-lock.yaml",
+            "yarn.lock"
+          ],
+          "notes": "Require a lockfile and pinned Node/tool versions (.nvmrc or .tool-versions). Pin base images in Dockerfiles and avoid non-deterministic install flags.",
+          "verification": "Lockfile is present and CI uses a frozen/immutable install. Dockerfiles reference pinned base images.",
+          "anyOfFiles": ["package-lock.json", "pnpm-lock.yaml", "yarn.lock"],
+          "optionalFiles": [".nvmrc", ".tool-versions"]
+        }
+      },
+      {
+        "id": "provenance-security",
+        "label": "Provenance & Security Metadata",
+        "description": "Produce SBOMs or provenance metadata, enable secret/code scanning, and sign tags or commits for critical repos.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "security"
+          },
+          "github-actions": {
+            "job": "security"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "syft",
+            "cyclonedx-npm",
+            "codeql",
+            "gitleaks",
+            "cosign"
+          ],
+          "exampleConfigFiles": [
+            ".github/workflows/codeql.yml",
+            ".github/workflows/provenance.yml"
+          ],
+          "notes": "Generate SBOM/provenance for npm and container artifacts, enable secret scanning, and sign tags/commits for protected branches.",
+          "verification": "SBOM/provenance artifacts are published alongside releases, and CI runs secret/code scanning.",
+          "optionalFiles": ["SECURITY.md", ".github/workflows/codeql.yml"]
+        }
+      },
+      {
+        "id": "ci-templates-automation",
+        "label": "CI Templates & Automation",
+        "description": "Adopt standard CI templates and config samples to scale across repositories, minimizing bespoke pipeline logic.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "ci"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "GitHub Actions reusable workflows",
+            "Azure DevOps templates"
+          ],
+          "exampleConfigFiles": [
+            ".github/workflows/ci.yml",
+            "azure-pipelines.yml"
+          ],
+          "notes": "Use shared CI templates for lint/test/build/release stages and keep repo-specific overrides minimal.",
+          "verification": "CI pipeline references a shared template or reusable workflow and follows the standard job naming.",
+          "anyOfFiles": [".github/workflows/ci.yml", "azure-pipelines.yml"],
+          "requiredScripts": ["ci"]
         }
       },
       {

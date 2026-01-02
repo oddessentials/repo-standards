@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "stack": "rust",
   "stackLabel": "Rust",
   "ciSystems": ["azure-devops", "github-actions"],
@@ -191,7 +191,7 @@
       {
         "id": "semantic-versioning",
         "label": "Semantic Versioning",
-        "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history.",
+        "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history. Maintain a single canonical version source (for example, package.json or VERSION) that all release artifacts use.",
         "ciHints": {
           "azure-devops": {
             "stage": "release"
@@ -203,14 +203,41 @@
         "stack": {
           "exampleTools": ["cargo-release", "semantic-release"],
           "exampleConfigFiles": ["Cargo.toml", "CHANGELOG.md"],
-          "notes": "Version is defined in Cargo.toml. Use cargo-release or semantic-release-cargo for automated versioning. Follow Conventional Commits for changelog generation.",
-          "verification": "Check that Cargo.toml version follows SemVer and verify changelog generation from commit history."
+          "notes": "Version is defined in Cargo.toml as the canonical source. Use cargo-release or semantic-release-cargo for automated versioning and GitHub release publishing, and follow Conventional Commits for changelog generation.",
+          "verification": "Check that Cargo.toml version follows SemVer and verify changelog generation from commit history.",
+          "requiredFiles": ["Cargo.toml"],
+          "optionalFiles": ["CHANGELOG.md"],
+          "requiredScripts": ["release"]
+        }
+      },
+      {
+        "id": "unified-release-workflow",
+        "label": "Unified Release Workflow",
+        "description": "Use a single CI release pipeline that publishes all artifacts (GitHub releases, packages, containers) from the same canonical version source.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "release"
+          },
+          "github-actions": {
+            "job": "release"
+          }
+        },
+        "stack": {
+          "exampleTools": ["cargo-release", "cargo publish", "docker buildx"],
+          "exampleConfigFiles": [
+            ".github/workflows/release.yml",
+            "azure-pipelines.yml"
+          ],
+          "notes": "Use a single release pipeline to publish crates.io packages, GitHub releases, and Docker images from the Cargo.toml version.",
+          "verification": "Trigger the release pipeline and confirm all artifacts share the same version number and tag.",
+          "requiredScripts": ["release"],
+          "optionalFiles": ["CHANGELOG.md"]
         }
       },
       {
         "id": "commit-linting",
         "label": "Commit Linting",
-        "description": "Enforce structured commit messages such as Conventional Commits.",
+        "description": "Enforce structured commit messages such as Conventional Commits via commit-msg hooks and CI. This is required for deterministic versioning and changelog generation.",
         "ciHints": {
           "azure-devops": {
             "stage": "quality"
@@ -222,8 +249,16 @@
         "stack": {
           "exampleTools": ["commitlint", "commitizen"],
           "exampleConfigFiles": ["commitlint.config.js", ".cz.toml"],
-          "notes": "Use commitlint with husky or pre-commit for enforcing Conventional Commits. Works consistently with cargo workspaces.",
-          "verification": "Test that non-conforming commit messages are rejected by the configured hooks or CI check."
+          "notes": "Use commitlint with husky or pre-commit for enforcing Conventional Commits and add a CI check to keep version/changelog automation deterministic.",
+          "verification": "Test that non-conforming commit messages are rejected by the configured hooks and CI check.",
+          "anyOfFiles": [
+            "commitlint.config.js",
+            "commitlint.config.cjs",
+            "commitlint.config.mjs",
+            "commitlint.config.json",
+            ".cz.toml"
+          ],
+          "requiredScripts": ["commitlint"]
         }
       },
       {
@@ -319,7 +354,7 @@
       {
         "id": "type-checking",
         "label": "Type Checking",
-        "description": "Use static type checking to catch errors before runtime and enforce strictness on new code.",
+        "description": "Use static type checking to catch errors before runtime and enforce strictness on new code. For JS/TS stacks, require a TypeScript-first policy with strict mode and a CI typecheck step; allow JSDoc/checkJs migration for legacy JS.",
         "ciHints": {
           "azure-devops": {
             "stage": "quality"
@@ -360,6 +395,83 @@
           "optionalFiles": ["deny.toml"],
           "anyOfFiles": ["Cargo.lock"],
           "pinningNotes": "Required for binaries/services; optional for libraries (add to .gitignore for libs). See https://doc.rust-lang.org/cargo/faq.html#why-have-cargolock-in-version-control"
+        }
+      },
+      {
+        "id": "deterministic-builds",
+        "label": "Deterministic & Hermetic Builds",
+        "description": "Ensure builds are reproducible by pinning dependencies, base images, and tool/runtime versions. Avoid network/time variance and fail when lockfiles drift.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "build"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": ["cargo build --locked"],
+          "exampleConfigFiles": ["Cargo.lock", "rust-toolchain.toml"],
+          "notes": "Commit Cargo.lock for binaries/services and pin Rust versions with rust-toolchain.toml. Use --locked in CI.",
+          "verification": "Cargo.lock is present and CI uses --locked. Rust toolchain is pinned.",
+          "requiredFiles": ["Cargo.lock"],
+          "optionalFiles": ["rust-toolchain.toml"]
+        }
+      },
+      {
+        "id": "provenance-security",
+        "label": "Provenance & Security Metadata",
+        "description": "Produce SBOMs or provenance metadata, enable secret/code scanning, and sign tags or commits for critical repos.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "security"
+          },
+          "github-actions": {
+            "job": "security"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "cargo-cyclonedx",
+            "syft",
+            "codeql",
+            "gitleaks",
+            "cosign"
+          ],
+          "exampleConfigFiles": [
+            ".github/workflows/codeql.yml",
+            ".github/workflows/provenance.yml"
+          ],
+          "notes": "Generate SBOM/provenance for crates and container artifacts, enable secret scanning, and sign tags/commits for critical repos.",
+          "verification": "SBOM/provenance artifacts are published alongside releases, and CI runs secret/code scanning.",
+          "optionalFiles": ["SECURITY.md", ".github/workflows/codeql.yml"]
+        }
+      },
+      {
+        "id": "ci-templates-automation",
+        "label": "CI Templates & Automation",
+        "description": "Adopt standard CI templates and config samples to scale across repositories, minimizing bespoke pipeline logic.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "ci"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "GitHub Actions reusable workflows",
+            "Azure DevOps templates"
+          ],
+          "exampleConfigFiles": [
+            ".github/workflows/ci.yml",
+            "azure-pipelines.yml"
+          ],
+          "notes": "Use shared CI templates for build/test/release stages to standardize across Rust repos.",
+          "verification": "CI pipeline references a shared template or reusable workflow and follows the standard job naming.",
+          "anyOfFiles": [".github/workflows/ci.yml", "azure-pipelines.yml"],
+          "requiredScripts": ["ci"]
         }
       },
       {

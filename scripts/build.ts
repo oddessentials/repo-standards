@@ -80,10 +80,43 @@ function generateStack(stack: string, ci?: string) {
   execSync(cmd, { stdio: "inherit" });
 }
 
+/**
+ * Generate src/version.ts with current package version
+ * This runs before TypeScript compilation so the values are baked in
+ */
+function generateVersionFile(rootDir: string): void {
+  const pkgPath = join(rootDir, "package.json");
+  const versionPath = join(rootDir, "src", "version.ts");
+
+  const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
+  const standards = JSON.parse(
+    readFileSync(join(rootDir, "config", "standards.json"), "utf8"),
+  );
+
+  const content = `/**
+ * AUTO-GENERATED at build time by scripts/build.ts
+ * DO NOT EDIT MANUALLY
+ *
+ * This module provides version information for the repo-standards package.
+ * Consumers should import from here instead of package.json to avoid
+ * ESM/CJS interop issues.
+ */
+
+export const STANDARDS_VERSION = '${pkg.version}';
+export const STANDARDS_SCHEMA_VERSION = ${standards.version};
+`;
+
+  writeFileSync(versionPath, content);
+  console.log(`Generated src/version.ts with version ${pkg.version}`);
+}
+
 function main() {
   const rootDir = process.cwd();
   const configSrc = resolve(rootDir, "config");
   const configDest = resolve(rootDir, "dist", "config");
+
+  // Generate version.ts before TypeScript compilation
+  generateVersionFile(rootDir);
 
   // Sync schema version with package.json major version (before generation)
   syncSchemaVersion(rootDir);
