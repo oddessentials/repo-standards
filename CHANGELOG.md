@@ -1,3 +1,9 @@
+## [4.0.1](https://github.com/oddessentials/repo-standards/compare/v4.0.0...v4.0.1) (2026-01-02)
+
+### Bug Fixes
+
+- update schema version to 4 to match package.json major ([813d773](https://github.com/oddessentials/repo-standards/commit/813d7735a317e9d78608f904b26a1a76c00b427a))
+
 # [4.0.0](https://github.com/oddessentials/repo-standards/compare/v3.1.0...v4.0.0) (2026-01-02)
 
 - feat!: harden standards API with stable contract and Node 22 LTS ([e6d589b](https://github.com/oddessentials/repo-standards/commit/e6d589b9f024dfc4605bda7955b6bdd1422700c7))
