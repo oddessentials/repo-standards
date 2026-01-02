@@ -1,3 +1,9 @@
+# [4.1.0](https://github.com/oddessentials/repo-standards/compare/v4.0.1...v4.1.0) (2026-01-02)
+
+### Features
+
+- add dual CJS/ESM support with tsup bundler ([12ec67f](https://github.com/oddessentials/repo-standards/commit/12ec67f3ac1c337c9b4dee4d4608d22cec60f90d))
+
 ## [4.0.1](https://github.com/oddessentials/repo-standards/compare/v4.0.0...v4.0.1) (2026-01-02)
 
 ### Bug Fixes
