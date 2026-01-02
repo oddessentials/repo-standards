@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "stack": "python",
   "stackLabel": "Python",
   "ciSystems": ["azure-devops"],
@@ -184,7 +184,7 @@
       {
         "id": "semantic-versioning",
         "label": "Semantic Versioning",
-        "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history.",
+        "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history. Maintain a single canonical version source (for example, package.json or VERSION) that all release artifacts use.",
         "ciHints": {
           "azure-devops": {
             "stage": "release"
@@ -193,14 +193,38 @@
         "stack": {
           "exampleTools": ["bumpversion", "setuptools_scm", "towncrier"],
           "exampleConfigFiles": ["pyproject.toml", "setup.cfg", "CHANGELOG.md"],
-          "notes": "Automate version bumping and changelog generation using setuptools_scm (git-tag based) or bumpversion with towncrier for changelog fragments. Configure CI to automatically update version in pyproject.toml, generate/update CHANGELOG.md from commit messages or changelog fragments, and create git tags. Maintain a single source of truth for versioning.",
-          "verification": "Check that the package version in pyproject or setup configuration follows SemVer and verify that the configured tool (for example, setuptools_scm or bumpversion) automatically computes or bumps the version and generates changelog entries from commit history or fragments."
+          "notes": "Automate version bumping and changelog generation using setuptools_scm (git-tag based) or bumpversion with towncrier for changelog fragments. Keep pyproject.toml (or VERSION) as the single canonical version source, and have CI publish GitHub/PyPI/Docker artifacts from that same version.",
+          "verification": "Check that the canonical version in pyproject.toml or VERSION follows SemVer and verify that the configured tool (for example, setuptools_scm or bumpversion) computes or bumps the version and generates changelog entries from commit history or fragments.",
+          "requiredFiles": ["pyproject.toml"],
+          "optionalFiles": ["VERSION", "CHANGELOG.md"],
+          "requiredScripts": ["release"]
+        }
+      },
+      {
+        "id": "unified-release-workflow",
+        "label": "Unified Release Workflow",
+        "description": "Use a single CI release pipeline that publishes all artifacts (GitHub releases, packages, containers) from the same canonical version source.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "release"
+          }
+        },
+        "stack": {
+          "exampleTools": ["setuptools_scm", "twine", "build", "docker buildx"],
+          "exampleConfigFiles": [
+            ".github/workflows/release.yml",
+            "azure-pipelines.yml"
+          ],
+          "notes": "Use a single release pipeline to publish PyPI packages, GitHub releases, and Docker images from the canonical version source (pyproject.toml or VERSION).",
+          "verification": "Trigger the release pipeline and confirm all artifacts share the same version number and tag.",
+          "requiredScripts": ["release"],
+          "optionalFiles": ["CHANGELOG.md", "VERSION"]
         }
       },
       {
         "id": "commit-linting",
         "label": "Commit Linting",
-        "description": "Enforce structured commit messages such as Conventional Commits.",
+        "description": "Enforce structured commit messages such as Conventional Commits via commit-msg hooks and CI. This is required for deterministic versioning and changelog generation.",
         "ciHints": {
           "azure-devops": {
             "stage": "quality"
@@ -209,8 +233,16 @@
         "stack": {
           "exampleTools": ["commitizen"],
           "exampleConfigFiles": [".cz.toml", "pyproject.toml"],
-          "notes": "Standardize commit messages using commitizen or a similar helper and document the required types and scopes.",
-          "verification": "Use the configured commit helper (for example, commitizen) or hooks to create a test commit and confirm that non-conforming messages are rejected while valid ones are accepted."
+          "notes": "Standardize Conventional Commits using commitizen or commitlint with commit-msg hooks plus CI so changelog generation is deterministic.",
+          "verification": "Use the configured commit helper or hooks to create a test commit and confirm that non-conforming messages are rejected locally and in CI.",
+          "anyOfFiles": [
+            ".cz.toml",
+            "commitlint.config.js",
+            "commitlint.config.cjs",
+            "commitlint.config.mjs",
+            "commitlint.config.json"
+          ],
+          "requiredScripts": ["commitlint"]
         }
       },
       {
@@ -292,7 +324,7 @@
       {
         "id": "type-checking",
         "label": "Type Checking",
-        "description": "Use static type checking to catch errors before runtime and enforce strictness on new code.",
+        "description": "Use static type checking to catch errors before runtime and enforce strictness on new code. For JS/TS stacks, require a TypeScript-first policy with strict mode and a CI typecheck step; allow JSDoc/checkJs migration for legacy JS.",
         "ciHints": {
           "azure-devops": {
             "stage": "quality"
@@ -305,6 +337,7 @@
           "verification": "pyproject.toml (or mypy.ini) signals that mypy configuration is available for the repository.",
           "requiredFiles": ["pyproject.toml"],
           "optionalFiles": ["mypy.ini"],
+          "requiredScripts": ["typecheck"],
           "bazelHints": {
             "commands": [
               "bazel test //...:mypy_test",
@@ -333,6 +366,78 @@
           "notes": "Pin dependency versions and routinely scan for vulnerabilities, prioritizing fixes for critical and high-severity issues.",
           "verification": "Dependency lockfile is present; security scanning is configured in CI or project tooling.",
           "optionalFiles": ["requirements.txt", "Pipfile.lock", "poetry.lock"]
+        }
+      },
+      {
+        "id": "deterministic-builds",
+        "label": "Deterministic & Hermetic Builds",
+        "description": "Ensure builds are reproducible by pinning dependencies, base images, and tool/runtime versions. Avoid network/time variance and fail when lockfiles drift.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "build"
+          }
+        },
+        "stack": {
+          "exampleTools": ["pip-tools", "poetry", "uv"],
+          "exampleConfigFiles": [
+            "requirements.txt",
+            "poetry.lock",
+            "Pipfile.lock"
+          ],
+          "notes": "Use pinned lockfiles (requirements.txt or poetry.lock) and pin Python version (.python-version or tool-versions). Avoid non-deterministic installs in CI.",
+          "verification": "Lockfile is present and CI installs with pinned versions only. Python runtime is pinned.",
+          "anyOfFiles": ["requirements.txt", "poetry.lock", "Pipfile.lock"],
+          "optionalFiles": [".python-version", ".tool-versions"]
+        }
+      },
+      {
+        "id": "provenance-security",
+        "label": "Provenance & Security Metadata",
+        "description": "Produce SBOMs or provenance metadata, enable secret/code scanning, and sign tags or commits for critical repos.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "security"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "cyclonedx-python",
+            "syft",
+            "codeql",
+            "gitleaks",
+            "cosign"
+          ],
+          "exampleConfigFiles": [
+            ".github/workflows/codeql.yml",
+            ".github/workflows/provenance.yml"
+          ],
+          "notes": "Generate SBOM/provenance for PyPI and container artifacts, enable secret scanning, and sign tags/commits for critical repos.",
+          "verification": "SBOM/provenance artifacts are published alongside releases, and CI runs secret/code scanning.",
+          "optionalFiles": ["SECURITY.md", ".github/workflows/codeql.yml"]
+        }
+      },
+      {
+        "id": "ci-templates-automation",
+        "label": "CI Templates & Automation",
+        "description": "Adopt standard CI templates and config samples to scale across repositories, minimizing bespoke pipeline logic.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [
+            "GitHub Actions reusable workflows",
+            "Azure DevOps templates"
+          ],
+          "exampleConfigFiles": [
+            ".github/workflows/ci.yml",
+            "azure-pipelines.yml"
+          ],
+          "notes": "Use shared CI templates for lint/test/typecheck/release stages to standardize across Python repos.",
+          "verification": "CI pipeline references a shared template or reusable workflow and follows the standard job naming.",
+          "anyOfFiles": [".github/workflows/ci.yml", "azure-pipelines.yml"],
+          "requiredScripts": ["ci"]
         }
       },
       {
