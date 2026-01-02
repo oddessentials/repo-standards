@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "build": "npm run validate:schema && tsc -p tsconfig.build.json && tsx scripts/build.ts",
+    "build": "npm run validate:schema && tsx scripts/build.ts && tsup",
     "start": "node dist/index.js",
     "lint": "eslint .",
     "format": "prettier . --write",
@@ -41,6 +41,7 @@
     "prettier": "^3.7.4",
     "semantic-release": "^24.2.0",
     "ts-node": "^10.9.2",
+    "tsup": "^8.5.1",
     "tsx": "^4.7.2",
     "typescript": "^5.9.3",
     "vitest": "^4.0.15"
@@ -68,12 +69,19 @@
   "publishConfig": {
     "access": "public"
   },
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     },
     "./config/*": "./dist/config/*",
     "./schema/*": "./dist/schema/*"
