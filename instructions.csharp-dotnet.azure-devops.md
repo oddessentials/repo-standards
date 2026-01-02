@@ -20,16 +20,16 @@ This document provides high-level guidance for an autonomous coding agent to bri
 - Run static code linting to enforce consistency and catch common issues early.
 - Verify with: .editorconfig must exist to drive the .NET formatting and analysis tooling.
 - Ensure .editorconfig exists in the repository.
-- Common tools: Roslyn analyzers, StyleCop. Example config files: .editorconfig, Directory.Build.props.
-- Consider adding Directory.Build.props if applicable.
+- Bazel commands: `bazel build //... --aspects=@rules_dotnet//dotnet:analyzers.bzl%analyzer_aspect`.
+- Example only; actual targets are repo-defined. Use rules_dotnet analyzer aspects for Roslyn-based linting.
 
 ### Unit Test Runner
 
 - Provide a deterministic unit test framework with a single command to run all tests.
 - Verify with: Test projects are present in the solution; test configuration is defined.
-- Common tools: xUnit, NUnit, MSTest. Example config files: \*.Tests.csproj.
-- Consider adding \*.Tests.csproj if applicable.
 - Bazel commands: `bazel test //...`.
+- Use rules_dotnet to define test targets for xUnit/NUnit/MSTest projects.
+- Common tools: xUnit, NUnit, MSTest. Example config files: \*.Tests.csproj.
 
 ### Containerization (Docker / Docker Compose)
 
@@ -56,25 +56,25 @@ This document provides high-level guidance for an autonomous coding agent to bri
 
 - Generate readable unit test and coverage reports and enforce a minimum coverage threshold (around 80%) for new or changed code.
 - Verify with: Run the test suite with coverage enabled (for example, using coverlet or a similar tool) and verify that coverage reports are generated and used in CI to monitor thresholds.
-- Common tools: coverlet, ReportGenerator. Example config files: \*.csproj.
 - Bazel commands: `bazel coverage //...`.
 - Use rules_dotnet with coverage instrumentation enabled.
+- Common tools: coverlet, ReportGenerator. Example config files: \*.csproj.
 
 ### CI Quality Gates
 
 - Single CI pipeline that runs linting, formatting, type checking, tests, coverage, build, and containerization.
 - Verify with: Open the CI configuration and verify there is a job or stage that runs analyzers, tests, build, and any required packaging or container checks before merging to main.
-- Example config files: .github/workflows/\*, azure-pipelines.yml.
 - Bazel commands: `bazel build //...`, `bazel test //...`.
 - Bazel handles all analysis, testing, and packaging via defined targets.
+- Example config files: .github/workflows/\*, azure-pipelines.yml.
 
 ### Code Formatter
 
 - Automatic code formatting to maintain a consistent style across all contributors.
 - Verify with: Run the configured formatter or code style enforcement (for example, `dotnet format`) and confirm that code in the repository conforms to the defined rules.
-- Common tools: dotnet format. Example config files: .editorconfig.
 - Bazel commands: `bazel run //tools/format:dotnet_format -- --verify-no-changes`.
 - Wrap dotnet format as a Bazel run target.
+- Common tools: dotnet format. Example config files: .editorconfig.
 
 ### Pre-Commit Hooks
 
@@ -88,8 +88,8 @@ This document provides high-level guidance for an autonomous coding agent to bri
 - Use static type checking to catch errors before runtime and enforce strictness on new code.
 - Verify with: .editorconfig must exist; Directory.Build.props is optional for shared build configuration.
 - Ensure .editorconfig exists in the repository.
-- Common tools: Roslyn analyzers. Example config files: .editorconfig, Directory.Build.props, \*.csproj.
-- Consider adding Directory.Build.props if applicable.
+- Bazel commands: `bazel build //...`.
+- Example only; actual targets are repo-defined. C# type errors surface during bazel build with rules_dotnet.
 
 ### Dependency Management & Vulnerability Scanning
 

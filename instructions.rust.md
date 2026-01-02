@@ -20,16 +20,16 @@ This document provides high-level guidance for an autonomous coding agent to bri
 - Run static code linting to enforce consistency and catch common issues early.
 - Verify with: Clippy is available via rustup component. Run 'cargo clippy' to verify linting is configured.
 - Ensure Cargo.toml exists in the repository.
-- Common tools: clippy, cargo-clippy. Example config files: clippy.toml, .clippy.toml.
-- Consider adding clippy.toml, .clippy.toml if applicable.
+- Bazel commands: `bazel build //... --aspects=@rules_rust//rust:defs.bzl%clippy_aspect --output_groups=clippy_checks`.
+- Example only; actual targets are repo-defined. rules_rust includes clippy_aspect for Bazel-native Clippy linting.
 
 ### Unit Test Runner
 
 - Provide a deterministic unit test framework with a single command to run all tests.
 - Verify with: Run 'cargo test' to verify the test suite is configured and passing.
 - Ensure Cargo.toml exists in the repository.
-- Common tools: cargo test. Example config files: Cargo.toml.
-- Consider adding tests/ if applicable.
+- Bazel commands: `bazel test //...`.
+- rules_rust rust_test targets run cargo test under Bazel's hermetic environment.
 
 ### Containerization (Docker / Docker Compose)
 
@@ -56,25 +56,25 @@ This document provides high-level guidance for an autonomous coding agent to bri
 
 - Generate readable unit test and coverage reports and enforce a minimum coverage threshold (around 80%) for new or changed code.
 - Verify with: Run 'cargo tarpaulin' or equivalent and verify coverage reports are generated and thresholds enforced.
-- Common tools: cargo-tarpaulin, llvm-cov, grcov. Example config files: Cargo.toml.
 - Bazel commands: `bazel coverage //...`.
 - Bazel coverage with rules_rust requires LLVM instrumentation. May need additional toolchain configuration.
+- Common tools: cargo-tarpaulin, llvm-cov, grcov. Example config files: Cargo.toml.
 
 ### CI Quality Gates
 
 - Single CI pipeline that runs linting, formatting, type checking, tests, coverage, build, and containerization.
 - Verify with: Verify CI runs cargo clippy, cargo test, and cargo build before merging to main.
-- Example config files: .github/workflows/\*, azure-pipelines.yml.
 - Bazel commands: `bazel build //...`, `bazel test //...`.
 - rules_rust provides rust_library, rust_test, and clippy_aspect for complete CI.
+- Example config files: .github/workflows/\*, azure-pipelines.yml.
 
 ### Code Formatter
 
 - Automatic code formatting to maintain a consistent style across all contributors.
 - Verify with: Run 'cargo fmt --check' and confirm it reports clean formatting. Use 'cargo fmt' to auto-fix.
-- Common tools: rustfmt. Example config files: rustfmt.toml, .rustfmt.toml.
 - Bazel commands: `bazel build //... --aspects=@rules_rust//rust:defs.bzl%rustfmt_aspect --output_groups=rustfmt_checks`.
 - rules_rust includes rustfmt_aspect for Bazel-native format checking.
+- Common tools: rustfmt. Example config files: rustfmt.toml, .rustfmt.toml.
 
 ### Pre-Commit Hooks
 
@@ -88,8 +88,8 @@ This document provides high-level guidance for an autonomous coding agent to bri
 - Use static type checking to catch errors before runtime and enforce strictness on new code.
 - Verify with: Run 'cargo check' or 'cargo build' to verify type correctness. All Rust code is type-checked by default.
 - Ensure Cargo.toml exists in the repository.
-- Common tools: rustc (built-in). Example config files: Cargo.toml.
 - Bazel commands: `bazel build //...`.
+- Rust type checking is inherent to compilation. bazel build with rules_rust enforces type safety.
 
 ### Dependency Management & Vulnerability Scanning
 

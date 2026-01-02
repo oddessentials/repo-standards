@@ -21,15 +21,15 @@ This document provides high-level guidance for an autonomous coding agent to bri
 - Verify with: Presence of eslint.config.js (or any .eslintrc\* file) indicates linting is enforced for the repository.
 - Ensure at least one of eslint.config.js, eslint.config.mjs, eslint.config.cjs, .eslintrc.js, .eslintrc.cjs, .eslintrc.json, .eslintrc.yaml, .eslintrc.yml is present.
 - Define a `lint` script or equivalent command.
-- Common tools: eslint. Example config files: .eslintrc.\*, eslint.config.js.
+- Bazel commands: `bazel test //... --aspects=//tools:lint.bzl%eslint_aspect --output_groups=report`.
 
 ### Unit Test Runner
 
 - Provide a deterministic unit test framework with a single command to run all tests.
 - Verify with: Test framework configuration is present; test script is defined in package.json.
 - Define a `test` script or equivalent command.
-- Common tools: jest. Example config files: jest.config.\*.
-- Consider adding jest.config.js, jest.config.ts, vitest.config.js and others if applicable.
+- Bazel commands: `bazel test //...`.
+- Bazel discovers and runs all test targets. Use rules_js for Jest/Vitest integration.
 
 ### Containerization (Docker / Docker Compose)
 
@@ -56,25 +56,25 @@ This document provides high-level guidance for an autonomous coding agent to bri
 
 - Generate readable unit test and coverage reports and enforce a minimum coverage threshold (around 80%) for new or changed code.
 - Verify with: Run the unit tests with coverage enabled and confirm that a coverage report is produced and that the configured threshold (around 80%) is enforced for new changes.
-- Common tools: jest, nyc. Example config files: jest.config.\*.
 - Bazel commands: `bazel coverage //...`.
 - Bazel coverage collects coverage data from all test targets. Use --combined_report=lcov for aggregated reports.
+- Common tools: jest, nyc. Example config files: jest.config.\*.
 
 ### CI Quality Gates
 
 - Single CI pipeline that runs linting, formatting, type checking, tests, coverage, build, and containerization.
 - Verify with: Open the CI configuration and verify there is a job or stage that runs linting, type checking, tests, build, and any required container checks before merging to main.
-- Example config files: .github/workflows/\*, azure-pipelines.yml.
 - Bazel commands: `bazel build //...`, `bazel test //...`.
 - Replace npm run ci with Bazel commands. All quality gates run as Bazel targets.
+- Example config files: .github/workflows/\*, azure-pipelines.yml.
 
 ### Code Formatter
 
 - Automatic code formatting to maintain a consistent style across all contributors.
 - Verify with: Run the formatter in check mode (for example, `npm run format:check`) and confirm it reports clean formatting on committed code and auto-fixes as expected locally.
-- Common tools: prettier. Example config files: .prettierrc.\*, .prettierignore.
 - Bazel commands: `bazel run //tools/format:check`, `bazel test //...:format_test`.
 - Wrap Prettier as a run target for formatting checks. Use aspect_rules_lint for format aspects.
+- Common tools: prettier. Example config files: .prettierrc.\*, .prettierignore.
 
 ### Pre-Commit Hooks
 
@@ -89,7 +89,7 @@ This document provides high-level guidance for an autonomous coding agent to bri
 - Verify with: Presence of tsconfig.json indicates type-checking is configured for the repository.
 - Ensure tsconfig.json exists in the repository.
 - Define a `typecheck` script or equivalent command.
-- Common tools: TypeScript compiler (tsc). Example config files: tsconfig.json.
+- Bazel commands: `bazel build //...`.
 
 ### Dependency Management & Vulnerability Scanning
 

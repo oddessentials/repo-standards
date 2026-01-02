@@ -64,10 +64,10 @@ function generateBullets(item: ChecklistItem): string[] {
   addRequiredFilesBullet(bullets, stack);
   addRequiredScriptsBullet(bullets, stack);
   addMachineCheckBullet(bullets, stack);
+  addBazelBullets(bullets, stack);
   addExamplesBullet(bullets, stack);
   addPinningNotesBullet(bullets, stack);
   addOptionalFilesBullet(bullets, stack);
-  addBazelBullets(bullets, stack);
   addNotesBullet(bullets, stack);
 
   // Limit to 5 bullets

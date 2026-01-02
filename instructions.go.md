@@ -20,16 +20,16 @@ This document provides high-level guidance for an autonomous coding agent to bri
 - Run static code linting to enforce consistency and catch common issues early.
 - Verify with: .golangci.yml or .golangci.yaml indicates linting is configured. Run 'golangci-lint run' to verify.
 - Ensure go.mod exists in the repository.
-- Common tools: golangci-lint, staticcheck. Example config files: .golangci.yml, .golangci.yaml.
-- Consider adding .golangci.yml, .golangci.yaml if applicable.
+- Bazel commands: `bazel test //... --@io_bazel_rules_go//go/config:nogo=@//:nogo`.
+- Use nogo for static analysis via rules_go. Configure nogo target with desired analyzers.
 
 ### Unit Test Runner
 
 - Provide a deterministic unit test framework with a single command to run all tests.
 - Verify with: Run 'go test ./...' to verify the test suite is configured and passing.
 - Ensure go.mod exists in the repository.
-- Common tools: go test. Example config files: go.mod.
 - Bazel commands: `bazel test //...`.
+- rules_go go_test targets wrap 'go test' with Bazel's caching and hermeticity.
 
 ### Containerization (Docker / Docker Compose)
 
@@ -57,25 +57,25 @@ This document provides high-level guidance for an autonomous coding agent to bri
 
 - Generate readable unit test and coverage reports and enforce a minimum coverage threshold (around 80%) for new or changed code.
 - Verify with: Run 'go test -cover ./...' and verify coverage reports are produced and thresholds monitored.
-- Common tools: go test -cover, go tool cover. Example config files: go.mod.
 - Bazel commands: `bazel coverage //...`.
 - rules_go supports coverage via bazel coverage. Use --combined_report=lcov for aggregated output.
+- Common tools: go test -cover, go tool cover. Example config files: go.mod.
 
 ### CI Quality Gates
 
 - Single CI pipeline that runs linting, formatting, type checking, tests, coverage, build, and containerization.
 - Verify with: Verify CI runs golangci-lint, go test, and go build before merging to main.
-- Example config files: .github/workflows/\*, azure-pipelines.yml.
 - Bazel commands: `bazel build //...`, `bazel test //...`.
 - rules_go go_binary and go_test targets provide hermetic builds and tests.
+- Example config files: .github/workflows/\*, azure-pipelines.yml.
 
 ### Code Formatter
 
 - Automatic code formatting to maintain a consistent style across all contributors.
 - Verify with: Run 'gofmt -d .' or 'goimports -d .' and confirm no output indicates clean formatting.
-- Common tools: gofmt, goimports.
 - Bazel commands: `bazel run @go_sdk//:bin/gofmt -- -d .`.
 - Run gofmt via the Bazel-managed Go SDK for hermetic formatting checks.
+- Common tools: gofmt, goimports.
 
 ### Pre-Commit Hooks
 
@@ -89,8 +89,8 @@ This document provides high-level guidance for an autonomous coding agent to bri
 - Use static type checking to catch errors before runtime and enforce strictness on new code.
 - Verify with: Run 'go build ./...' to verify type correctness. Use 'go vet ./...' for additional static analysis.
 - Ensure go.mod exists in the repository.
-- Common tools: go vet, staticcheck. Example config files: go.mod.
 - Bazel commands: `bazel build //...`.
+- Go type checking is inherent to compilation. bazel build with rules_go enforces type safety.
 
 ### Dependency Management & Vulnerability Scanning
 

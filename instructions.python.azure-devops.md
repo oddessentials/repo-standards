@@ -20,16 +20,16 @@ This document provides high-level guidance for an autonomous coding agent to bri
 - Run static code linting to enforce consistency and catch common issues early.
 - Verify with: pyproject.toml (or ruff.toml / .flake8 / setup.cfg) signals that linting tools are configured for the repository.
 - Ensure at least one of pyproject.toml, ruff.toml, .flake8, setup.cfg, tox.ini is present.
-- Common tools: ruff, flake8. Example config files: pyproject.toml, .flake8, ruff.toml.
 - Bazel commands: `bazel test //...:ruff_test`, `bazel run //tools/lint:ruff -- check .`.
+- Example only; actual targets are repo-defined. Use rules_python with ruff wrapped as py_test or run target.
 
 ### Unit Test Runner
 
 - Provide a deterministic unit test framework with a single command to run all tests.
 - Verify with: Test framework configuration is present; tests/ directory or pytest configuration exists.
-- Common tools: pytest. Example config files: pytest.ini, pyproject.toml.
-- Consider adding pytest.ini, pyproject.toml, tests/ if applicable.
 - Bazel commands: `bazel test //...`.
+- Example only; actual targets are repo-defined. Use rules_python py_test for pytest-based tests.
+- Common tools: pytest. Example config files: pytest.ini, pyproject.toml.
 
 ### Containerization (Docker / Docker Compose)
 
@@ -56,25 +56,25 @@ This document provides high-level guidance for an autonomous coding agent to bri
 
 - Generate readable unit test and coverage reports and enforce a minimum coverage threshold (around 80%) for new or changed code.
 - Verify with: Run the unit tests with coverage (for example, pytest with pytest-cov) and confirm that coverage reports are generated and referenced in CI to enforce or track thresholds.
-- Common tools: pytest, pytest-cov, coverage.py. Example config files: pytest.ini, pyproject.toml.
 - Bazel commands: `bazel coverage //...`.
 - Use rules_python py_test with coverage instrumentation. Combine with --combined_report=lcov.
+- Common tools: pytest, pytest-cov, coverage.py. Example config files: pytest.ini, pyproject.toml.
 
 ### CI Quality Gates
 
 - Single CI pipeline that runs linting, formatting, type checking, tests, coverage, build, and containerization.
 - Verify with: Open the CI configuration and verify there is a job or stage that runs linting, type checking (if used), tests, and any packaging or container checks before merging to main.
-- Example config files: .github/workflows/\*, azure-pipelines.yml.
 - Bazel commands: `bazel build //...`, `bazel test //...`.
 - Bazel py_binary and py_test targets replace traditional Python tooling.
+- Example config files: .github/workflows/\*, azure-pipelines.yml.
 
 ### Code Formatter
 
 - Automatic code formatting to maintain a consistent style across all contributors.
 - Verify with: Run the configured formatter (for example, `black .` or `black --check .`) and confirm it reports clean formatting on committed code and auto-fixes as expected locally.
-- Common tools: black. Example config files: pyproject.toml.
 - Bazel commands: `bazel run //tools/format:black -- --check .`.
 - Wrap black as a py_binary run target for format checking.
+- Common tools: black. Example config files: pyproject.toml.
 
 ### Pre-Commit Hooks
 
@@ -88,8 +88,8 @@ This document provides high-level guidance for an autonomous coding agent to bri
 - Use static type checking to catch errors before runtime and enforce strictness on new code.
 - Verify with: pyproject.toml (or mypy.ini) signals that mypy configuration is available for the repository.
 - Ensure pyproject.toml exists in the repository.
-- Common tools: mypy. Example config files: mypy.ini, pyproject.toml.
-- Consider adding mypy.ini if applicable.
+- Bazel commands: `bazel test //...:mypy_test`, `bazel run //tools/typecheck:mypy`.
+- Example only; actual targets are repo-defined. Wrap mypy as a py_test or run target.
 
 ### Dependency Management & Vulnerability Scanning
 
