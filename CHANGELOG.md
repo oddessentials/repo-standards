@@ -1,3 +1,9 @@
+# [4.2.0](https://github.com/oddessentials/repo-standards/compare/v4.1.0...v4.2.0) (2026-01-03)
+
+### Features
+
+- add CLI with --version flag and sync-manifest script ([3892120](https://github.com/oddessentials/repo-standards/commit/3892120e89e657be70a18f67f96f030016aeef95))
+
 # [4.1.0](https://github.com/oddessentials/repo-standards/compare/v4.0.1...v4.1.0) (2026-01-02)
 
 ### Features
