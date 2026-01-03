@@ -76,11 +76,3 @@ export function getStandards(
 export function getSchema(): MasterJson {
   return loadMasterSpec();
 }
-
-/** Optional CLI entry point for debugging */
-if (import.meta.url.startsWith("file:") && process.argv[1] === __filename) {
-  console.log({
-    stacks: listSupportedStacks(),
-    ciSystems: listSupportedCiSystems(),
-  });
-}
