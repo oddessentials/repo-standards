@@ -1,7 +1,7 @@
 {
   "name": "@oddessentials/repo-standards",
   "private": false,
-  "version": "4.2.0",
+  "version": "4.3.0",
   "description": "Standards and CI filtering utilities for multi-stack repository governance.",
   "type": "module",
   "bin": {

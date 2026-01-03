@@ -1,3 +1,10 @@
+# [4.3.0](https://github.com/oddessentials/repo-standards/compare/v4.2.0...v4.3.0) (2026-01-03)
+
+
+### Features
+
+* add prettier formatting to sync-manifest-version script ([3c3ae34](https://github.com/oddessentials/repo-standards/commit/3c3ae341de23001cc2ffdb4f2c4d0fc907ae453a))
+
 # [4.2.0](https://github.com/oddessentials/repo-standards/compare/v4.1.0...v4.2.0) (2026-01-03)
 
 ### Features
