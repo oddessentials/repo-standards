@@ -4,6 +4,9 @@
   "version": "4.1.0",
   "description": "Standards and CI filtering utilities for multi-stack repository governance.",
   "type": "module",
+  "bin": {
+    "repo-standards": "./dist/cli.js"
+  },
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "npm run validate:schema && tsx scripts/build.ts && tsup",
