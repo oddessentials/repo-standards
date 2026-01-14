@@ -665,6 +665,28 @@
           "notes": "For Rust web frameworks (Actix, Axum, Rocket), use headless browser-based accessibility tools to audit rendered HTML.",
           "verification": "For web-facing Rust apps, run accessibility audits against key routes using axe or pa11y."
         }
+      },
+      {
+        "id": "agent-invariants",
+        "label": "Autonomous Agent Invariants",
+        "description": "Maintain INVARIANTS.md defining repository-wide rules that must always hold true, with machine-readable verification commands for autonomous agents.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality",
+            "notes": "Run invariant verification commands in a dedicated quality stage."
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "Add invariant checks to existing CI job or create dedicated invariants job."
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": ["INVARIANTS.md"],
+          "notes": "Document invariants with verification commands like 'cargo test', 'cargo clippy', 'cargo fmt --check' for deterministic validation.",
+          "verification": "INVARIANTS.md exists with machine-readable verification commands.",
+          "requiredFiles": ["INVARIANTS.md"]
+        }
       }
     ],
     "optionalEnhancements": [
@@ -685,6 +707,46 @@
           "exampleConfigFiles": [],
           "notes": "Use the tracing crate for structured logging with spans and events. Configure tracing-subscriber for output formatting.",
           "verification": "Confirm that tracing or log crate is configured with appropriate subscriber/logger and emits structured output."
+        }
+      },
+      {
+        "id": "agent-phase-gates",
+        "label": "Agent Phase Gates",
+        "description": "Define phase transition requirements in phase-gates.md for autonomous agent workflows with clear pre-conditions and approval gates.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "governance"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": ["phase-gates.md"],
+          "notes": "Document phase gates with Rust-specific verification (cargo test, cargo check, crates.io publishing) and sign-off requirements.",
+          "verification": "phase-gates.md exists defining transition requirements.",
+          "optionalFiles": ["phase-gates.md"]
+        }
+      },
+      {
+        "id": "agent-victory-gates",
+        "label": "Agent Victory Gates",
+        "description": "Document milestone completion criteria in victory-gates.md defining 'done' for releases and major deliverables with evidence requirements.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "governance"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": ["victory-gates.md"],
+          "notes": "Define done criteria including Rust-specific conditions (crates.io publication, documentation hosting, security audits) with evidence requirements.",
+          "verification": "victory-gates.md exists with milestone criteria.",
+          "optionalFiles": ["victory-gates.md"]
         }
       }
     ]
