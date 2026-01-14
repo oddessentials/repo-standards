@@ -591,6 +591,24 @@
           "notes": "Apply accessibility tooling to ASP.NET or Blazor front-ends and review issues alongside functional testing.",
           "verification": "For web-facing apps, run the configured accessibility checks or tools against your main UI endpoints and confirm that blocking accessibility issues are addressed."
         }
+      },
+      {
+        "id": "agent-invariants",
+        "label": "Autonomous Agent Invariants",
+        "description": "Maintain INVARIANTS.md defining repository-wide rules that must always hold true, with machine-readable verification commands for autonomous agents.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci",
+            "notes": "Add invariant checks to existing CI job or create dedicated invariants job."
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": ["INVARIANTS.md"],
+          "notes": "Document invariants with verification commands like 'dotnet test', 'dotnet format --verify-no-changes', 'dotnet build' for autonomous validation.",
+          "verification": "INVARIANTS.md exists with machine-readable verification commands.",
+          "requiredFiles": ["INVARIANTS.md"]
+        }
       }
     ],
     "optionalEnhancements": [
@@ -608,6 +626,40 @@
           "exampleConfigFiles": ["appsettings.json"],
           "notes": "Configure structured logging for your .NET services and ensure exceptions and key events are logged with useful context.",
           "verification": "Confirm that a structured logging library (such as Serilog or NLog) is configured with an agreed sink and format, and that the application logs meaningful context for errors and key events."
+        }
+      },
+      {
+        "id": "agent-phase-gates",
+        "label": "Agent Phase Gates",
+        "description": "Define phase transition requirements in phase-gates.md for autonomous agent workflows with clear pre-conditions and approval gates.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": ["phase-gates.md"],
+          "notes": "Define phase gates with .NET-specific verification (dotnet test, coverage reports, NuGet package publishing) and approval workflows.",
+          "verification": "phase-gates.md exists defining transition requirements.",
+          "optionalFiles": ["phase-gates.md"]
+        }
+      },
+      {
+        "id": "agent-victory-gates",
+        "label": "Agent Victory Gates",
+        "description": "Document milestone completion criteria in victory-gates.md defining 'done' for releases and major deliverables with evidence requirements.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": ["victory-gates.md"],
+          "notes": "Specify victory conditions for releases including .NET-specific requirements (NuGet publishing, deployment validation, documentation) and evidence collection.",
+          "verification": "victory-gates.md exists with milestone criteria.",
+          "optionalFiles": ["victory-gates.md"]
         }
       }
     ]

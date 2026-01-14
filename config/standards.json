@@ -1928,6 +1928,63 @@
         },
         "enforcement": "recommended",
         "severity": "warn"
+      },
+      {
+        "id": "agent-invariants",
+        "label": "Autonomous Agent Invariants",
+        "description": "Maintain INVARIANTS.md defining repository-wide rules that must always hold true, with machine-readable verification commands for autonomous agents.",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality",
+            "notes": "Run invariant verification commands in a dedicated quality stage."
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "Add invariant checks to existing CI job or create dedicated invariants job."
+          }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": [],
+            "exampleConfigFiles": ["INVARIANTS.md"],
+            "notes": "Create INVARIANTS.md with a table of rules, verification commands, and severity levels. Include commands like 'npm test', 'npm run lint', 'npm run typecheck' that agents can run to validate state.",
+            "verification": "INVARIANTS.md exists with machine-readable verification commands for all critical repository rules.",
+            "requiredFiles": ["INVARIANTS.md"]
+          },
+          "csharp-dotnet": {
+            "exampleTools": [],
+            "exampleConfigFiles": ["INVARIANTS.md"],
+            "notes": "Document invariants with verification commands like 'dotnet test', 'dotnet format --verify-no-changes', 'dotnet build' for autonomous validation.",
+            "verification": "INVARIANTS.md exists with machine-readable verification commands.",
+            "requiredFiles": ["INVARIANTS.md"]
+          },
+          "python": {
+            "exampleTools": [],
+            "exampleConfigFiles": ["INVARIANTS.md"],
+            "notes": "List invariants with commands like 'pytest', 'ruff check', 'mypy' that agents can execute to verify repository state.",
+            "verification": "INVARIANTS.md exists with machine-readable verification commands.",
+            "requiredFiles": ["INVARIANTS.md"]
+          },
+          "rust": {
+            "exampleTools": [],
+            "exampleConfigFiles": ["INVARIANTS.md"],
+            "notes": "Document invariants with verification commands like 'cargo test', 'cargo clippy', 'cargo fmt --check' for deterministic validation.",
+            "verification": "INVARIANTS.md exists with machine-readable verification commands.",
+            "requiredFiles": ["INVARIANTS.md"]
+          },
+          "go": {
+            "exampleTools": [],
+            "exampleConfigFiles": ["INVARIANTS.md"],
+            "notes": "Specify invariants with commands like 'go test ./...', 'golangci-lint run', 'go vet ./...' that agents can use for validation.",
+            "verification": "INVARIANTS.md exists with machine-readable verification commands.",
+            "requiredFiles": ["INVARIANTS.md"]
+          }
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
       }
     ],
     "optionalEnhancements": [
@@ -1979,6 +2036,116 @@
             "exampleConfigFiles": [],
             "notes": "Use slog (stdlib) or zap/zerolog for structured logging. Configure JSON output for production and text for development.",
             "verification": "Confirm that a structured logging library is configured with appropriate output format and log levels."
+          }
+        },
+        "enforcement": "optional",
+        "severity": "info"
+      },
+      {
+        "id": "agent-phase-gates",
+        "label": "Agent Phase Gates",
+        "description": "Define phase transition requirements in phase-gates.md for autonomous agent workflows with clear pre-conditions and approval gates.",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "ciHints": {
+          "azure-devops": {
+            "stage": "governance"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": [],
+            "exampleConfigFiles": ["phase-gates.md"],
+            "notes": "Document phase transitions (Planning → Implementation → Verification → Release) with required pre-conditions, approval mechanisms, and evidence artifacts for each gate.",
+            "verification": "phase-gates.md exists defining transition requirements between project phases.",
+            "optionalFiles": ["phase-gates.md"]
+          },
+          "csharp-dotnet": {
+            "exampleTools": [],
+            "exampleConfigFiles": ["phase-gates.md"],
+            "notes": "Define phase gates with .NET-specific verification (dotnet test, coverage reports, NuGet package publishing) and approval workflows.",
+            "verification": "phase-gates.md exists defining transition requirements.",
+            "optionalFiles": ["phase-gates.md"]
+          },
+          "python": {
+            "exampleTools": [],
+            "exampleConfigFiles": ["phase-gates.md"],
+            "notes": "Specify phase transitions with Python-specific checks (pytest results, wheel/sdist builds, PyPI publication) and approval processes.",
+            "verification": "phase-gates.md exists defining transition requirements.",
+            "optionalFiles": ["phase-gates.md"]
+          },
+          "rust": {
+            "exampleTools": [],
+            "exampleConfigFiles": ["phase-gates.md"],
+            "notes": "Document phase gates with Rust-specific verification (cargo test, cargo check, crates.io publishing) and sign-off requirements.",
+            "verification": "phase-gates.md exists defining transition requirements.",
+            "optionalFiles": ["phase-gates.md"]
+          },
+          "go": {
+            "exampleTools": [],
+            "exampleConfigFiles": ["phase-gates.md"],
+            "notes": "Define gates with Go-specific checks (go test, go vet, module tagging) and approval workflows for phase transitions.",
+            "verification": "phase-gates.md exists defining transition requirements.",
+            "optionalFiles": ["phase-gates.md"]
+          }
+        },
+        "enforcement": "optional",
+        "severity": "info"
+      },
+      {
+        "id": "agent-victory-gates",
+        "label": "Agent Victory Gates",
+        "description": "Document milestone completion criteria in victory-gates.md defining 'done' for releases and major deliverables with evidence requirements.",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "ciHints": {
+          "azure-devops": {
+            "stage": "governance"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": [],
+            "exampleConfigFiles": ["victory-gates.md"],
+            "notes": "Define completion criteria for milestones (MVP, Beta, GA) with all required conditions, verification commands, and evidence artifacts (test reports, coverage, deployment confirmations).",
+            "verification": "victory-gates.md exists with milestone completion criteria and evidence requirements.",
+            "optionalFiles": ["victory-gates.md"]
+          },
+          "csharp-dotnet": {
+            "exampleTools": [],
+            "exampleConfigFiles": ["victory-gates.md"],
+            "notes": "Specify victory conditions for releases including .NET-specific requirements (NuGet publishing, deployment validation, documentation) and evidence collection.",
+            "verification": "victory-gates.md exists with milestone criteria.",
+            "optionalFiles": ["victory-gates.md"]
+          },
+          "python": {
+            "exampleTools": [],
+            "exampleConfigFiles": ["victory-gates.md"],
+            "notes": "Document release readiness gates with Python-specific criteria (PyPI publishing, wheel distribution, dependency compatibility) and proof artifacts.",
+            "verification": "victory-gates.md exists with milestone criteria.",
+            "optionalFiles": ["victory-gates.md"]
+          },
+          "rust": {
+            "exampleTools": [],
+            "exampleConfigFiles": ["victory-gates.md"],
+            "notes": "Define done criteria including Rust-specific conditions (crates.io publication, documentation hosting, security audits) with evidence requirements.",
+            "verification": "victory-gates.md exists with milestone criteria.",
+            "optionalFiles": ["victory-gates.md"]
+          },
+          "go": {
+            "exampleTools": [],
+            "exampleConfigFiles": ["victory-gates.md"],
+            "notes": "Specify completion gates with Go-specific requirements (module tagging, pkg.go.dev documentation, binary distribution) and validation artifacts.",
+            "verification": "victory-gates.md exists with milestone criteria.",
+            "optionalFiles": ["victory-gates.md"]
           }
         },
         "enforcement": "optional",

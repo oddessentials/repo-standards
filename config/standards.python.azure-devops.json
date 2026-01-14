@@ -608,6 +608,24 @@
           "notes": "Use headless browser-based tools to scan Python-backed web UIs for accessibility issues on high-traffic routes.",
           "verification": "For Python-backed web UIs, run the configured accessibility tooling (for example, pa11y or axe via a headless browser) against key routes and verify that critical issues are fixed or tracked."
         }
+      },
+      {
+        "id": "agent-invariants",
+        "label": "Autonomous Agent Invariants",
+        "description": "Maintain INVARIANTS.md defining repository-wide rules that must always hold true, with machine-readable verification commands for autonomous agents.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality",
+            "notes": "Run invariant verification commands in a dedicated quality stage."
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": ["INVARIANTS.md"],
+          "notes": "List invariants with commands like 'pytest', 'ruff check', 'mypy' that agents can execute to verify repository state.",
+          "verification": "INVARIANTS.md exists with machine-readable verification commands.",
+          "requiredFiles": ["INVARIANTS.md"]
+        }
       }
     ],
     "optionalEnhancements": [
@@ -628,6 +646,40 @@
           ],
           "notes": "Use structured logging for Python services and ensure critical paths record enough context to debug issues after the fact.",
           "verification": "Confirm that a structured logging setup (such as structlog or configured logging with JSON formatting) is in place and that critical paths log enough information to debug failures in production."
+        }
+      },
+      {
+        "id": "agent-phase-gates",
+        "label": "Agent Phase Gates",
+        "description": "Define phase transition requirements in phase-gates.md for autonomous agent workflows with clear pre-conditions and approval gates.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "governance"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": ["phase-gates.md"],
+          "notes": "Specify phase transitions with Python-specific checks (pytest results, wheel/sdist builds, PyPI publication) and approval processes.",
+          "verification": "phase-gates.md exists defining transition requirements.",
+          "optionalFiles": ["phase-gates.md"]
+        }
+      },
+      {
+        "id": "agent-victory-gates",
+        "label": "Agent Victory Gates",
+        "description": "Document milestone completion criteria in victory-gates.md defining 'done' for releases and major deliverables with evidence requirements.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "governance"
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": ["victory-gates.md"],
+          "notes": "Document release readiness gates with Python-specific criteria (PyPI publishing, wheel distribution, dependency compatibility) and proof artifacts.",
+          "verification": "victory-gates.md exists with milestone criteria.",
+          "optionalFiles": ["victory-gates.md"]
         }
       }
     ]
