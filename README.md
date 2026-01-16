@@ -106,6 +106,11 @@ The `version` field indicates schema compatibility:
 - `4` — Stable API contract with `getStandards()`, `getSchema()`, `STANDARDS_VERSION` exports; Node 22 LTS alignment.
 - `5` — Adds automated version-guard guidance for repositories using semantic-release; schema aligned to package major version 5.
 
+To keep `config/standards.json` in sync with semantic-release major bumps, use
+`scripts/sync-standards-version.cjs` during the semantic-release prepare step
+and commit the updated files. This updates the schema version and README
+references in one place.
+
 Consumers should ignore unknown fields for forward compatibility.
 
 ---
