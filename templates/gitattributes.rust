@@ -1,0 +1,67 @@
+# .gitattributes for Rust projects
+# See gitattributes.base for common patterns
+#
+# After adding this file, run:
+#   git add --renormalize .
+#   git commit -m "chore: normalize line endings"
+
+# Default: Auto-detect text files and normalize to LF on commit
+* text=auto eol=lf
+
+# Rust source files
+*.rs text eol=lf
+
+# Cargo configuration
+Cargo.toml text eol=lf
+Cargo.lock text eol=lf
+.cargo/config.toml text eol=lf
+
+# Rust toolchain configuration
+rust-toolchain text eol=lf
+rust-toolchain.toml text eol=lf
+rustfmt.toml text eol=lf
+.rustfmt.toml text eol=lf
+clippy.toml text eol=lf
+.clippy.toml text eol=lf
+deny.toml text eol=lf
+
+# Shell scripts - MUST be LF (build scripts often invoke shell)
+*.sh text eol=lf
+*.bash text eol=lf
+build.rs text eol=lf
+
+# Git configuration
+.gitattributes text eol=lf
+.gitignore text eol=lf
+
+# CI/CD configuration
+*.yml text eol=lf
+*.yaml text eol=lf
+Dockerfile text eol=lf
+docker-compose*.yml text eol=lf
+Makefile text eol=lf
+Makefile.toml text eol=lf
+
+# Documentation
+*.md text eol=lf
+LICENSE text eol=lf
+LICENSE-MIT text eol=lf
+LICENSE-APACHE text eol=lf
+
+# Common binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.svg binary
+*.pdf binary
+*.zip binary
+*.tar.gz binary
+*.exe binary
+*.dll binary
+*.so binary
+*.dylib binary
+*.a binary
+*.rlib binary

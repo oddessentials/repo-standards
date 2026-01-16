@@ -1,0 +1,72 @@
+# .gitattributes for TypeScript/JavaScript projects
+# See gitattributes.base for common patterns
+#
+# After adding this file, run:
+#   git add --renormalize .
+#   git commit -m "chore: normalize line endings"
+
+# Default: Auto-detect text files and normalize to LF on commit
+* text=auto eol=lf
+
+# JavaScript/TypeScript source files
+*.js text eol=lf
+*.cjs text eol=lf
+*.mjs text eol=lf
+*.jsx text eol=lf
+*.ts text eol=lf
+*.cts text eol=lf
+*.mts text eol=lf
+*.tsx text eol=lf
+
+# Configuration files
+*.json text eol=lf
+*.jsonc text eol=lf
+*.json5 text eol=lf
+tsconfig.json text eol=lf
+package.json text eol=lf
+package-lock.json text eol=lf
+pnpm-lock.yaml text eol=lf
+yarn.lock text eol=lf
+
+# Shell scripts - MUST be LF
+*.sh text eol=lf
+*.bash text eol=lf
+
+# Git configuration
+.gitattributes text eol=lf
+.gitignore text eol=lf
+
+# CI/CD configuration
+*.yml text eol=lf
+*.yaml text eol=lf
+Dockerfile text eol=lf
+docker-compose*.yml text eol=lf
+Makefile text eol=lf
+
+# Web assets
+*.html text eol=lf
+*.htm text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.sass text eol=lf
+*.less text eol=lf
+
+# Documentation
+*.md text eol=lf
+LICENSE text eol=lf
+
+# Common binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.svg binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.otf binary
+*.pdf binary
+*.zip binary

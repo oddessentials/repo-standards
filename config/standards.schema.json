@@ -123,7 +123,8 @@
       "properties": {
         "step": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 0,
+          "description": "Step number in migration sequence. Step 0 is foundation/prerequisites."
         },
         "title": {
           "type": "string"

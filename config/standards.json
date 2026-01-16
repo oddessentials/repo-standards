@@ -14,23 +14,41 @@
     },
     "migrationGuide": [
       {
+        "step": 0,
+        "title": "Foundation: Line Endings and Hook Entry Point",
+        "description": "Configure .gitattributes for cross-platform line ending correctness and establish the canonical verify entrypoint before adding any checks. This prevents 'works locally, fails in CI' issues from day one.",
+        "focusIds": [
+          "gitattributes-eol",
+          "canonical-verify",
+          "hook-ci-parity",
+          "config-authority"
+        ],
+        "notes": "Start here to avoid debugging cryptic CRLF failures later. Use .gitattributes as the authority for EOL (not .editorconfig). Run 'git add --renormalize .' after adding .gitattributes to fix existing files."
+      },
+      {
         "step": 1,
         "title": "Establish Local Safety Nets First",
-        "description": "Start by adding pre-commit hooks and core formatting/linting so developers get fast feedback without touching CI.",
-        "focusIds": ["pre-commit-hooks", "linting", "code-formatter"],
-        "notes": "Keep hooks fast and focused on changed files to avoid slowing down day-to-day work."
+        "description": "Add pre-commit hooks with secret scanning, formatting, and linting. Hooks should CHECK (not auto-fix) and scope to changed files only for speed.",
+        "focusIds": [
+          "pre-commit-hooks",
+          "secret-scanning-precommit",
+          "linting",
+          "code-formatter"
+        ],
+        "notes": "Keep hooks fast by scoping to staged files. Use Husky as entry point calling lint-staged or pre-commit. Hooks should check, not fix, to keep developers aware of issues."
       },
       {
         "step": 2,
-        "title": "Mirror Local Checks in CI (Soft-Fail on Legacy)",
-        "description": "Introduce CI quality gates that mirror local checks, but treat existing violations as warnings wherever possible.",
+        "title": "Mirror Local Checks in CI with CRLF Detection",
+        "description": "Introduce CI quality gates that mirror local hooks exactly. Add CRLF detection early in pipeline. Treat existing violations as warnings where possible.",
         "focusIds": [
+          "crlf-detection",
           "ci-quality-gates",
           "linting",
           "code-formatter",
           "commit-linting"
         ],
-        "notes": "Use diff-based tools or baselines so only new violations break builds; legacy issues remain visible but non-blocking."
+        "notes": "CI must call the same verify scripts that hooks use. Add CRLF detection before other checks to fail fast on line ending issues. Use diff-based tools so only new violations break builds."
       },
       {
         "step": 3,
@@ -57,7 +75,20 @@
           "complexity-analysis",
           "accessibility-auditing"
         ],
-        "notes": "Tackle recommended items in order of business value; backend-only repos can skip web-focused checks like accessibility. For AI/ML-heavy Python teams, consider extending containerization with data versioning (DVC) and unit tests with data quality checks (e.g., Great Expectations) as part of this step."
+        "notes": "Tackle recommended items in order of business value; backend-only repos can skip web-focused checks like accessibility."
+      },
+      {
+        "step": 5,
+        "title": "AI/ML Governance (If Applicable)",
+        "description": "For repos using or building with generative AI, add drift detection, schema enforcement, golden contract tests, safety testing, and provenance tracking.",
+        "focusIds": [
+          "ai-drift-detection",
+          "ai-schema-enforcement",
+          "ai-golden-tests",
+          "ai-safety-checks",
+          "ai-provenance-tracking"
+        ],
+        "notes": "Skip this step if your repo has no AI/ML components. For AI-heavy repos: add nightly drift detection to catch model changes, enforce strict schemas at AI output boundaries, and log provenance for debugging 'why did AI do X?'"
       }
     ],
     "executorHints": {

@@ -1,0 +1,76 @@
+# .gitattributes for Python projects
+# See gitattributes.base for common patterns
+#
+# After adding this file, run:
+#   git add --renormalize .
+#   git commit -m "chore: normalize line endings"
+
+# Default: Auto-detect text files and normalize to LF on commit
+* text=auto eol=lf
+
+# Python source files - LF required for shebang scripts
+*.py text eol=lf
+*.pyi text eol=lf
+*.pyw text eol=lf
+*.pyx text eol=lf
+*.pxd text eol=lf
+
+# Configuration files
+pyproject.toml text eol=lf
+setup.py text eol=lf
+setup.cfg text eol=lf
+requirements*.txt text eol=lf
+Pipfile text eol=lf
+Pipfile.lock text eol=lf
+poetry.lock text eol=lf
+tox.ini text eol=lf
+.flake8 text eol=lf
+pytest.ini text eol=lf
+.python-version text eol=lf
+
+# Shell scripts - MUST be LF
+*.sh text eol=lf
+*.bash text eol=lf
+
+# Git configuration
+.gitattributes text eol=lf
+.gitignore text eol=lf
+
+# CI/CD configuration
+*.yml text eol=lf
+*.yaml text eol=lf
+Dockerfile text eol=lf
+docker-compose*.yml text eol=lf
+Makefile text eol=lf
+
+# Jupyter notebooks (JSON-based)
+*.ipynb text eol=lf
+
+# Documentation
+*.md text eol=lf
+*.rst text eol=lf
+LICENSE text eol=lf
+
+# Common binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.svg binary
+*.pdf binary
+*.zip binary
+*.tar.gz binary
+*.whl binary
+*.egg binary
+
+# ML/Data files (often binary)
+*.pkl binary
+*.pickle binary
+*.h5 binary
+*.hdf5 binary
+*.npy binary
+*.npz binary
+*.parquet binary
+*.feather binary

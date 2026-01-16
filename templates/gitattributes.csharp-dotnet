@@ -1,0 +1,83 @@
+# .gitattributes for C#/.NET projects
+# See gitattributes.base for common patterns
+#
+# After adding this file, run:
+#   git add --renormalize .
+#   git commit -m "chore: normalize line endings"
+
+# Default: Auto-detect text files and normalize to LF on commit
+* text=auto eol=lf
+
+# C# source files
+*.cs text eol=lf
+*.csx text eol=lf
+
+# .NET project files
+*.csproj text eol=lf
+*.vbproj text eol=lf
+*.fsproj text eol=lf
+*.sln text eol=lf
+*.props text eol=lf
+*.targets text eol=lf
+Directory.Build.props text eol=lf
+Directory.Build.targets text eol=lf
+Directory.Packages.props text eol=lf
+global.json text eol=lf
+nuget.config text eol=lf
+NuGet.Config text eol=lf
+
+# Configuration files
+*.json text eol=lf
+*.config text eol=lf
+appsettings*.json text eol=lf
+web.config text eol=lf
+app.config text eol=lf
+.editorconfig text eol=lf
+
+# Shell/PowerShell scripts
+*.sh text eol=lf
+*.bash text eol=lf
+*.ps1 text eol=lf
+*.psm1 text eol=lf
+*.psd1 text eol=lf
+
+# Git configuration
+.gitattributes text eol=lf
+.gitignore text eol=lf
+
+# CI/CD configuration
+*.yml text eol=lf
+*.yaml text eol=lf
+Dockerfile text eol=lf
+docker-compose*.yml text eol=lf
+
+# Web assets
+*.html text eol=lf
+*.htm text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.js text eol=lf
+*.ts text eol=lf
+
+# Razor views
+*.cshtml text eol=lf
+*.razor text eol=lf
+
+# Documentation
+*.md text eol=lf
+LICENSE text eol=lf
+
+# Common binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.svg binary
+*.pdf binary
+*.zip binary
+*.dll binary
+*.exe binary
+*.pdb binary
+*.nupkg binary
