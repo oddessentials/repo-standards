@@ -18,10 +18,20 @@ interface ValidationResult {
 
 interface ChecklistItem {
   id: string;
+  executionStage?: string;
   appliesTo?: { stacks?: string[]; ciSystems?: string[] };
   ciHints?: Record<string, unknown>;
   stackHints?: Record<string, unknown>;
 }
+
+const VALID_EXECUTION_STAGES = new Set([
+  "pre-commit",
+  "pre-push",
+  "ci-pr",
+  "ci-main",
+  "release",
+  "nightly",
+]);
 
 interface MigrationStep {
   focusIds?: string[];
@@ -197,6 +207,40 @@ function validateCoverageThreshold(config: Config): ValidationResult {
 }
 
 /**
+ * Validate executionStage coverage - all items should have a valid executionStage
+ */
+function validateExecutionStageCoverage(config: Config): ValidationResult {
+  const allItems = [
+    ...config.checklist.core,
+    ...config.checklist.recommended,
+    ...config.checklist.optionalEnhancements,
+  ];
+
+  const errors: string[] = [];
+  const stageCounts: Record<string, number> = {};
+
+  for (const item of allItems) {
+    if (!item.executionStage) {
+      errors.push(`Item "${item.id}" is missing executionStage`);
+    } else if (!VALID_EXECUTION_STAGES.has(item.executionStage)) {
+      errors.push(
+        `Item "${item.id}" has invalid executionStage "${item.executionStage}"`,
+      );
+    } else {
+      stageCounts[item.executionStage] =
+        (stageCounts[item.executionStage] ?? 0) + 1;
+    }
+  }
+
+  // Log stage distribution (informational, not an error)
+  if (errors.length === 0 && Object.keys(stageCounts).length > 0) {
+    // This is just for debugging, not shown in normal output
+  }
+
+  return { valid: errors.length === 0, errors };
+}
+
+/**
  * Generate a normalized, deterministic string representation of the config.
  * Uses deep stable key ordering at all depths.
  */
@@ -236,6 +280,7 @@ export function validateStandardsConfig(
     validateStackReferences(config),
     validateCiHintKeys(config),
     validateCoverageThreshold(config),
+    validateExecutionStageCoverage(config),
   ];
 
   const allErrors = results.flatMap((r) => r.errors);
@@ -278,6 +323,7 @@ export function validateStandardsSchema(): void {
   console.log("✓ All appliesTo.stacks reference valid stack keys");
   console.log("✓ All ciHints keys are valid ciSystems");
   console.log("✓ Coverage threshold semantics are valid");
+  console.log("✓ All items have valid executionStage");
 }
 
 // CLI entry point
