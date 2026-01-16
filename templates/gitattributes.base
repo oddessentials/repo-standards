@@ -1,0 +1,64 @@
+# .gitattributes - Line ending configuration
+# This file is the AUTHORITY for line endings (not .editorconfig)
+#
+# Purpose: Prevent "works locally, fails in CI" issues caused by CRLF/LF mismatches
+#
+# After adding this file to an existing repo, run:
+#   git add --renormalize .
+#   git commit -m "chore: normalize line endings"
+#
+# Windows contributors should set: git config --global core.autocrlf false
+
+# Default: Auto-detect text files and normalize to LF on commit
+* text=auto eol=lf
+
+# Shell scripts - MUST be LF (will fail with CRLF on Linux/macOS)
+*.sh text eol=lf
+*.bash text eol=lf
+*.zsh text eol=lf
+
+# Git configuration
+.gitattributes text eol=lf
+.gitignore text eol=lf
+.gitmodules text eol=lf
+
+# CI/CD configuration
+*.yml text eol=lf
+*.yaml text eol=lf
+Dockerfile text eol=lf
+docker-compose*.yml text eol=lf
+Makefile text eol=lf
+Jenkinsfile text eol=lf
+
+# Documentation
+*.md text eol=lf
+*.txt text eol=lf
+LICENSE text eol=lf
+
+# Common binary files - Do not modify
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.svg binary
+*.pdf binary
+*.zip binary
+*.tar binary
+*.gz binary
+*.7z binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.otf binary
+
+# Archives and packages
+*.jar binary
+*.war binary
+*.ear binary
+*.dll binary
+*.exe binary
+*.so binary
+*.dylib binary

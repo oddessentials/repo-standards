@@ -123,7 +123,8 @@
       "properties": {
         "step": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 0,
+          "description": "Step number in migration sequence. Step 0 is foundation/prerequisites."
         },
         "title": {
           "type": "string"
@@ -266,10 +267,22 @@
         }
       }
     },
+    "ExecutionStage": {
+      "type": "string",
+      "enum": [
+        "pre-commit",
+        "pre-push",
+        "ci-pr",
+        "ci-main",
+        "release",
+        "nightly"
+      ],
+      "description": "Development lifecycle stage when a check should execute."
+    },
     "ChecklistItem": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "label", "description", "appliesTo"],
+      "required": ["id", "label", "description", "appliesTo", "executionStage"],
       "properties": {
         "id": {
           "type": "string",
@@ -289,6 +302,14 @@
         "severity": {
           "$ref": "#/$defs/Severity",
           "description": "Violation severity. Defaults: core=error, recommended=warn, optionalEnhancements=info."
+        },
+        "executionStage": {
+          "$ref": "#/$defs/ExecutionStage",
+          "description": "When this check should execute in the development lifecycle."
+        },
+        "scopeToChangedFiles": {
+          "type": "boolean",
+          "description": "Whether this check can/should be scoped to changed files only for faster execution."
         },
         "appliesTo": {
           "type": "object",

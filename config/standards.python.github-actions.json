@@ -17,23 +17,41 @@
     },
     "migrationGuide": [
       {
+        "step": 0,
+        "title": "Foundation: Line Endings and Hook Entry Point",
+        "description": "Configure .gitattributes for cross-platform line ending correctness and establish the canonical verify entrypoint before adding any checks. This prevents 'works locally, fails in CI' issues from day one.",
+        "focusIds": [
+          "gitattributes-eol",
+          "canonical-verify",
+          "hook-ci-parity",
+          "config-authority"
+        ],
+        "notes": "Start here to avoid debugging cryptic CRLF failures later. Use .gitattributes as the authority for EOL (not .editorconfig). Run 'git add --renormalize .' after adding .gitattributes to fix existing files."
+      },
+      {
         "step": 1,
         "title": "Establish Local Safety Nets First",
-        "description": "Start by adding pre-commit hooks and core formatting/linting so developers get fast feedback without touching CI.",
-        "focusIds": ["pre-commit-hooks", "linting", "code-formatter"],
-        "notes": "Keep hooks fast and focused on changed files to avoid slowing down day-to-day work."
+        "description": "Add pre-commit hooks with secret scanning, formatting, and linting. Hooks should CHECK (not auto-fix) and scope to changed files only for speed.",
+        "focusIds": [
+          "pre-commit-hooks",
+          "secret-scanning-precommit",
+          "linting",
+          "code-formatter"
+        ],
+        "notes": "Keep hooks fast by scoping to staged files. Use Husky as entry point calling lint-staged or pre-commit. Hooks should check, not fix, to keep developers aware of issues."
       },
       {
         "step": 2,
-        "title": "Mirror Local Checks in CI (Soft-Fail on Legacy)",
-        "description": "Introduce CI quality gates that mirror local checks, but treat existing violations as warnings wherever possible.",
+        "title": "Mirror Local Checks in CI with CRLF Detection",
+        "description": "Introduce CI quality gates that mirror local hooks exactly. Add CRLF detection early in pipeline. Treat existing violations as warnings where possible.",
         "focusIds": [
+          "crlf-detection",
           "ci-quality-gates",
           "linting",
           "code-formatter",
           "commit-linting"
         ],
-        "notes": "Use diff-based tools or baselines so only new violations break builds; legacy issues remain visible but non-blocking."
+        "notes": "CI must call the same verify scripts that hooks use. Add CRLF detection before other checks to fail fast on line ending issues. Use diff-based tools so only new violations break builds."
       },
       {
         "step": 3,
@@ -60,7 +78,20 @@
           "complexity-analysis",
           "accessibility-auditing"
         ],
-        "notes": "Tackle recommended items in order of business value; backend-only repos can skip web-focused checks like accessibility. For AI/ML-heavy Python teams, consider extending containerization with data versioning (DVC) and unit tests with data quality checks (e.g., Great Expectations) as part of this step."
+        "notes": "Tackle recommended items in order of business value; backend-only repos can skip web-focused checks like accessibility."
+      },
+      {
+        "step": 5,
+        "title": "AI/ML Governance (If Applicable)",
+        "description": "For repos using or building with generative AI, add drift detection, schema enforcement, golden contract tests, safety testing, and provenance tracking.",
+        "focusIds": [
+          "ai-drift-detection",
+          "ai-schema-enforcement",
+          "ai-golden-tests",
+          "ai-safety-checks",
+          "ai-provenance-tracking"
+        ],
+        "notes": "Skip this step if your repo has no AI/ML components. For AI-heavy repos: add nightly drift detection to catch model changes, enforce strict schemas at AI output boundaries, and log provenance for debugging 'why did AI do X?'"
       }
     ],
     "executorHints": {
@@ -95,6 +126,52 @@
   },
   "checklist": {
     "core": [
+      {
+        "id": "gitattributes-eol",
+        "label": "Git Attributes (Line Endings)",
+        "description": "Enforce line endings at the Git layer using .gitattributes. Mark text files with appropriate EOL handling (eol=lf for shell scripts, eol=auto for most files) and binary files as binary to prevent corruption. This prevents 'works locally, fails in CI' issues caused by CRLF/LF mismatches.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci",
+            "notes": "Add .gitattributes check as first step in CI job."
+          }
+        },
+        "stack": {
+          "exampleTools": ["git"],
+          "exampleConfigFiles": [".gitattributes", ".editorconfig"],
+          "notes": "Python files should use LF endings for cross-platform compatibility. Mark *.py as eol=lf in .gitattributes. Shebang scripts fail with CRLF.",
+          "verification": "Run 'git ls-files --eol' and verify Python files use LF.",
+          "requiredFiles": [".gitattributes"],
+          "optionalFiles": [".editorconfig"],
+          "machineCheck": {
+            "command": "git ls-files --eol | grep -E 'w/crlf.*\\.py$' && exit 1 || exit 0",
+            "expectExitCode": 0,
+            "description": "Verify no CRLF in Python files"
+          }
+        }
+      },
+      {
+        "id": "crlf-detection",
+        "label": "CRLF Detection in CI",
+        "description": "Fail CI early for Linux-executed files containing CRLF line endings. Shell scripts, Python files, and other interpreted files fail silently or with cryptic errors when they contain \\r characters. Detect this before running deeper CI steps.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci",
+            "notes": "Add CRLF detection step before main CI steps."
+          }
+        },
+        "stack": {
+          "exampleTools": ["file", "grep"],
+          "exampleConfigFiles": [],
+          "notes": "Python shebang scripts fail with CRLF. Check all .py and .sh files for CRLF before running pytest or other Python tools.",
+          "verification": "Run CRLF detection on Python and shell files.",
+          "machineCheck": {
+            "command": "git ls-files --eol | grep -E 'w/crlf.*\\.(py|sh)$' && exit 1 || exit 0",
+            "expectExitCode": 0,
+            "description": "Detect CRLF in Python/shell files"
+          }
+        }
+      },
       {
         "id": "gitignore-and-dockerignore",
         "label": "Git and Docker Ignore Files",
@@ -222,6 +299,23 @@
         }
       },
       {
+        "id": "release-hook-bypass",
+        "label": "Release Hook Bypass",
+        "description": "Release automation must bypass local developer hooks (HUSKY=0, --no-verify) and rely solely on CI gates for validation. This ensures idempotent, reproducible releases that don't fail due to hook environment differences.",
+        "ciHints": {
+          "github-actions": {
+            "job": "release",
+            "notes": "Set HUSKY=0 or equivalent in release job to disable hooks."
+          }
+        },
+        "stack": {
+          "exampleTools": ["semantic-release", "bumpversion"],
+          "exampleConfigFiles": [".github/workflows/release.yml"],
+          "notes": "Set PRE_COMMIT_ALLOW_NO_CONFIG=1 or SKIP=all to bypass pre-commit hooks in release automation. CI gates already validated.",
+          "verification": "Check release workflow for pre-commit bypass."
+        }
+      },
+      {
         "id": "commit-linting",
         "label": "Commit Linting",
         "description": "Enforce structured commit messages such as Conventional Commits via commit-msg hooks and CI. This is required for deterministic versioning and changelog generation.",
@@ -308,17 +402,55 @@
       {
         "id": "pre-commit-hooks",
         "label": "Pre-Commit Hooks",
-        "description": "Use git hooks to run linting, formatting, tests, and commit linting before changes are committed.",
+        "description": "Use git hooks to run linting, formatting, and commit linting before changes are committed. Hooks should CHECK by default (not auto-fix), be fast, and scope to changed files only. Use a single entry hook mechanism (e.g., Husky as entry point calling pre-commit or lint-staged).",
         "ciHints": {
           "github-actions": {
-            "job": "ci"
+            "job": "ci",
+            "notes": "Hooks and CI must invoke identical verification commands. Use npm run verify or equivalent."
           }
         },
         "stack": {
           "exampleTools": ["pre-commit"],
           "exampleConfigFiles": [".pre-commit-config.yaml"],
-          "notes": "Use pre-commit to run ruff, black, and optionally mypy on staged files before committing.",
-          "verification": "Inspect .pre-commit-config.yaml and confirm that hooks for linting, formatting, and optionally type checking are enabled and run on changed files before commits."
+          "notes": "Use pre-commit framework as both entry and executor. Pin hook versions in .pre-commit-config.yaml for determinism. Hooks should run checks (ruff check, black --check) not auto-fix. Run pre-commit install to set up hooks.",
+          "verification": "Inspect .pre-commit-config.yaml and confirm hooks use check/verify flags, not auto-fix."
+        }
+      },
+      {
+        "id": "hook-ci-parity",
+        "label": "Hook/CI Parity",
+        "description": "Local hooks and CI must invoke identical verification commands to prevent 'works locally, fails in CI' issues. Use a single canonical verify entrypoint (e.g., npm run verify) that both hooks and CI call.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci",
+            "notes": "CI should call the same verify script that hooks use locally."
+          }
+        },
+        "stack": {
+          "exampleTools": ["make", "tox", "nox"],
+          "exampleConfigFiles": ["Makefile", "tox.ini", "noxfile.py"],
+          "notes": "Define a verify target (make verify, tox -e lint, or nox -s lint) that both pre-commit and CI invoke. Pin tool versions in pyproject.toml.",
+          "verification": "Compare hook commands with CI commands and confirm they invoke the same targets."
+        }
+      },
+      {
+        "id": "secret-scanning-precommit",
+        "label": "Pre-commit Secret Scanning",
+        "description": "Scan staged diffs for credentials, API keys, and secrets before they reach the remote repository. Catch secrets at commit time rather than after they're pushed.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci",
+            "notes": "Enable GitHub secret scanning and also run gitleaks in CI."
+          }
+        },
+        "stack": {
+          "exampleTools": ["detect-secrets", "gitleaks"],
+          "exampleConfigFiles": [
+            ".pre-commit-config.yaml",
+            ".secrets.baseline"
+          ],
+          "notes": "Add detect-secrets or gitleaks to .pre-commit-config.yaml. Use detect-secrets audit to manage baselines.",
+          "verification": "Run 'detect-secrets scan' or 'gitleaks protect' and verify scanning works."
         }
       },
       {
@@ -501,6 +633,61 @@
           "requiredFiles": ["LICENSE"],
           "optionalFiles": ["CODE_OF_CONDUCT.md", "CONTRIBUTING.md"]
         }
+      },
+      {
+        "id": "canonical-verify",
+        "label": "Canonical Verify Entrypoint",
+        "description": "Provide one canonical 'verify' command per repository/stack that all stages call with appropriate flags. This prevents duplication, drift, and ensures consistency between local development and CI.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci",
+            "notes": "CI should call the canonical verify command, not duplicate check logic."
+          }
+        },
+        "stack": {
+          "exampleTools": ["make", "tox", "nox"],
+          "exampleConfigFiles": ["Makefile", "tox.ini", "noxfile.py"],
+          "notes": "Define 'make verify' or 'tox -e verify' that runs ruff, black --check, mypy, and pytest. All stages use this entrypoint.",
+          "verification": "Makefile or tox.ini contains a 'verify' target/environment."
+        }
+      },
+      {
+        "id": "config-authority",
+        "label": "Config File Authority Rules",
+        "description": "Each configuration rule must live in exactly one authoritative config file. Avoid duplication across .editorconfig, linter configs, and CI definitions. Document which file is authoritative for each concern.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci",
+            "notes": "Ensure CI reads from authoritative configs, not duplicated settings."
+          }
+        },
+        "stack": {
+          "exampleTools": [],
+          "exampleConfigFiles": [
+            ".gitattributes",
+            "pyproject.toml",
+            ".editorconfig"
+          ],
+          "notes": "Authority mapping: .gitattributes for EOL, pyproject.toml for all tool configs (ruff, black, mypy, pytest). Avoid separate tool configs (.flake8, setup.cfg) when pyproject.toml can hold them.",
+          "verification": "Review configs and confirm pyproject.toml is the single source for tool settings."
+        }
+      },
+      {
+        "id": "explicit-skip-paths",
+        "label": "Explicit Skip Paths",
+        "description": "Encode path exclusions and skip rules deterministically in config files, not through ad-hoc human judgment. Make it clear which paths are excluded from checks and why.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci",
+            "notes": "CI should read skip paths from config files, not hardcode them in pipeline."
+          }
+        },
+        "stack": {
+          "exampleTools": ["ruff", "black", "mypy"],
+          "exampleConfigFiles": ["pyproject.toml"],
+          "notes": "Define exclude patterns in pyproject.toml [tool.ruff], [tool.black], [tool.mypy] sections. Document why each path is excluded. Avoid runtime --exclude flags.",
+          "verification": "Review pyproject.toml and confirm all exclusions are defined there, not in scripts."
+        }
       }
     ],
     "recommended": [
@@ -607,6 +794,91 @@
           "exampleConfigFiles": [],
           "notes": "Use headless browser-based tools to scan Python-backed web UIs for accessibility issues on high-traffic routes.",
           "verification": "For Python-backed web UIs, run the configured accessibility tooling (for example, pa11y or axe via a headless browser) against key routes and verify that critical issues are fixed or tracked."
+        }
+      },
+      {
+        "id": "ai-drift-detection",
+        "label": "AI Drift Detection",
+        "description": "Run nightly or scheduled checks comparing AI-generated outputs against pinned baselines to detect model drift, prompt drift, or code changes affecting AI behavior. Attribute regressions to code changes vs model updates vs prompt changes.",
+        "ciHints": {
+          "github-actions": {
+            "job": "nightly",
+            "notes": "Use scheduled workflow (cron) to run AI drift detection nightly."
+          }
+        },
+        "stack": {
+          "exampleTools": ["pytest", "deepdiff", "great_expectations"],
+          "exampleConfigFiles": ["tests/ai_baselines/", "pytest.ini"],
+          "notes": "Create golden output tests for AI-generated content. Use deepdiff for structured comparison. For ML models, also track metrics drift (accuracy, latency) not just output drift.",
+          "verification": "Run AI baseline tests nightly and confirm outputs match or drift is documented."
+        }
+      },
+      {
+        "id": "ai-schema-enforcement",
+        "label": "AI Output Schema Enforcement",
+        "description": "Validate all AI-generated outputs against strict JSON schemas or type definitions at system boundaries. Reject invalid outputs early rather than letting malformed data propagate through the system.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci",
+            "notes": "Include AI output schema validation in CI test suite."
+          }
+        },
+        "stack": {
+          "exampleTools": ["pydantic", "jsonschema", "marshmallow"],
+          "exampleConfigFiles": ["schemas/", "models.py"],
+          "notes": "Use Pydantic models for AI output validation. Enable strict mode to reject extra fields. Define clear schemas at system boundaries where AI outputs enter the codebase.",
+          "verification": "Review AI integration code and confirm Pydantic or equivalent validation is in place."
+        }
+      },
+      {
+        "id": "ai-golden-tests",
+        "label": "AI Golden Contract Tests",
+        "description": "Validate AI tool-generated patches, configs, and code against exact expected formats. Test that AI outputs respect forbidden paths, file patterns, and format constraints through golden contract tests.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci",
+            "notes": "Include AI golden contract tests in CI test suite."
+          }
+        },
+        "stack": {
+          "exampleTools": ["pytest", "syrupy"],
+          "exampleConfigFiles": ["tests/fixtures/", "__snapshots__/"],
+          "notes": "Use pytest with syrupy for snapshot testing AI outputs. Test that generated code follows project conventions and respects forbidden paths.",
+          "verification": "Run snapshot tests and confirm AI outputs match golden fixtures."
+        }
+      },
+      {
+        "id": "ai-safety-checks",
+        "label": "AI Adversarial & Safety Testing",
+        "description": "Test AI integrations for prompt injection resistance, input sanitization, output filtering, and data exfiltration prevention. Include adversarial test cases that attempt to manipulate AI behavior.",
+        "ciHints": {
+          "github-actions": {
+            "job": "security",
+            "notes": "Run AI safety checks on main branch merges."
+          }
+        },
+        "stack": {
+          "exampleTools": ["pytest", "hypothesis"],
+          "exampleConfigFiles": ["tests/ai_safety/"],
+          "notes": "Use hypothesis for property-based testing of AI input handling. Test prompt injection, output sanitization, and data boundary enforcement.",
+          "verification": "Run AI safety tests including adversarial cases."
+        }
+      },
+      {
+        "id": "ai-provenance-tracking",
+        "label": "AI Provenance & Audit Logging",
+        "description": "Log AI provider, model version, prompt template version, parameters, and tool versions for all AI operations. Enable attribution of outputs to specific model+prompt combinations for debugging and compliance.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci",
+            "notes": "Check AI provenance logging implementation in CI."
+          }
+        },
+        "stack": {
+          "exampleTools": ["structlog", "OpenTelemetry", "MLflow"],
+          "exampleConfigFiles": ["ai/provenance.py"],
+          "notes": "Log AI provenance using structlog or MLflow tracking. For ML models, also track training data version and model artifact hash.",
+          "verification": "Review AI integration and confirm provenance is tracked."
         }
       },
       {

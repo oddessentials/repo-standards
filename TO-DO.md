@@ -36,7 +36,7 @@ PHASE ONE:
 
 ### Pre-commit (seconds; “cheap and local”)
 
-13. **Formatting checks for touched files.** Run format *check* (not fix) for files being committed; fail with exact command to fix.
+13. **Formatting checks for touched files.** Run format _check_ (not fix) for files being committed; fail with exact command to fix.
 
 14. **Static lint + obvious correctness checks for touched files.** Lint rules, import sorting, basic type checks (lightweight modes), and forbidden-pattern checks (e.g., debug prints, TODO blockers if you enforce them).
 
@@ -80,7 +80,7 @@ PHASE ONE:
 
 ---
 
-## D) AI-specific gates (for apps that *use* or *build with* generative AI)
+## D) AI-specific gates (for apps that _use_ or _build with_ generative AI)
 
 29. **Nightly “Drift Runs” are mandatory when outputs can change without code changes.** Re-run a pinned evaluation suite against a fixed dataset and compare results to last known-good (accuracy/quality scores, schemas, structured outputs, and latency/cost envelopes).
 
@@ -112,8 +112,6 @@ PHASE ONE:
 [4]: https://git-scm.com/book/en/v2/Customizing-Git-Git-Configuration?utm_source=chatgpt.com "8.1 Customizing Git - Git Configuration"
 [5]: https://pre-commit.com/?utm_source=chatgpt.com "pre-commit"
 [6]: https://www.npmjs.com/package/lint-staged?activeTab=dependents&utm_source=chatgpt.com "lint-staged"
-
-
 
 ---
 

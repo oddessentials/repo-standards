@@ -1,9 +1,8 @@
 # [4.4.0](https://github.com/oddessentials/repo-standards/compare/v4.3.0...v4.4.0) (2026-01-14)
 
-
 ### Features
 
-* add agent safety features for autonomous workflows ([d271a52](https://github.com/oddessentials/repo-standards/commit/d271a52eea7c449c83cb5b03f41261ffc57eaf8a))
+- add agent safety features for autonomous workflows ([d271a52](https://github.com/oddessentials/repo-standards/commit/d271a52eea7c449c83cb5b03f41261ffc57eaf8a))
 
 # [4.3.0](https://github.com/oddessentials/repo-standards/compare/v4.2.0...v4.3.0) (2026-01-03)
 
