@@ -2305,6 +2305,275 @@
         "severity": "warn"
       },
       {
+        "id": "ai-drift-detection",
+        "label": "AI Drift Detection",
+        "description": "Run nightly or scheduled checks comparing AI-generated outputs against pinned baselines to detect model drift, prompt drift, or code changes affecting AI behavior. Attribute regressions to code changes vs model updates vs prompt changes.",
+        "executionStage": "nightly",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "ciHints": {
+          "azure-devops": {
+            "stage": "nightly",
+            "notes": "Run AI drift detection in a scheduled nightly pipeline separate from main CI."
+          },
+          "github-actions": {
+            "job": "nightly",
+            "notes": "Use scheduled workflow (cron) to run AI drift detection nightly."
+          }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": ["jest snapshots", "custom baseline comparator"],
+            "exampleConfigFiles": ["__snapshots__/", "ai-baselines/"],
+            "notes": "Pin AI outputs as baseline snapshots. Nightly runs compare current outputs against baselines. When drift detected, investigate: was it a code change, model update, or prompt change? Log model version, prompt hash, and code SHA for attribution.",
+            "verification": "Run AI baseline tests and confirm outputs match pinned baselines or drift is intentional."
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["Verify", "custom baseline tests"],
+            "exampleConfigFiles": ["*.verified.txt", "ai-baselines/"],
+            "notes": "Use Verify library or custom comparison tests to detect AI output drift. Run nightly to catch model-side changes that don't show up in code diffs.",
+            "verification": "Run AI baseline tests and confirm outputs match pinned baselines."
+          },
+          "python": {
+            "exampleTools": ["pytest", "deepdiff", "great_expectations"],
+            "exampleConfigFiles": ["tests/ai_baselines/", "pytest.ini"],
+            "notes": "Create golden output tests for AI-generated content. Use deepdiff for structured comparison. For ML models, also track metrics drift (accuracy, latency) not just output drift.",
+            "verification": "Run AI baseline tests nightly and confirm outputs match or drift is documented."
+          },
+          "rust": {
+            "exampleTools": ["insta", "custom baseline tests"],
+            "exampleConfigFiles": ["snapshots/", "ai-baselines/"],
+            "notes": "Use insta for snapshot testing of AI outputs. Pin model versions and prompt templates. Run nightly to detect drift.",
+            "verification": "Run 'cargo insta test' and confirm AI outputs match baselines."
+          },
+          "go": {
+            "exampleTools": ["go test", "golden files"],
+            "exampleConfigFiles": ["testdata/golden/", "ai-baselines/"],
+            "notes": "Use golden file testing pattern for AI outputs. Compare current output against pinned baselines nightly.",
+            "verification": "Run golden tests and confirm AI outputs match baselines."
+          }
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
+      },
+      {
+        "id": "ai-schema-enforcement",
+        "label": "AI Output Schema Enforcement",
+        "description": "Validate all AI-generated outputs against strict JSON schemas or type definitions at system boundaries. Reject invalid outputs early rather than letting malformed data propagate through the system.",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality",
+            "notes": "Run schema validation tests as part of quality gates."
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "Include AI output schema validation in CI test suite."
+          }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": ["zod", "ajv", "TypeScript"],
+            "exampleConfigFiles": ["src/schemas/", "*.schema.json"],
+            "notes": "Define strict schemas for AI outputs using Zod or JSON Schema. Parse and validate AI responses at integration boundaries. Fail fast on schema violations rather than handling partial/invalid data.",
+            "verification": "Review AI integration code and confirm all AI outputs are validated against schemas."
+          },
+          "csharp-dotnet": {
+            "exampleTools": [
+              "System.Text.Json",
+              "FluentValidation",
+              "JsonSchema.Net"
+            ],
+            "exampleConfigFiles": ["*.schema.json", "Schemas/"],
+            "notes": "Use strongly-typed DTOs with validation attributes or FluentValidation for AI outputs. Deserialize with strict settings that reject unknown properties.",
+            "verification": "Review AI integration code and confirm outputs are validated against schemas."
+          },
+          "python": {
+            "exampleTools": ["pydantic", "jsonschema", "marshmallow"],
+            "exampleConfigFiles": ["schemas/", "models.py"],
+            "notes": "Use Pydantic models for AI output validation. Enable strict mode to reject extra fields. Define clear schemas at system boundaries where AI outputs enter the codebase.",
+            "verification": "Review AI integration code and confirm Pydantic or equivalent validation is in place."
+          },
+          "rust": {
+            "exampleTools": ["serde", "jsonschema", "validator"],
+            "exampleConfigFiles": ["src/schemas/"],
+            "notes": "Use serde with #[serde(deny_unknown_fields)] for strict deserialization of AI outputs. Add validator derives for business rule validation.",
+            "verification": "Review AI integration code and confirm strict deserialization is enforced."
+          },
+          "go": {
+            "exampleTools": ["go-playground/validator", "gojsonschema"],
+            "exampleConfigFiles": ["schemas/"],
+            "notes": "Define struct tags for JSON unmarshaling and use validator for additional constraints. Reject AI outputs that don't match expected schema.",
+            "verification": "Review AI integration code and confirm schema validation is in place."
+          }
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
+      },
+      {
+        "id": "ai-golden-tests",
+        "label": "AI Golden Contract Tests",
+        "description": "Validate AI tool-generated patches, configs, and code against exact expected formats. Test that AI outputs respect forbidden paths, file patterns, and format constraints through golden contract tests.",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "ciHints": {
+          "azure-devops": {
+            "stage": "test",
+            "notes": "Run AI golden tests as part of the test stage."
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "Include AI golden contract tests in CI test suite."
+          }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": ["jest", "vitest"],
+            "exampleConfigFiles": ["__fixtures__/ai-outputs/", "*.golden.json"],
+            "notes": "Create golden test fixtures for AI-generated patches and configs. Test that outputs match exact formats, don't touch forbidden paths (node_modules, .git), and respect file naming conventions.",
+            "verification": "Run golden tests and confirm AI outputs match expected fixtures exactly."
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["xUnit", "Verify"],
+            "exampleConfigFiles": ["TestData/", "*.verified.json"],
+            "notes": "Use Verify for golden file testing of AI outputs. Ensure AI-generated code respects namespace conventions and doesn't modify protected files.",
+            "verification": "Run golden tests and confirm AI outputs match verified snapshots."
+          },
+          "python": {
+            "exampleTools": ["pytest", "syrupy"],
+            "exampleConfigFiles": ["tests/fixtures/", "__snapshots__/"],
+            "notes": "Use pytest with syrupy for snapshot testing AI outputs. Test that generated code follows project conventions and respects forbidden paths.",
+            "verification": "Run snapshot tests and confirm AI outputs match golden fixtures."
+          },
+          "rust": {
+            "exampleTools": ["insta"],
+            "exampleConfigFiles": ["snapshots/"],
+            "notes": "Use insta for snapshot testing AI-generated code and configs. Test format compliance and forbidden path restrictions.",
+            "verification": "Run 'cargo insta test' and confirm AI outputs match snapshots."
+          },
+          "go": {
+            "exampleTools": ["go test", "golden files"],
+            "exampleConfigFiles": ["testdata/"],
+            "notes": "Use golden file pattern for AI output testing. Verify generated code follows Go conventions and doesn't modify vendor/ or other protected paths.",
+            "verification": "Run golden tests and confirm AI outputs match expected files."
+          }
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
+      },
+      {
+        "id": "ai-safety-checks",
+        "label": "AI Adversarial & Safety Testing",
+        "description": "Test AI integrations for prompt injection resistance, input sanitization, output filtering, and data exfiltration prevention. Include adversarial test cases that attempt to manipulate AI behavior.",
+        "executionStage": "ci-main",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "ciHints": {
+          "azure-devops": {
+            "stage": "security",
+            "notes": "Run AI safety tests as part of security stage on main branch."
+          },
+          "github-actions": {
+            "job": "security",
+            "notes": "Run AI safety checks on main branch merges."
+          }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": ["jest", "custom adversarial tests"],
+            "exampleConfigFiles": ["tests/ai-safety/"],
+            "notes": "Create adversarial test suite with prompt injection attempts, malicious input patterns, and exfiltration scenarios. Test that AI outputs are sanitized before use in sensitive contexts (SQL, shell, HTML).",
+            "verification": "Run AI safety test suite and confirm all adversarial cases are handled safely."
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["xUnit", "custom security tests"],
+            "exampleConfigFiles": ["Tests/AiSafety/"],
+            "notes": "Test prompt injection resistance and output sanitization. Ensure AI outputs are escaped/validated before use in SQL queries, command execution, or HTML rendering.",
+            "verification": "Run AI safety tests and confirm adversarial inputs are handled safely."
+          },
+          "python": {
+            "exampleTools": ["pytest", "hypothesis"],
+            "exampleConfigFiles": ["tests/ai_safety/"],
+            "notes": "Use hypothesis for property-based testing of AI input handling. Test prompt injection, output sanitization, and data boundary enforcement.",
+            "verification": "Run AI safety tests including adversarial cases."
+          },
+          "rust": {
+            "exampleTools": ["proptest", "custom tests"],
+            "exampleConfigFiles": ["tests/ai_safety/"],
+            "notes": "Use proptest for property-based testing of AI input validation. Test that malicious inputs don't escape sandboxing.",
+            "verification": "Run AI safety tests with adversarial inputs."
+          },
+          "go": {
+            "exampleTools": ["go test", "go-fuzz"],
+            "exampleConfigFiles": ["ai_safety_test.go"],
+            "notes": "Create adversarial test cases for AI integrations. Use fuzzing to discover input handling edge cases.",
+            "verification": "Run AI safety tests and fuzz tests."
+          }
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
+      },
+      {
+        "id": "ai-provenance-tracking",
+        "label": "AI Provenance & Audit Logging",
+        "description": "Log AI provider, model version, prompt template version, parameters, and tool versions for all AI operations. Enable attribution of outputs to specific model+prompt combinations for debugging and compliance.",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality",
+            "notes": "Verify AI provenance logging is implemented in quality checks."
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "Check AI provenance logging implementation in CI."
+          }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": ["OpenTelemetry", "custom logging"],
+            "exampleConfigFiles": ["src/ai/provenance.ts"],
+            "notes": "Log for each AI call: provider (OpenAI, Anthropic), model ID, prompt template hash/version, temperature, timestamp, request ID. Store provenance alongside outputs for debugging 'why did AI do X?'",
+            "verification": "Review AI integration code and confirm provenance is logged for all AI calls."
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["OpenTelemetry", "Serilog"],
+            "exampleConfigFiles": ["AiProvenance.cs"],
+            "notes": "Use structured logging to capture AI call provenance. Include model version, prompt hash, and parameters in log context.",
+            "verification": "Review AI integration and confirm provenance logging is implemented."
+          },
+          "python": {
+            "exampleTools": ["structlog", "OpenTelemetry", "MLflow"],
+            "exampleConfigFiles": ["ai/provenance.py"],
+            "notes": "Log AI provenance using structlog or MLflow tracking. For ML models, also track training data version and model artifact hash.",
+            "verification": "Review AI integration and confirm provenance is tracked."
+          },
+          "rust": {
+            "exampleTools": ["tracing", "OpenTelemetry"],
+            "exampleConfigFiles": ["src/ai/provenance.rs"],
+            "notes": "Use tracing spans to capture AI call provenance. Include model version, prompt hash, and parameters as span attributes.",
+            "verification": "Review AI integration and confirm provenance is logged."
+          },
+          "go": {
+            "exampleTools": ["slog", "OpenTelemetry"],
+            "exampleConfigFiles": ["ai/provenance.go"],
+            "notes": "Use structured logging (slog) to capture AI provenance. Include model, prompt version, and parameters in log context.",
+            "verification": "Review AI integration and confirm provenance logging is implemented."
+          }
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
+      },
+      {
         "id": "agent-invariants",
         "label": "Autonomous Agent Invariants",
         "description": "Maintain INVARIANTS.md defining repository-wide rules that must always hold true, with machine-readable verification commands for autonomous agents.",
