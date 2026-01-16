@@ -1,3 +1,15 @@
+# [5.1.0](https://github.com/oddessentials/repo-standards/compare/v5.0.0...v5.1.0) (2026-01-16)
+
+
+### Bug Fixes
+
+* align schema version with package major ([c8a5e39](https://github.com/oddessentials/repo-standards/commit/c8a5e39098f5fd1ca940f0be61e26c0825723c84))
+
+
+### Features
+
+* add version guard checklist and script ([bd737ae](https://github.com/oddessentials/repo-standards/commit/bd737ae6769cf9a2efc56d28a9ad7e581080524b))
+
 # [5.0.0](https://github.com/oddessentials/repo-standards/compare/v4.4.0...v5.0.0) (2026-01-16)
 
 - feat!: add executionStage, line endings and CRLF detection items ([f2d2972](https://github.com/oddessentials/repo-standards/commit/f2d29729fd5cd87031f7eab7106bbb3cd6c64eec))
