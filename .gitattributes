@@ -1,2 +1,48 @@
+# .gitattributes for repo-standards (TypeScript/JavaScript)
+# This file is the AUTHORITY for line endings (not .editorconfig)
+#
+# After modifying this file, run:
+#   git add --renormalize .
+#   git commit -m "chore: normalize line endings"
+
+# Default: Auto-detect text files and normalize to LF on commit
 * text=auto eol=lf
+
+# JavaScript/TypeScript source files
+*.js text eol=lf
+*.cjs text eol=lf
+*.mjs text eol=lf
+*.ts text eol=lf
+*.cts text eol=lf
+*.mts text eol=lf
+
+# Configuration files
+*.json text eol=lf
+tsconfig.json text eol=lf
+package.json text eol=lf
+package-lock.json text eol=lf
+
+# Shell scripts - MUST be LF (husky hooks)
+*.sh text eol=lf
 .husky/* text eol=lf
+
+# Git configuration
+.gitattributes text eol=lf
+.gitignore text eol=lf
+
+# CI/CD configuration
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Documentation
+*.md text eol=lf
+LICENSE text eol=lf
+
+# Common binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
