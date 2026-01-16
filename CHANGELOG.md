@@ -1,3 +1,45 @@
+# [5.0.0](https://github.com/oddessentials/repo-standards/compare/v4.4.0...v5.0.0) (2026-01-16)
+
+
+* feat!: add executionStage, line endings and CRLF detection items ([f2d2972](https://github.com/oddessentials/repo-standards/commit/f2d29729fd5cd87031f7eab7106bbb3cd6c64eec))
+
+
+### Features
+
+* add AI-specific gates for autonomous workflows ([7fa512b](https://github.com/oddessentials/repo-standards/commit/7fa512b85fab96da3482e1e263af5108590936b8))
+* add executionStage validation to schema validator ([7dee054](https://github.com/oddessentials/repo-standards/commit/7dee054a117d53c97d84613053c7e16c571341e7))
+* add hook strategy items for polyglot repos ([66bd1e1](https://github.com/oddessentials/repo-standards/commit/66bd1e161f205bcb7319bd4bfb7897b86afd74cb))
+* add single source of truth governance items ([9492e43](https://github.com/oddessentials/repo-standards/commit/9492e43d6f41d26f699e289f01294ccfed0a5205))
+* add templates and update migration guide for Phase 1 ([d531eeb](https://github.com/oddessentials/repo-standards/commit/d531eeb82d4274a117f09b9af1e5c4c7b4f6d964))
+
+
+### BREAKING CHANGES
+
+* executionStage is now a required field on all checklist items.
+This defines when each check should execute in the development lifecycle
+(pre-commit, pre-push, ci-pr, ci-main, release, nightly).
+
+Phase 1a implementation from TO-DO.md lessons:
+
+Schema changes:
+- Add ExecutionStage enum with 6 stages
+- Make executionStage required on ChecklistItem
+- Add optional scopeToChangedFiles boolean
+
+New checklist items (core):
+- gitattributes-eol: Enforce EOL at Git layer with .gitattributes
+- crlf-detection: Fail CI early for Linux-executed files with CRLF
+
+Added executionStage to all existing items:
+- pre-commit: formatting, linting, commit-linting, gitignore, runtime-version
+- pre-push: unit-test-runner, type-checking, dependency-security
+- ci-pr: containerization, coverage, quality-gates, deterministic-builds
+- ci-main: integration-testing
+- release: semantic-versioning, unified-release, provenance
+- nightly: dependency-update-automation, performance-baselining
+
+This addresses Phase 1 lessons A1-A6 (line endings and cross-platform execution).
+
 # [4.4.0](https://github.com/oddessentials/repo-standards/compare/v4.3.0...v4.4.0) (2026-01-14)
 
 ### Features
