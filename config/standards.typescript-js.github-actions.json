@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "stack": "typescript-js",
   "stackLabel": "TypeScript / JavaScript",
   "ciSystems": ["github-actions"],
@@ -292,6 +292,29 @@
           "requiredFiles": ["package.json"],
           "optionalFiles": ["VERSION", "CHANGELOG.md"],
           "requiredScripts": ["release"]
+        }
+      },
+      {
+        "id": "version-guard",
+        "label": "Version Guard (Automated Releases)",
+        "description": "If semantic-release or automated versioning is enabled, block manual edits to canonical version fields in pull requests. Enforce a CI guard (and optional pre-push hook) that fails when version lines change outside the release workflow.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci",
+            "notes": "Run the version guard in PR workflows against the base ref."
+          }
+        },
+        "stack": {
+          "exampleTools": ["semantic-release", "git"],
+          "exampleConfigFiles": [
+            "scripts/check-version-unchanged.sh",
+            ".github/workflows/ci.yml",
+            "azure-pipelines.yml"
+          ],
+          "notes": "Add a CI step that runs scripts/check-version-unchanged.sh against the PR base ref. This blocks manual edits to package.json version when semantic-release owns versioning. Optionally wire the same script into a pre-push hook for fast feedback.",
+          "verification": "Run the guard with the PR base ref (for example, origin/main) and confirm it fails when package.json version changes.",
+          "requiredFiles": ["package.json"],
+          "optionalFiles": ["VERSION"]
         }
       },
       {

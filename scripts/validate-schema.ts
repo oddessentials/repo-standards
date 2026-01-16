@@ -10,6 +10,7 @@ import path from "node:path";
 const rootDir = process.cwd();
 const configPath = path.join(rootDir, "config", "standards.json");
 const schemaPath = path.join(rootDir, "config", "standards.schema.json");
+const readmePath = path.join(rootDir, "README.md");
 
 interface ValidationResult {
   valid: boolean;
@@ -51,6 +52,42 @@ interface Config {
     recommended: ChecklistItem[];
     optionalEnhancements: ChecklistItem[];
   };
+}
+
+/**
+ * Validate README schema version references match standards.json version
+ */
+function validateReadmeSchemaVersion(
+  config: Config,
+  readmeRaw?: string,
+): ValidationResult {
+  if (!readmeRaw) {
+    return {
+      valid: false,
+      errors: ["README.md not provided for version consistency check"],
+    };
+  }
+
+  const errors: string[] = [];
+  const actualVersion = config.version;
+
+  const currentMatch = readmeRaw.match(/version.*\(currently `(\d+)`\)/i);
+  if (!currentMatch) {
+    errors.push("README.md missing current schema version reference");
+  } else if (Number(currentMatch[1]) !== actualVersion) {
+    errors.push(
+      `README.md current schema version (${currentMatch[1]}) does not match standards.json (${actualVersion})`,
+    );
+  }
+
+  const listPattern = new RegExp(`-\\s*\`${actualVersion}\`\\s*—`);
+  if (!listPattern.test(readmeRaw)) {
+    errors.push(
+      `README.md schema version list does not include current version ${actualVersion}`,
+    );
+  }
+
+  return { valid: errors.length === 0, errors };
 }
 
 /**
@@ -254,6 +291,7 @@ export function normalizeConfig(config: unknown): string {
 export function validateStandardsConfig(
   configRaw: string,
   schemaRaw: string,
+  readmeRaw?: string,
 ): ValidationResult {
   let config: Config;
   let schema: unknown;
@@ -281,6 +319,7 @@ export function validateStandardsConfig(
     validateCiHintKeys(config),
     validateCoverageThreshold(config),
     validateExecutionStageCoverage(config),
+    validateReadmeSchemaVersion(config, readmeRaw),
   ];
 
   const allErrors = results.flatMap((r) => r.errors);
@@ -304,10 +343,16 @@ export function validateStandardsSchema(): void {
     process.exit(1);
   }
 
+  if (!fs.existsSync(readmePath)) {
+    console.error(`README file not found: ${readmePath}`);
+    process.exit(1);
+  }
+
   const configRaw = fs.readFileSync(configPath, "utf8");
   const schemaRaw = fs.readFileSync(schemaPath, "utf8");
+  const readmeRaw = fs.readFileSync(readmePath, "utf8");
 
-  const result = validateStandardsConfig(configRaw, schemaRaw);
+  const result = validateStandardsConfig(configRaw, schemaRaw, readmeRaw);
 
   if (!result.valid) {
     console.error("Schema validation failed:");
@@ -324,6 +369,7 @@ export function validateStandardsSchema(): void {
   console.log("✓ All ciHints keys are valid ciSystems");
   console.log("✓ Coverage threshold semantics are valid");
   console.log("✓ All items have valid executionStage");
+  console.log("✓ README schema version references are aligned");
 }
 
 // CLI entry point
