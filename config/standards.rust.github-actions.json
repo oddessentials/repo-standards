@@ -295,6 +295,23 @@
         }
       },
       {
+        "id": "release-artifact-exclusion",
+        "label": "Release Artifact Formatter Exclusion",
+        "description": "Exclude auto-generated release artifacts (CHANGELOG.md, package-lock.json, etc.) from code formatters to prevent CI failures. Release automation tools generate files that may not conform to your formatter's style, causing format checks to fail on subsequent CI runs.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci",
+            "notes": "Ensure format:check step uses ignore file that excludes release artifacts."
+          }
+        },
+        "stack": {
+          "exampleTools": ["rustfmt", "cargo-release"],
+          "exampleConfigFiles": ["rustfmt.toml"],
+          "notes": "Rust rarely has auto-generated source files, but if using tools that generate Rust code, exclude those directories in rustfmt.toml. CHANGELOG.md isn't checked by rustfmt (it only checks .rs files).",
+          "verification": "Run 'cargo fmt --check' and confirm it passes after releases."
+        }
+      },
+      {
         "id": "unified-release-workflow",
         "label": "Unified Release Workflow",
         "description": "Use a single CI release pipeline that publishes all artifacts (GitHub releases, packages, containers) from the same canonical version source.",
