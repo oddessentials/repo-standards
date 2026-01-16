@@ -1944,6 +1944,188 @@
         },
         "enforcement": "required",
         "severity": "error"
+      },
+      {
+        "id": "canonical-verify",
+        "label": "Canonical Verify Entrypoint",
+        "description": "Provide one canonical 'verify' command per repository/stack that all stages call with appropriate flags. This prevents duplication, drift, and ensures consistency between local development and CI.",
+        "executionStage": "pre-commit",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality",
+            "notes": "CI should call the canonical verify command, not duplicate check logic."
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "CI should call the canonical verify command, not duplicate check logic."
+          }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": ["npm scripts"],
+            "exampleConfigFiles": ["package.json"],
+            "notes": "Define 'npm run verify' that runs lint, format:check, typecheck, and test. Pre-commit hooks call 'npm run verify:quick' (lint + format only). CI calls 'npm run verify' (full suite). Never duplicate verification logic across multiple scripts.",
+            "verification": "package.json contains a 'verify' script that orchestrates all checks.",
+            "requiredScripts": ["verify"]
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["dotnet CLI", "make", "cake"],
+            "exampleConfigFiles": ["Makefile", "build.cake"],
+            "notes": "Define 'make verify' or 'dotnet cake verify' that runs all checks. Both hooks and CI use this single entrypoint with stage-appropriate flags.",
+            "verification": "Makefile or build script contains a 'verify' target."
+          },
+          "python": {
+            "exampleTools": ["make", "tox", "nox"],
+            "exampleConfigFiles": ["Makefile", "tox.ini", "noxfile.py"],
+            "notes": "Define 'make verify' or 'tox -e verify' that runs ruff, black --check, mypy, and pytest. All stages use this entrypoint.",
+            "verification": "Makefile or tox.ini contains a 'verify' target/environment."
+          },
+          "rust": {
+            "exampleTools": ["cargo", "make", "cargo-make"],
+            "exampleConfigFiles": ["Makefile", "Makefile.toml"],
+            "notes": "Define 'make verify' or 'cargo make verify' that runs fmt --check, clippy, and test. Both hooks and CI use this entrypoint.",
+            "verification": "Makefile or Makefile.toml contains a 'verify' task."
+          },
+          "go": {
+            "exampleTools": ["make", "mage"],
+            "exampleConfigFiles": ["Makefile", "magefile.go"],
+            "notes": "Define 'make verify' that runs go vet, golangci-lint, and go test. All stages use this single entrypoint.",
+            "verification": "Makefile contains a 'verify' target."
+          }
+        },
+        "enforcement": "required",
+        "severity": "error"
+      },
+      {
+        "id": "config-authority",
+        "label": "Config File Authority Rules",
+        "description": "Each configuration rule must live in exactly one authoritative config file. Avoid duplication across .editorconfig, linter configs, and CI definitions. Document which file is authoritative for each concern.",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality",
+            "notes": "Ensure CI reads from authoritative configs, not duplicated settings."
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "Ensure CI reads from authoritative configs, not duplicated settings."
+          }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": [],
+            "exampleConfigFiles": [
+              ".gitattributes",
+              ".editorconfig",
+              "eslint.config.js",
+              "tsconfig.json"
+            ],
+            "notes": "Authority mapping: .gitattributes for EOL (Git layer), .editorconfig for editor display, eslint.config.js for lint rules, tsconfig.json for TS compiler options, prettier for formatting. Never duplicate rules across files.",
+            "verification": "Review configs and confirm no rule is defined in multiple places with potential for drift."
+          },
+          "csharp-dotnet": {
+            "exampleTools": [],
+            "exampleConfigFiles": [
+              ".gitattributes",
+              ".editorconfig",
+              "Directory.Build.props"
+            ],
+            "notes": "Authority mapping: .gitattributes for EOL, .editorconfig for formatting rules, Directory.Build.props for shared build settings. Roslyn analyzers read from .editorconfig.",
+            "verification": "Review configs and confirm no rule is duplicated across files."
+          },
+          "python": {
+            "exampleTools": [],
+            "exampleConfigFiles": [
+              ".gitattributes",
+              "pyproject.toml",
+              ".editorconfig"
+            ],
+            "notes": "Authority mapping: .gitattributes for EOL, pyproject.toml for all tool configs (ruff, black, mypy, pytest). Avoid separate tool configs (.flake8, setup.cfg) when pyproject.toml can hold them.",
+            "verification": "Review configs and confirm pyproject.toml is the single source for tool settings."
+          },
+          "rust": {
+            "exampleTools": [],
+            "exampleConfigFiles": [
+              ".gitattributes",
+              "Cargo.toml",
+              "rustfmt.toml",
+              "clippy.toml"
+            ],
+            "notes": "Authority mapping: .gitattributes for EOL, Cargo.toml for project config, rustfmt.toml for formatting, clippy.toml for linting. Each concern has one file.",
+            "verification": "Review configs and confirm no rules are duplicated across files."
+          },
+          "go": {
+            "exampleTools": [],
+            "exampleConfigFiles": [".gitattributes", "go.mod", ".golangci.yml"],
+            "notes": "Authority mapping: .gitattributes for EOL, go.mod for module config and Go version, .golangci.yml for all linting rules. Keep lint config consolidated in one file.",
+            "verification": "Review configs and confirm .golangci.yml is the single source for lint rules."
+          }
+        },
+        "enforcement": "required",
+        "severity": "error"
+      },
+      {
+        "id": "explicit-skip-paths",
+        "label": "Explicit Skip Paths",
+        "description": "Encode path exclusions and skip rules deterministically in config files, not through ad-hoc human judgment. Make it clear which paths are excluded from checks and why.",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality",
+            "notes": "CI should read skip paths from config files, not hardcode them in pipeline."
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "CI should read skip paths from config files, not hardcode them in pipeline."
+          }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": ["eslint", "prettier"],
+            "exampleConfigFiles": [
+              ".eslintignore",
+              ".prettierignore",
+              "eslint.config.js"
+            ],
+            "notes": "Define ignores in eslint.config.js (ignores array) and .prettierignore. Document why each path is excluded (generated code, vendor, etc.). Avoid ad-hoc --ignore-path flags in scripts.",
+            "verification": "Review ignore configs and confirm all exclusions are documented and intentional."
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["dotnet format", "Roslyn"],
+            "exampleConfigFiles": [".editorconfig"],
+            "notes": "Use .editorconfig file globs to exclude generated code from analysis. Document exclusions with comments.",
+            "verification": "Review .editorconfig and confirm exclusions are explicit and documented."
+          },
+          "python": {
+            "exampleTools": ["ruff", "black", "mypy"],
+            "exampleConfigFiles": ["pyproject.toml"],
+            "notes": "Define exclude patterns in pyproject.toml [tool.ruff], [tool.black], [tool.mypy] sections. Document why each path is excluded. Avoid runtime --exclude flags.",
+            "verification": "Review pyproject.toml and confirm all exclusions are defined there, not in scripts."
+          },
+          "rust": {
+            "exampleTools": ["rustfmt", "clippy"],
+            "exampleConfigFiles": ["rustfmt.toml", ".clippy.toml"],
+            "notes": "Use #[rustfmt::skip] or #[allow(clippy::*)] sparingly and document why. For directory-level exclusions, use Cargo.toml workspace exclude.",
+            "verification": "Search for skip annotations and confirm each is documented."
+          },
+          "go": {
+            "exampleTools": ["golangci-lint"],
+            "exampleConfigFiles": [".golangci.yml"],
+            "notes": "Define skip-dirs and skip-files in .golangci.yml. Use //nolint comments sparingly and always include justification (//nolint:errcheck // reason).",
+            "verification": "Review .golangci.yml and confirm skip paths are explicit and documented."
+          }
+        },
+        "enforcement": "required",
+        "severity": "error"
       }
     ],
     "recommended": [
