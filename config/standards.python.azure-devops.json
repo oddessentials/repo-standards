@@ -301,6 +301,23 @@
         }
       },
       {
+        "id": "release-artifact-exclusion",
+        "label": "Release Artifact Formatter Exclusion",
+        "description": "Exclude auto-generated release artifacts (CHANGELOG.md, package-lock.json, etc.) from code formatters to prevent CI failures. Release automation tools generate files that may not conform to your formatter's style, causing format checks to fail on subsequent CI runs.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality",
+            "notes": "Ensure format:check step uses ignore file that excludes release artifacts."
+          }
+        },
+        "stack": {
+          "exampleTools": ["black", "ruff", "bumpversion"],
+          "exampleConfigFiles": ["pyproject.toml"],
+          "notes": "In pyproject.toml [tool.black] or [tool.ruff], add extend-exclude patterns for auto-generated files like CHANGELOG.md. Some versioning tools generate or modify files that should not be reformatted.",
+          "verification": "Run 'black --check .' or 'ruff format --check' and confirm generated files are excluded."
+        }
+      },
+      {
         "id": "unified-release-workflow",
         "label": "Unified Release Workflow",
         "description": "Use a single CI release pipeline that publishes all artifacts (GitHub releases, packages, containers) from the same canonical version source.",

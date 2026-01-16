@@ -1,0 +1,20 @@
+# .prettierignore for repo-standards
+# This file excludes paths from Prettier formatting checks.
+# Each exclusion should be documented with a reason.
+
+# Auto-generated files (by semantic-release, npm, etc.)
+# These are machine-generated and should not be reformatted.
+CHANGELOG.md
+package-lock.json
+
+# Build output (already in .gitignore, but explicit for clarity)
+dist/
+
+# Dependencies (already ignored by default)
+node_modules/
+
+# Coverage reports
+coverage/
+
+# Generated instruction files (machine-generated from standards.json)
+instructions*.md

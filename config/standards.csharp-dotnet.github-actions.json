@@ -298,6 +298,23 @@
         }
       },
       {
+        "id": "release-artifact-exclusion",
+        "label": "Release Artifact Formatter Exclusion",
+        "description": "Exclude auto-generated release artifacts (CHANGELOG.md, package-lock.json, etc.) from code formatters to prevent CI failures. Release automation tools generate files that may not conform to your formatter's style, causing format checks to fail on subsequent CI runs.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci",
+            "notes": "Ensure format:check step uses ignore file that excludes release artifacts."
+          }
+        },
+        "stack": {
+          "exampleTools": ["dotnet format", "GitVersion"],
+          "exampleConfigFiles": [".editorconfig"],
+          "notes": "Use .editorconfig to exclude auto-generated files from formatting. GitVersion may generate or modify files that shouldn't be reformatted. Add glob patterns for generated code directories (e.g., **/obj/**, **/bin/**).",
+          "verification": "Run 'dotnet format --verify-no-changes' and confirm generated files are excluded."
+        }
+      },
+      {
         "id": "unified-release-workflow",
         "label": "Unified Release Workflow",
         "description": "Use a single CI release pipeline that publishes all artifacts (GitHub releases, packages, containers) from the same canonical version source.",
