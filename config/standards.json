@@ -765,6 +765,70 @@
         "severity": "error"
       },
       {
+        "id": "release-hook-bypass",
+        "label": "Release Hook Bypass",
+        "description": "Release automation must bypass local developer hooks (HUSKY=0, --no-verify) and rely solely on CI gates for validation. This ensures idempotent, reproducible releases that don't fail due to hook environment differences.",
+        "executionStage": "release",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "ciHints": {
+          "azure-devops": {
+            "stage": "release",
+            "notes": "Set HUSKY=0 or equivalent in release pipeline to disable hooks."
+          },
+          "github-actions": {
+            "job": "release",
+            "notes": "Set HUSKY=0 or equivalent in release job to disable hooks."
+          }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": ["semantic-release", "husky"],
+            "exampleConfigFiles": [".github/workflows/release.yml"],
+            "notes": "In release workflows, set HUSKY=0 environment variable to disable husky hooks. Release commits from semantic-release should bypass commitlint since they're generated. CI gates already validated the code.",
+            "verification": "Check release workflow for HUSKY=0 or --no-verify flags.",
+            "machineCheck": {
+              "command": "grep -r 'HUSKY=0\\|--no-verify' .github/workflows/ || echo 'WARNING: No hook bypass in release workflow'",
+              "expectExitCode": 0,
+              "description": "Verify release workflows disable hooks"
+            }
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["GitVersion"],
+            "exampleConfigFiles": [
+              "azure-pipelines.yml",
+              ".github/workflows/release.yml"
+            ],
+            "notes": "Release pipelines should skip local hooks. If using Lefthook, set LEFTHOOK=0. Rely on CI gates for all validation.",
+            "verification": "Check release pipeline for hook bypass configuration."
+          },
+          "python": {
+            "exampleTools": ["semantic-release", "bumpversion"],
+            "exampleConfigFiles": [".github/workflows/release.yml"],
+            "notes": "Set PRE_COMMIT_ALLOW_NO_CONFIG=1 or SKIP=all to bypass pre-commit hooks in release automation. CI gates already validated.",
+            "verification": "Check release workflow for pre-commit bypass."
+          },
+          "rust": {
+            "exampleTools": ["cargo-release"],
+            "exampleConfigFiles": [".github/workflows/release.yml"],
+            "notes": "Use --no-verify with git commands in release scripts. If using pre-commit, set SKIP=all.",
+            "verification": "Check release workflow for hook bypass."
+          },
+          "go": {
+            "exampleTools": ["goreleaser"],
+            "exampleConfigFiles": [
+              ".goreleaser.yml",
+              ".github/workflows/release.yml"
+            ],
+            "notes": "Goreleaser handles releases without invoking local hooks. Ensure any git operations use --no-verify.",
+            "verification": "Check release workflow for hook bypass configuration."
+          }
+        },
+        "enforcement": "required",
+        "severity": "error"
+      },
+      {
         "id": "commit-linting",
         "label": "Commit Linting",
         "description": "Enforce structured commit messages such as Conventional Commits via commit-msg hooks and CI. This is required for deterministic versioning and changelog generation.",
@@ -1096,49 +1160,167 @@
       {
         "id": "pre-commit-hooks",
         "label": "Pre-Commit Hooks",
-        "description": "Use git hooks to run linting, formatting, tests, and commit linting before changes are committed.",
+        "description": "Use git hooks to run linting, formatting, and commit linting before changes are committed. Hooks should CHECK by default (not auto-fix), be fast, and scope to changed files only. Use a single entry hook mechanism (e.g., Husky as entry point calling pre-commit or lint-staged).",
+        "executionStage": "pre-commit",
+        "scopeToChangedFiles": true,
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality",
+            "notes": "Hooks and CI must invoke identical verification commands. Use npm run verify or equivalent."
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "Hooks and CI must invoke identical verification commands. Use npm run verify or equivalent."
+          }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": ["husky", "lint-staged"],
+            "exampleConfigFiles": [
+              ".husky/",
+              "package.json",
+              "lint-staged.config.js"
+            ],
+            "notes": "Use Husky as the entry hook mechanism calling lint-staged. Hooks should CHECK (--check flags) not auto-fix to keep developers aware of issues. Scope to staged files only for speed. Invoke hooks through the repo toolchain (npx) not global installs to ensure environment pinning. Never let hook enforcement drift from CI.",
+            "verification": "Run 'npm run verify' (or equivalent) and confirm the same checks run in both hooks and CI."
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["Lefthook", "husky.net"],
+            "exampleConfigFiles": ["lefthook.yml", ".husky/"],
+            "notes": "Configure Lefthook or husky.net to run formatting checks (not auto-fix) on staged files. Hooks should be deterministic and environment-pinned via global.json SDK version.",
+            "verification": "Inspect hook configuration and confirm checks run in verify mode, not auto-fix mode."
+          },
+          "python": {
+            "exampleTools": ["pre-commit"],
+            "exampleConfigFiles": [".pre-commit-config.yaml"],
+            "notes": "Use pre-commit framework as both entry and executor. Pin hook versions in .pre-commit-config.yaml for determinism. Hooks should run checks (ruff check, black --check) not auto-fix. Run pre-commit install to set up hooks.",
+            "verification": "Inspect .pre-commit-config.yaml and confirm hooks use check/verify flags, not auto-fix."
+          },
+          "rust": {
+            "exampleTools": ["pre-commit", "cargo-husky"],
+            "exampleConfigFiles": [".pre-commit-config.yaml"],
+            "notes": "Use pre-commit with rust hooks for 'cargo fmt --check' and 'cargo clippy' on staged files. Pin rust-toolchain.toml for determinism across environments.",
+            "verification": "Confirm hooks run cargo fmt --check (not cargo fmt) and cargo clippy before commits."
+          },
+          "go": {
+            "exampleTools": ["pre-commit", "lefthook"],
+            "exampleConfigFiles": [".pre-commit-config.yaml", "lefthook.yml"],
+            "notes": "Use pre-commit or lefthook with go hooks for 'gofmt -d' (check mode) and golangci-lint. Pin Go version in go.mod and .go-version for determinism.",
+            "verification": "Confirm hooks run format checks (not auto-fix) and golangci-lint before commits."
+          }
+        },
+        "enforcement": "required",
+        "severity": "error"
+      },
+      {
+        "id": "hook-ci-parity",
+        "label": "Hook/CI Parity",
+        "description": "Local hooks and CI must invoke identical verification commands to prevent 'works locally, fails in CI' issues. Use a single canonical verify entrypoint (e.g., npm run verify) that both hooks and CI call.",
         "executionStage": "pre-commit",
         "appliesTo": {
           "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
         },
         "ciHints": {
           "azure-devops": {
-            "stage": "quality"
+            "stage": "quality",
+            "notes": "CI should call the same verify script that hooks use locally."
           },
           "github-actions": {
-            "job": "ci"
+            "job": "ci",
+            "notes": "CI should call the same verify script that hooks use locally."
           }
         },
         "stackHints": {
           "typescript-js": {
-            "exampleTools": ["husky", "lint-staged"],
-            "exampleConfigFiles": [".husky/", "package.json"],
-            "notes": "Run ESLint and Prettier on staged files and enforce commit message format via commit-msg hooks.",
-            "verification": "Inspect the pre-commit and commit-msg hooks (for example, files under .husky or other hook tooling) and confirm they run linting/formatting and commit linting on staged changes."
+            "exampleTools": ["npm scripts"],
+            "exampleConfigFiles": ["package.json"],
+            "notes": "Define a 'verify' script in package.json that runs all checks (lint, format:check, typecheck). Both .husky/pre-commit and CI should call 'npm run verify'. Never add checks to CI that don't run locally.",
+            "verification": "Compare hook commands with CI commands and confirm they invoke the same scripts.",
+            "requiredScripts": ["verify"]
           },
           "csharp-dotnet": {
-            "exampleTools": ["Lefthook"],
-            "exampleConfigFiles": ["lefthook.yml"],
-            "notes": "Configure Lefthook or similar to run formatting and basic checks on staged files before commits.",
-            "verification": "Inspect the hook configuration (for example, Lefthook or similar) and confirm it runs at least formatting and basic checks on staged changes before commits or pushes."
+            "exampleTools": ["dotnet CLI", "make"],
+            "exampleConfigFiles": ["Makefile", "Directory.Build.props"],
+            "notes": "Define a verify target (make verify or dotnet cake verify) that both hooks and CI invoke. Keep verification logic in one place.",
+            "verification": "Compare hook commands with CI commands and confirm they invoke the same targets."
           },
           "python": {
-            "exampleTools": ["pre-commit"],
-            "exampleConfigFiles": [".pre-commit-config.yaml"],
-            "notes": "Use pre-commit to run ruff, black, and optionally mypy on staged files before committing.",
-            "verification": "Inspect .pre-commit-config.yaml and confirm that hooks for linting, formatting, and optionally type checking are enabled and run on changed files before commits."
+            "exampleTools": ["make", "tox", "nox"],
+            "exampleConfigFiles": ["Makefile", "tox.ini", "noxfile.py"],
+            "notes": "Define a verify target (make verify, tox -e lint, or nox -s lint) that both pre-commit and CI invoke. Pin tool versions in pyproject.toml.",
+            "verification": "Compare hook commands with CI commands and confirm they invoke the same targets."
           },
           "rust": {
-            "exampleTools": ["pre-commit", "cargo-husky"],
-            "exampleConfigFiles": [".pre-commit-config.yaml"],
-            "notes": "Use pre-commit with rust hooks for cargo fmt and cargo clippy on staged files. cargo-husky is an alternative.",
-            "verification": "Inspect .pre-commit-config.yaml and confirm that hooks run cargo fmt --check and cargo clippy before commits."
+            "exampleTools": ["cargo", "make"],
+            "exampleConfigFiles": ["Makefile", "Cargo.toml"],
+            "notes": "Define a verify target (make verify or cargo make verify) that runs fmt --check, clippy, and test. Both hooks and CI should use this target.",
+            "verification": "Compare hook commands with CI commands and confirm they invoke the same cargo commands."
           },
           "go": {
-            "exampleTools": ["pre-commit", "lefthook"],
-            "exampleConfigFiles": [".pre-commit-config.yaml", "lefthook.yml"],
-            "notes": "Use pre-commit with go hooks for gofmt, goimports, and golangci-lint on staged files.",
-            "verification": "Inspect hooks configuration and confirm that go fmt and golangci-lint run before commits."
+            "exampleTools": ["make", "mage"],
+            "exampleConfigFiles": ["Makefile", "magefile.go"],
+            "notes": "Define a verify target (make verify) that runs go vet, golangci-lint, and go test. Both hooks and CI should use this target.",
+            "verification": "Compare hook commands with CI commands and confirm they invoke the same make targets."
+          }
+        },
+        "enforcement": "required",
+        "severity": "error"
+      },
+      {
+        "id": "secret-scanning-precommit",
+        "label": "Pre-commit Secret Scanning",
+        "description": "Scan staged diffs for credentials, API keys, and secrets before they reach the remote repository. Catch secrets at commit time rather than after they're pushed.",
+        "executionStage": "pre-commit",
+        "scopeToChangedFiles": true,
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality",
+            "notes": "Also run secret scanning in CI as a safety net for commits that bypassed hooks."
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "Enable GitHub secret scanning and also run gitleaks in CI."
+          }
+        },
+        "stackHints": {
+          "typescript-js": {
+            "exampleTools": ["gitleaks", "detect-secrets", "trufflehog"],
+            "exampleConfigFiles": [".gitleaks.toml", ".secrets.baseline"],
+            "notes": "Add gitleaks or detect-secrets to pre-commit hooks. Scan only staged changes for speed. Configure allowlists for false positives in .gitleaks.toml.",
+            "verification": "Run 'gitleaks protect --staged' and verify it catches test secrets."
+          },
+          "csharp-dotnet": {
+            "exampleTools": ["gitleaks", "detect-secrets"],
+            "exampleConfigFiles": [".gitleaks.toml"],
+            "notes": "Add gitleaks to pre-commit hooks via Lefthook. Scan staged changes before commits.",
+            "verification": "Run 'gitleaks protect --staged' and verify it catches test secrets."
+          },
+          "python": {
+            "exampleTools": ["detect-secrets", "gitleaks"],
+            "exampleConfigFiles": [
+              ".pre-commit-config.yaml",
+              ".secrets.baseline"
+            ],
+            "notes": "Add detect-secrets or gitleaks to .pre-commit-config.yaml. Use detect-secrets audit to manage baselines.",
+            "verification": "Run 'detect-secrets scan' or 'gitleaks protect' and verify scanning works."
+          },
+          "rust": {
+            "exampleTools": ["gitleaks"],
+            "exampleConfigFiles": [".gitleaks.toml", ".pre-commit-config.yaml"],
+            "notes": "Add gitleaks to pre-commit hooks. Configure Rust-specific patterns if needed.",
+            "verification": "Run 'gitleaks protect --staged' and verify it catches test secrets."
+          },
+          "go": {
+            "exampleTools": ["gitleaks", "trufflehog"],
+            "exampleConfigFiles": [".gitleaks.toml", ".pre-commit-config.yaml"],
+            "notes": "Add gitleaks to pre-commit hooks. Scan staged changes only for speed.",
+            "verification": "Run 'gitleaks protect --staged' and verify it catches test secrets."
           }
         },
         "enforcement": "required",
