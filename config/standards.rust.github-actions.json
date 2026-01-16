@@ -273,6 +273,28 @@
         }
       },
       {
+        "id": "version-guard",
+        "label": "Version Guard (Automated Releases)",
+        "description": "If semantic-release or automated versioning is enabled, block manual edits to canonical version fields in pull requests. Enforce a CI guard (and optional pre-push hook) that fails when version lines change outside the release workflow.",
+        "ciHints": {
+          "github-actions": {
+            "job": "ci",
+            "notes": "Run the version guard in PR workflows against the base ref."
+          }
+        },
+        "stack": {
+          "exampleTools": ["cargo-release", "semantic-release", "git"],
+          "exampleConfigFiles": [
+            "scripts/check-version-unchanged.sh",
+            ".github/workflows/ci.yml",
+            "azure-pipelines.yml"
+          ],
+          "notes": "When using cargo-release or semantic-release-cargo, guard against manual edits to Cargo.toml version fields in PRs.",
+          "verification": "Run the guard and confirm it fails when Cargo.toml version changes.",
+          "requiredFiles": ["Cargo.toml"]
+        }
+      },
+      {
         "id": "unified-release-workflow",
         "label": "Unified Release Workflow",
         "description": "Use a single CI release pipeline that publishes all artifacts (GitHub releases, packages, containers) from the same canonical version source.",
