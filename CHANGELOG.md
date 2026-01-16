@@ -1,3 +1,11 @@
+# [5.2.0](https://github.com/oddessentials/repo-standards/compare/v5.1.0...v5.2.0) (2026-01-16)
+
+
+### Features
+
+* add readme schema guard and sync script ([49de193](https://github.com/oddessentials/repo-standards/commit/49de193c74086e1f9f6f0cab42b089ec90b4694a))
+* add release artifact formatter exclusion and fix self-compliance ([2de9494](https://github.com/oddessentials/repo-standards/commit/2de9494cac1079e611eb17e2ee0c182b77e2dc3b))
+
 # [5.1.0](https://github.com/oddessentials/repo-standards/compare/v5.0.0...v5.1.0) (2026-01-16)
 
 
