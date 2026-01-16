@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "stack": "csharp-dotnet",
   "stackLabel": "C# / .NET",
   "ciSystems": ["azure-devops"],
@@ -273,6 +273,28 @@
             "CHANGELOG.md"
           ],
           "requiredScripts": ["release"]
+        }
+      },
+      {
+        "id": "version-guard",
+        "label": "Version Guard (Automated Releases)",
+        "description": "If semantic-release or automated versioning is enabled, block manual edits to canonical version fields in pull requests. Enforce a CI guard (and optional pre-push hook) that fails when version lines change outside the release workflow.",
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality",
+            "notes": "Run the version guard in PR validation jobs before merge."
+          }
+        },
+        "stack": {
+          "exampleTools": ["GitVersion", "git"],
+          "exampleConfigFiles": [
+            "scripts/check-version-unchanged.sh",
+            ".github/workflows/ci.yml",
+            "azure-pipelines.yml"
+          ],
+          "notes": "When GitVersion or similar tooling computes versions, block manual edits to Directory.Build.props or *.csproj version fields via the version guard. Allow changes only in release automation.",
+          "verification": "Run the guard and confirm it fails when <Version> or <VersionPrefix> changes in props/csproj files.",
+          "optionalFiles": ["Directory.Build.props", "*.csproj", "VERSION"]
         }
       },
       {
