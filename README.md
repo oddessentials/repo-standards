@@ -68,7 +68,7 @@ The master spec includes a `meta` block that defines system-wide expectations:
 
 ## Structure of `config/standards.json`
 
-- `version` — schema version (currently `4`)
+- `version` — schema version (currently `5`)
 - `meta` — global rules and migration policy
 - `ciSystems` — supported CI platforms
   _(currently `github-actions`, `azure-devops`)_
@@ -104,6 +104,12 @@ The `version` field indicates schema compatibility:
 - `2` — Adds `bazelHints`, `meta.executorHints.bazel` for Bazel support, `anyOfFiles`, `pinningNotes`, enforcement/severity levels, ratio-based coverage thresholds, Rust/Go stacks. Enforces strict validation with `additionalProperties: false`.
 - `3` — Expands release, build determinism, and provenance/CI automation requirements; adds unified release workflow and template automation guidance.
 - `4` — Stable API contract with `getStandards()`, `getSchema()`, `STANDARDS_VERSION` exports; Node 22 LTS alignment.
+- `5` — Adds automated version-guard guidance for repositories using semantic-release; schema aligned to package major version 5.
+
+To keep `config/standards.json` in sync with semantic-release major bumps, use
+`scripts/sync-standards-version.cjs` during the semantic-release prepare step
+and commit the updated files. This updates the schema version and README
+references in one place.
 
 Consumers should ignore unknown fields for forward compatibility.
 
