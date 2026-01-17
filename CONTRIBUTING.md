@@ -8,6 +8,13 @@ We love your input! We want to make contributing to this project as easy and tra
 - Proposing new features
 - Becoming a maintainer
 
+## Development Environment
+
+This repository uses Node.js. The `.nvmrc` file specifies Node 22 for contributors to ensure consistent development environments, but **this is not a constraint on consumers**.
+
+- **Contributors**: Use `nvm use` to switch to the recommended Node version
+- **Consumers**: The package supports Node 22 and above (see `engines` in package.json)
+
 ## We Use [Github Flow](https://guides.github.com/introduction/flow/index.html), So All Code Changes Happen Through Pull Requests
 
 Pull requests are the best way to propose changes to the codebase (we use [Github Flow](https://guides.github.com/introduction/flow/index.html)). We actively welcome your pull requests:

@@ -727,7 +727,7 @@
       {
         "id": "runtime-version",
         "label": "Runtime Version Specification",
-        "description": "Specify required runtime/engine versions in package manifests to ensure environment stability and prevent version-related issues across development teams.",
+        "description": "Specify required runtime/engine versions in package manifests appropriate for your application. Use minimum version constraints (>=) rather than strict ranges to avoid blocking consumers from upgrading.",
         "ciHints": {
           "azure-devops": {
             "stage": "quality"
@@ -739,8 +739,8 @@
         "stack": {
           "exampleTools": [],
           "exampleConfigFiles": ["package.json"],
-          "notes": "Specify the 'engines' field in package.json to define the required Node.js version (e.g., \"engines\": { \"node\": \">=18.0.0\" }). This helps prevent environment-related bugs and ensures all developers use compatible Node.js versions.",
-          "verification": "package.json must contain an 'engines' field specifying the required Node.js version.",
+          "notes": "Specify the 'engines' field in package.json with a minimum version appropriate for your application (e.g., \"engines\": { \"node\": \">=20\" }). Use open-ended constraints (>=) to avoid blocking consumers from upgrading. Only use upper bounds (<) when there are known incompatibilities.",
+          "verification": "package.json must contain an 'engines' field specifying the minimum required Node.js version.",
           "requiredFiles": ["package.json"]
         }
       },

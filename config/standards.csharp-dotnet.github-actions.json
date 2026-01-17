@@ -599,7 +599,7 @@
       {
         "id": "runtime-version",
         "label": "Runtime Version Specification",
-        "description": "Specify required runtime/engine versions in package manifests to ensure environment stability and prevent version-related issues across development teams.",
+        "description": "Specify required runtime/engine versions in package manifests appropriate for your application. Use minimum version constraints (>=) rather than strict ranges to avoid blocking consumers from upgrading.",
         "ciHints": {
           "github-actions": {
             "job": "ci"

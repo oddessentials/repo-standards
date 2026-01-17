@@ -51,7 +51,7 @@
     "vitest": "^4.0.15"
   },
   "engines": {
-    "node": ">=22 <23"
+    "node": ">=22"
   },
   "lint-staged": {
     "*.{js,cjs,ts,mjs,json,md}": [
