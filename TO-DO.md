@@ -12,7 +12,7 @@ PHASE ONE:
 
 5. **After adding/changing `.gitattributes`, do a one-time “renormalize” commit.** This converts existing tracked files to the policy so you don’t keep landmines around and re-trigger failures later.
 
-6. **Windows contributors: disable surprise conversions in Git.** Prefer `core.autocrlf=false` with `.gitattributes` as the repo truth; this reduces “it worked locally but not in CI” churn. ([Git SCM][4])
+6. **Windows contributors: disable surprise conversions in Git.** Set `core.autocrlf=false` and `core.safecrlf=warn`. The first setting lets `.gitattributes` be the repo truth; the second prevents fatal errors when files are normalized (Git installers sometimes set `safecrlf=true`, which blocks normalization entirely). This reduces "it worked locally but not in CI" churn. ([Git SCM][4])
 
 ---
 
