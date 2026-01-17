@@ -1,3 +1,17 @@
+# [6.0.0](https://github.com/oddessentials/repo-standards/compare/v5.3.0...v6.0.0) (2026-01-17)
+
+
+* feat!: add core.safecrlf=warn to Windows contributor guidance ([2342856](https://github.com/oddessentials/repo-standards/commit/23428562fbd0a06758e7041f9f5f648c7b9cd16c))
+
+
+### BREAKING CHANGES
+
+* Consumers should update their Windows contributor
+onboarding to include `git config --global core.safecrlf warn` in
+addition to the existing autocrlf guidance. Existing repos may need
+to communicate this change to Windows contributors experiencing
+normalization failures.
+
 # [5.3.0](https://github.com/oddessentials/repo-standards/compare/v5.2.0...v5.3.0) (2026-01-17)
 
 
