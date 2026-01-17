@@ -1,3 +1,10 @@
+# [5.3.0](https://github.com/oddessentials/repo-standards/compare/v5.2.0...v5.3.0) (2026-01-17)
+
+
+### Features
+
+* relax engine rules to use minimum version constraint ([8241f5e](https://github.com/oddessentials/repo-standards/commit/8241f5ed9ee269206dab60a444766652e172a51b))
+
 # [5.2.0](https://github.com/oddessentials/repo-standards/compare/v5.1.0...v5.2.0) (2026-01-16)
 
 
