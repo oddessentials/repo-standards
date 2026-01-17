@@ -139,7 +139,7 @@
         "stack": {
           "exampleTools": ["git"],
           "exampleConfigFiles": [".gitattributes", ".editorconfig"],
-          "notes": "Use .gitattributes as the authority for EOL; .editorconfig is supplementary for editor display. Mark *.sh, *.bash as eol=lf. After adding .gitattributes, run 'git add --renormalize .' to fix existing files. Windows contributors should set core.autocrlf=false.",
+          "notes": "Use .gitattributes as the authority for EOL; .editorconfig is supplementary for editor display. Mark *.sh, *.bash as eol=lf. After adding .gitattributes, run 'git add --renormalize .' to fix existing files. Windows contributors should set core.autocrlf=false and core.safecrlf=warn (safecrlf=true blocks normalization with fatal errors).",
           "verification": "Run 'git ls-files --eol' and verify no unexpected CRLF in LF-only files.",
           "requiredFiles": [".gitattributes"],
           "optionalFiles": [".editorconfig"],

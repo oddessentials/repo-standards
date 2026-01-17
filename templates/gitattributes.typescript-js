@@ -4,6 +4,13 @@
 # After adding this file, run:
 #   git add --renormalize .
 #   git commit -m "chore: normalize line endings"
+#
+# Windows contributors should set:
+#   git config --global core.autocrlf false
+#   git config --global core.safecrlf warn
+#
+# Note: core.safecrlf=true (sometimes set by Git installers) causes fatal errors
+# when .gitattributes normalizes CRLF to LF. Use 'warn' to allow normalization.
 
 # Default: Auto-detect text files and normalize to LF on commit
 * text=auto eol=lf
