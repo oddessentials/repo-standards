@@ -692,7 +692,7 @@
       {
         "id": "runtime-version",
         "label": "Runtime Version Specification",
-        "description": "Specify required runtime/engine versions in package manifests to ensure environment stability and prevent version-related issues across development teams.",
+        "description": "Specify required runtime/engine versions in package manifests appropriate for your application. Use minimum version constraints (>=) rather than strict ranges to avoid blocking consumers from upgrading.",
         "ciHints": {
           "azure-devops": {
             "stage": "quality"
@@ -708,7 +708,7 @@
             "setup.py",
             ".python-version"
           ],
-          "notes": "Specify python_requires in pyproject.toml (e.g., requires-python = \">=3.9\") or setup.py (e.g., python_requires='>=3.9'). Consider adding .python-version for pyenv users to automatically switch to the correct Python version.",
+          "notes": "Specify requires-python in pyproject.toml with a minimum version appropriate for your application (e.g., requires-python = \">=3.9\"). Use open-ended constraints to avoid blocking consumers from upgrading. The .python-version file is for local development convenience only.",
           "verification": "pyproject.toml or setup.py must specify python_requires; .python-version is recommended for local development.",
           "requiredFiles": ["pyproject.toml"],
           "optionalFiles": [".python-version"]

@@ -7,5 +7,5 @@
  * ESM/CJS interop issues.
  */
 
-export const STANDARDS_VERSION = "5.1.0";
+export const STANDARDS_VERSION = "5.2.0";
 export const STANDARDS_SCHEMA_VERSION = 5;
