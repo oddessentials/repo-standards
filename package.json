@@ -63,7 +63,7 @@
     "npm": ">=10.0.0"
   },
   "lint-staged": {
-    "*.{js,cjs,ts,mjs,json,md}": [
+    "*.{js,cjs,ts,mjs,json,md,yml,yaml}": [
       "prettier --write"
     ],
     "*.{js,cjs,ts,mjs}": [

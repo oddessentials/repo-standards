@@ -32,8 +32,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint, test, build
-        run: npm run ci
+      # v7 CI/Hook Parity: Run the same verify as pre-push hook
+      - name: Verify (check + test + security + policy + build)
+        run: npm run verify
 
       - name: Verify package entry point
         run: |
