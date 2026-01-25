@@ -16,9 +16,10 @@
     "format:check": "prettier . --check",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
+    "sync:version": "node scripts/sync-schema-version-pretest.cjs",
     "prepare": "husky",
     "postinstall": "git config core.hooksPath .husky || true",
-    "ci": "npm run lint && npm run format:check && npm run typecheck && npm run test && npm run build",
+    "ci": "npm run lint && npm run format:check && npm run typecheck && npm run sync:version && npm run test && npm run build",
     "generate:standards": "tsx scripts/generate-standards.ts",
     "validate:schema": "tsx scripts/validate-schema.ts",
     "verify": "npm run ci"
