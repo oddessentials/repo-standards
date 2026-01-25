@@ -1,0 +1,36 @@
+version: 1
+trusted_only: true
+
+triggers:
+  on: [pull_request]
+  branches: [main]
+
+passes:
+  - name: static
+    agents: [semgrep, reviewdog]
+    enabled: true
+    required: true
+
+  - name: cloud-ai
+    agents: [opencode, pr_agent]
+    enabled: true
+
+models:
+  default: claude-sonnet-4-20250514
+
+limits:
+  max_files: 150
+  max_diff_lines: 100000
+  max_tokens_per_pr: 700000
+  max_usd_per_pr: 50.00
+  monthly_budget_usd: 500
+
+reporting:
+  github:
+    mode: checks_and_comments
+    max_inline_comments: 20
+    summary: true
+
+gating:
+  enabled: false
+  fail_on_severity: error
