@@ -1,6 +1,14 @@
 [![npm version](https://img.shields.io/npm/v/@oddessentials/repo-standards.svg)](https://www.npmjs.com/package/@oddessentials/repo-standards)
+[![npm downloads](https://img.shields.io/npm/dm/@oddessentials/repo-standards.svg)](https://www.npmjs.com/package/@oddessentials/repo-standards)
 [![CI](https://github.com/oddessentials/repo-standards/actions/workflows/ci.yml/badge.svg)](https://github.com/oddessentials/repo-standards/actions/workflows/ci.yml)
+[![Release](https://github.com/oddessentials/repo-standards/actions/workflows/release.yml/badge.svg)](https://github.com/oddessentials/repo-standards/actions/workflows/release.yml)
+[![Renovate](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovatebot.com)
+[![semantic-release](https://img.shields.io/badge/semantic--release-%E2%9C%93-brightgreen?logo=semantic-release)](https://github.com/semantic-release/semantic-release)
+[![semantic-release](https://img.shields.io/badge/semantic--release-24-e10079?logo=semantic-release)](https://github.com/semantic-release/semantic-release)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
 [![license](https://img.shields.io/npm/l/@oddessentials/repo-standards.svg)](LICENSE)
+[![node](https://img.shields.io/node/v/@oddessentials/repo-standards.svg)](https://nodejs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
 
 # 🐝 Repository Standards & CI Checklist
 
