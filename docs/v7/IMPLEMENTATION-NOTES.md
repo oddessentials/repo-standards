@@ -48,6 +48,10 @@ Rules:
 
 CI or policy checks MAY enforce this separation.
 
+🔵 pr_agent: AI agent governance section could benefit from more specific technical enforcement mechanisms
+Rule: pr_agent/docs
+💡 Suggestion: Add examples of specific tooling or hooks that enforce these restrictions
+
 ---
 
 ### 3. Forward-Compatible Commands — Drift Prevention
