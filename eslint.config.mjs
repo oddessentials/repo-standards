@@ -5,9 +5,12 @@ import security from "eslint-plugin-security";
 
 /** @type {import("eslint").Linter.FlatConfig[]} */
 export default [
+  // Global ignores - must be first and standalone
+  {
+    ignores: ["dist/**", "node_modules/**", "coverage/**", "test/fixtures/**"],
+  },
   {
     files: ["**/*.ts"],
-    ignores: ["dist/**", "node_modules/**", "test/fixtures/**"],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -62,7 +65,7 @@ export default [
   {
     // JavaScript/CommonJS files (config files, scripts)
     files: ["**/*.js", "**/*.cjs", "**/*.mjs"],
-    ignores: ["dist/**", "node_modules/**"],
+    ignores: ["dist/**", "node_modules/**", "coverage/**"],
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "module",
