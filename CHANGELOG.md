@@ -1,3 +1,45 @@
+# [7.0.0](https://github.com/oddessentials/repo-standards/compare/v6.0.1...v7.0.0) (2026-01-26)
+
+
+* feat(v7)!: enterprise-grade tooling overhaul ([5003e38](https://github.com/oddessentials/repo-standards/commit/5003e38910d5b05479219f6c594f8ced8f240a47))
+
+
+### Bug Fixes
+
+* auto-commit version.ts changes in pre-push hook ([db66745](https://github.com/oddessentials/repo-standards/commit/db66745141dcb5185b77c6ce73470e2eed182605))
+* make generated config files deterministic ([e89052d](https://github.com/oddessentials/repo-standards/commit/e89052da6269e44a7186d7741396b4f41d5669fe))
+* only write version.ts when content changes ([8a23da0](https://github.com/oddessentials/repo-standards/commit/8a23da0f2d2591d147f687aea09e0cb305a44c85))
+* remove UTF-8 BOM from pre-push hook ([ababe1f](https://github.com/oddessentials/repo-standards/commit/ababe1fd0ff5bdeeed1b3941afbde32ff8be8c23))
+* restore semantic-release managed version and normalize hooks ([4cfe2e2](https://github.com/oddessentials/repo-standards/commit/4cfe2e25136272796d8e5cf68daa0c065b197928))
+
+
+### Features
+
+* hook/CI parity with pre-push verification ([2f9d260](https://github.com/oddessentials/repo-standards/commit/2f9d260a2c3476298dd0baa1999aa92a0a2362cf))
+* strict typing and linting enforcement ([7c581ea](https://github.com/oddessentials/repo-standards/commit/7c581ea07caa4791982def9323cca4b6bbea6f61))
+
+
+### BREAKING CHANGES
+
+* Schema version bumped from 6 to 7
+
+This release implements the v7 constitution with:
+- Strict TypeScript flags (noUncheckedIndexedAccess, noUnusedLocals)
+- Type-aware ESLint with security plugin
+- Pre-push hook running full verify
+- dependency-cruiser for circular dep detection
+- env-guard policy script for .env protection
+- Coverage thresholds to prevent regression
+- Hook/CI parity (pre-push mirrors CI verify)
+- Updated renovate.json with semantic commits, automerge
+- Updated releaserc.json with version sync assets
+
+All verify checks pass:
+- 42 tests passing
+- 0 vulnerabilities (production deps)
+- 0 dependency violations
+- 17 config artifacts generated
+
 ## [6.0.1](https://github.com/oddessentials/repo-standards/compare/v6.0.0...v6.0.1) (2026-01-25)
 
 
