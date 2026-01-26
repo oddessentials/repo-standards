@@ -8,6 +8,7 @@
  */
 const fs = require("fs");
 const path = require("path");
+const { execSync } = require("child_process");
 
 const rootDir = process.cwd();
 const pkgPath = path.join(rootDir, "package.json");
@@ -31,6 +32,18 @@ if (pkgMajor > standards.version) {
   );
   standards.version = pkgMajor;
   fs.writeFileSync(standardsPath, JSON.stringify(standards, null, 2) + "\n");
+
+  // Auto-format the file to prevent format check failures
+  try {
+    execSync(`npx prettier --write ${standardsPath}`, { stdio: "ignore" });
+    console.log(
+      `[sync-schema-version] Formatted ${standardsPath} with Prettier`,
+    );
+  } catch (error) {
+    console.warn(
+      `[sync-schema-version] Warning: Failed to format with Prettier, continuing anyway`,
+    );
+  }
 } else if (standards.version > pkgMajor) {
   console.error(
     `[sync-schema-version] ERROR: Schema version ${standards.version} is ahead of package.json major ${pkgMajor}`,

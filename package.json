@@ -26,7 +26,7 @@
     "ci": "npm run check && npm run sync:version && npm run test && npm run build",
     "generate:standards": "tsx scripts/generate-standards.ts",
     "validate:schema": "tsx scripts/validate-schema.ts",
-    "verify": "npm run check && npm run test && npm run security && npm run policy && npm run build"
+    "verify": "npm run check && npm run sync:version && npm run test && npm run security && npm run policy && npm run build"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.2.0",
