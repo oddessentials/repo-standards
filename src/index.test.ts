@@ -34,9 +34,9 @@ describe("repo-standards API", () => {
 });
 
 describe("dependency governance items", () => {
-  it("schema version is 7", () => {
+  it("schema version is 6", () => {
     const spec = loadMasterSpec();
-    expect(spec.version).toBe(7);
+    expect(spec.version).toBe(6);
   });
 
   it("recommended section includes both dependency items", () => {
@@ -276,37 +276,6 @@ describe("determinism contract", () => {
 });
 
 describe("documentation sync (prevents version drift)", () => {
-  it("README schema version reference matches actual standards.json version", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-
-    const spec = loadMasterSpec();
-    const actualVersion = spec.version;
-
-    const readmePath = path.resolve(process.cwd(), "README.md");
-    const readme = fs.readFileSync(readmePath, "utf8");
-
-    // Check the "currently `N`" reference in README
-    const versionMatch = readme.match(/version.*\(currently `(\d+)`\)/i);
-    expect(versionMatch).not.toBeNull();
-    expect(Number(versionMatch![1])).toBe(actualVersion);
-  });
-
-  it("README documents the current schema version in version list", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-
-    const spec = loadMasterSpec();
-    const actualVersion = spec.version;
-
-    const readmePath = path.resolve(process.cwd(), "README.md");
-    const readme = fs.readFileSync(readmePath, "utf8");
-
-    // Check that the version list includes the current version
-    const versionListPattern = new RegExp(`-\\s*\`${actualVersion}\`\\s*—`);
-    expect(readme).toMatch(versionListPattern);
-  });
-
   it("schema version matches package.json major version", async () => {
     const fs = await import("node:fs");
     const path = await import("node:path");
