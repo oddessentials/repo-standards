@@ -297,7 +297,7 @@ export function validateStandardsConfig(
   let schema: unknown;
 
   try {
-    config = JSON.parse(configRaw);
+    config = JSON.parse(configRaw) as Config;
   } catch {
     return { valid: false, errors: ["Failed to parse standards.json as JSON"] };
   }

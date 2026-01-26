@@ -311,10 +311,14 @@ describe("documentation sync (prevents version drift)", () => {
     const fs = await import("node:fs");
     const path = await import("node:path");
 
+    interface PackageJson {
+      version: string;
+    }
+
     const spec = loadMasterSpec();
     const pkgPath = path.resolve(process.cwd(), "package.json");
-    const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
-    const pkgMajor = parseInt(pkg.version.split(".")[0], 10);
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8")) as PackageJson;
+    const pkgMajor = parseInt(pkg.version.split(".")[0] ?? "0", 10);
 
     expect(spec.version).toBe(pkgMajor);
   });

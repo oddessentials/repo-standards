@@ -6,6 +6,12 @@ import { describe, it, expect } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 
+/** Minimal package.json shape for test assertions */
+interface PackageJson {
+  scripts: Record<string, string>;
+  bin: Record<string, string>;
+}
+
 const rootDir = path.resolve(process.cwd());
 const readmePath = path.join(rootDir, "README.md");
 const pkgPath = path.join(rootDir, "package.json");
@@ -16,7 +22,7 @@ describe("README contract (prevents drift)", () => {
   });
 
   const readme = fs.readFileSync(readmePath, "utf8");
-  const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
+  const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8")) as PackageJson;
 
   it("documented npm scripts exist in package.json", () => {
     // Extract script references from README (excluding code blocks)

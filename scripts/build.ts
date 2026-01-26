@@ -18,6 +18,7 @@ import {
 } from "node:fs";
 import { resolve, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import type { PackageJson, MasterJson } from "./types.internal.js";
 
 const __filename = fileURLToPath(import.meta.url);
 
@@ -44,11 +45,13 @@ function syncSchemaVersion(rootDir: string): void {
   const pkgPath = join(rootDir, "package.json");
   const standardsPath = join(rootDir, "config", "standards.json");
 
-  const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
-  const standards = JSON.parse(readFileSync(standardsPath, "utf8"));
+  const pkg = JSON.parse(readFileSync(pkgPath, "utf8")) as PackageJson;
+  const standards = JSON.parse(
+    readFileSync(standardsPath, "utf8"),
+  ) as MasterJson;
 
   // Extract major version from package.json (e.g., "2.1.0" -> 2)
-  const pkgMajor = parseInt(pkg.version.split(".")[0], 10);
+  const pkgMajor = parseInt(pkg.version.split(".")[0] ?? "0", 10);
 
   if (pkgMajor > standards.version) {
     // Auto-upgrade schema version when semantic-release bumps package.json
@@ -88,10 +91,10 @@ function generateVersionFile(rootDir: string): void {
   const pkgPath = join(rootDir, "package.json");
   const versionPath = join(rootDir, "src", "version.ts");
 
-  const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
+  const pkg = JSON.parse(readFileSync(pkgPath, "utf8")) as PackageJson;
   const standards = JSON.parse(
     readFileSync(join(rootDir, "config", "standards.json"), "utf8"),
-  );
+  ) as MasterJson;
 
   const content = `/**
  * AUTO-GENERATED at build time by scripts/build.ts
@@ -156,7 +159,7 @@ function main() {
     const destPath = join(configDest, file);
 
     // Read, sort for determinism, and write
-    const data = JSON.parse(readFileSync(srcPath, "utf8"));
+    const data: unknown = JSON.parse(readFileSync(srcPath, "utf8"));
     const sorted = sortObject(data);
     writeFileSync(destPath, JSON.stringify(sorted, null, 2) + "\n");
   }

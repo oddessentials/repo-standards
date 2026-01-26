@@ -139,7 +139,7 @@ function main() {
   }
 
   const raw = fs.readFileSync(inputPath, "utf8");
-  const data: StackChecklistJson = JSON.parse(raw);
+  const data = JSON.parse(raw) as StackChecklistJson;
 
   const lines: string[] = [];
 

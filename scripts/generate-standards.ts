@@ -202,7 +202,7 @@ const rootDir = path.join(process.cwd());
 const masterPath = path.join(rootDir, "config", "standards.json");
 
 const raw = fs.readFileSync(masterPath, "utf8");
-const master: MasterJson = JSON.parse(raw);
+const master = JSON.parse(raw) as MasterJson;
 
 // args: stack [ciSystem]
 // args: stack [ciSystem]

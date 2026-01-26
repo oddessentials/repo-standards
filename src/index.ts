@@ -30,7 +30,7 @@ const configDir = isDevMode
 /** Load the master spec JSON from the packaged dist directory */
 export function loadMasterSpec(): MasterJson {
   const filePath = join(configDir, "standards.json");
-  return JSON.parse(readFileSync(filePath, "utf8"));
+  return JSON.parse(readFileSync(filePath, "utf8")) as MasterJson;
 }
 
 /** Load a stack-specific checklist (optionally filtered by CI system) */
@@ -41,7 +41,7 @@ export function loadBaseline(
   const suffix = ci ? `.${ci}` : "";
   const file = `standards.${stack}${suffix}.json`;
   const filePath = join(configDir, file);
-  return JSON.parse(readFileSync(filePath, "utf8"));
+  return JSON.parse(readFileSync(filePath, "utf8")) as StackChecklistJson;
 }
 
 /** List all supported stacks (derived from the master spec) */
