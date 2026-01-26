@@ -1,208 +1,98 @@
 {
-  "version": 6,
-  "stack": "typescript-js",
-  "stackLabel": "TypeScript / JavaScript",
-  "ciSystems": ["azure-devops"],
-  "meta": {
-    "defaultCoverageThreshold": 0.8,
-    "coverageThresholdUnit": "ratio",
-    "coverageThresholdDescription": "Expressed as a ratio (0-1), e.g., 0.8 = 80% coverage. Must be between 0 and 1.",
-    "complexityChecks": {
-      "enabledByDefault": true,
-      "description": "When supported by the stack, run cyclomatic complexity or similar metrics in CI as a warning-only check initially."
-    },
-    "qualityGatePolicy": {
-      "preferSoftFailOnLegacy": true,
-      "description": "New quality checks should warn on existing code and fail CI only for violations introduced in new or changed code, to reduce friction on legacy codebases."
-    },
-    "migrationGuide": [
-      {
-        "step": 0,
-        "title": "Foundation: Line Endings and Hook Entry Point",
-        "description": "Configure .gitattributes for cross-platform line ending correctness and establish the canonical verify entrypoint before adding any checks. This prevents 'works locally, fails in CI' issues from day one.",
-        "focusIds": [
-          "gitattributes-eol",
-          "canonical-verify",
-          "hook-ci-parity",
-          "config-authority"
-        ],
-        "notes": "Start here to avoid debugging cryptic CRLF failures later. Use .gitattributes as the authority for EOL (not .editorconfig). Run 'git add --renormalize .' after adding .gitattributes to fix existing files."
-      },
-      {
-        "step": 1,
-        "title": "Establish Local Safety Nets First",
-        "description": "Add pre-commit hooks with secret scanning, formatting, and linting. Hooks should CHECK (not auto-fix) and scope to changed files only for speed.",
-        "focusIds": [
-          "pre-commit-hooks",
-          "secret-scanning-precommit",
-          "linting",
-          "code-formatter"
-        ],
-        "notes": "Keep hooks fast by scoping to staged files. Use Husky as entry point calling lint-staged or pre-commit. Hooks should check, not fix, to keep developers aware of issues."
-      },
-      {
-        "step": 2,
-        "title": "Mirror Local Checks in CI with CRLF Detection",
-        "description": "Introduce CI quality gates that mirror local hooks exactly. Add CRLF detection early in pipeline. Treat existing violations as warnings where possible.",
-        "focusIds": [
-          "crlf-detection",
-          "ci-quality-gates",
-          "linting",
-          "code-formatter",
-          "commit-linting"
-        ],
-        "notes": "CI must call the same verify scripts that hooks use. Add CRLF detection before other checks to fail fast on line ending issues. Use diff-based tools so only new violations break builds."
-      },
-      {
-        "step": 3,
-        "title": "Add Type Safety, Coverage, and Dependency Security",
-        "description": "Enable type-checking, coverage thresholds, and dependency/vulnerability scanning with gradual enforcement.",
-        "focusIds": [
-          "type-checking",
-          "unit-test-runner",
-          "unit-test-reporter",
-          "dependency-security",
-          "dependency-update-automation"
-        ],
-        "notes": "Pin tool and runtime versions in CI and containers to avoid flaky differences across environments."
-      },
-      {
-        "step": 4,
-        "title": "Layer in Docs, Governance, and Recommended Checks",
-        "description": "Add documentation standards, governance files, integration testing, performance baselines, complexity analysis, accessibility auditing, and (optionally) ML-specific practices for data-heavy Python repos.",
-        "focusIds": [
-          "documentation",
-          "repository-governance",
-          "integration-testing",
-          "performance-baselining",
-          "complexity-analysis",
-          "accessibility-auditing"
-        ],
-        "notes": "Tackle recommended items in order of business value; backend-only repos can skip web-focused checks like accessibility."
-      },
-      {
-        "step": 5,
-        "title": "AI/ML Governance (If Applicable)",
-        "description": "For repos using or building with generative AI, add drift detection, schema enforcement, golden contract tests, safety testing, and provenance tracking.",
-        "focusIds": [
-          "ai-drift-detection",
-          "ai-schema-enforcement",
-          "ai-golden-tests",
-          "ai-safety-checks",
-          "ai-provenance-tracking"
-        ],
-        "notes": "Skip this step if your repo has no AI/ML components. For AI-heavy repos: add nightly drift detection to catch model changes, enforce strict schemas at AI output boundaries, and log provenance for debugging 'why did AI do X?'"
-      }
-    ],
-    "executorHints": {
-      "description": "Advisory execution substrate hints. Bazel is the first supported executor; future monorepo executors may follow the same pattern.",
-      "bazel": {
-        "detectionRules": {
-          "rootMarkers": ["MODULE.bazel", "WORKSPACE.bazel", "WORKSPACE"],
-          "optionalMarkers": [".bazelrc", ".bazelversion"],
-          "notes": "Detection uses repo-root markers only. Nested BUILD files do not trigger Bazel mode."
-        },
-        "optOut": {
-          "description": "Set meta.executorHints.bazel.enabled = false in repo config to disable Bazel hints",
-          "configPath": "meta.executorHints.bazel.enabled"
-        },
-        "targetConventions": {
-          "description": "Recommended target naming (not assumed to exist). These are illustrative patterns; actual targets are repo-defined.",
-          "lint": "//tools/lint:lint or bazel test //... with lint aspects",
-          "format": "bazel run //tools/format:check",
-          "test": "bazel test //...",
-          "coverage": "bazel coverage //...",
-          "build": "bazel build //..."
-        },
-        "ciContract": {
-          "versionPinning": "Use .bazelversion file for Bazelisk",
-          "configFlag": "--config=ci (define in .bazelrc)",
-          "deterministicFlags": ["--nokeep_going", "--test_output=errors"],
-          "remoteCache": "Optional; not required for CI"
-        },
-        "advisoryNotice": "bazelHints are suggestions, not required execution paths. Consumers should prefer stack-native commands unless explicitly adopting Bazel."
-      }
-    }
-  },
   "checklist": {
     "core": [
       {
+        "ciHints": {
+          "azure-devops": {
+            "notes": "Run CRLF detection early in pipeline before other checks.",
+            "stage": "quality"
+          }
+        },
+        "description": "Enforce line endings at the Git layer using .gitattributes. Mark text files with appropriate EOL handling (eol=lf for shell scripts, eol=auto for most files) and binary files as binary to prevent corruption. This prevents 'works locally, fails in CI' issues caused by CRLF/LF mismatches.",
         "id": "gitattributes-eol",
         "label": "Git Attributes (Line Endings)",
-        "description": "Enforce line endings at the Git layer using .gitattributes. Mark text files with appropriate EOL handling (eol=lf for shell scripts, eol=auto for most files) and binary files as binary to prevent corruption. This prevents 'works locally, fails in CI' issues caused by CRLF/LF mismatches.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "quality",
-            "notes": "Run CRLF detection early in pipeline before other checks."
-          }
-        },
         "stack": {
-          "exampleTools": ["git"],
-          "exampleConfigFiles": [".gitattributes", ".editorconfig"],
-          "notes": "Use .gitattributes as the authority for EOL; .editorconfig is supplementary for editor display. Mark *.sh, *.bash as eol=lf. After adding .gitattributes, run 'git add --renormalize .' to fix existing files. Windows contributors should set core.autocrlf=false and core.safecrlf=warn (safecrlf=true blocks normalization with fatal errors).",
-          "verification": "Run 'git ls-files --eol' and verify no unexpected CRLF in LF-only files.",
-          "requiredFiles": [".gitattributes"],
-          "optionalFiles": [".editorconfig"],
+          "exampleConfigFiles": [
+            ".gitattributes",
+            ".editorconfig"
+          ],
+          "exampleTools": [
+            "git"
+          ],
           "machineCheck": {
             "command": "git ls-files --eol | grep -E 'w/crlf.*\\.(sh|bash|py)$' && exit 1 || exit 0",
-            "expectExitCode": 0,
-            "description": "Verify no CRLF in shell/script files"
-          }
+            "description": "Verify no CRLF in shell/script files",
+            "expectExitCode": 0
+          },
+          "notes": "Use .gitattributes as the authority for EOL; .editorconfig is supplementary for editor display. Mark *.sh, *.bash as eol=lf. After adding .gitattributes, run 'git add --renormalize .' to fix existing files. Windows contributors should set core.autocrlf=false and core.safecrlf=warn (safecrlf=true blocks normalization with fatal errors).",
+          "optionalFiles": [
+            ".editorconfig"
+          ],
+          "requiredFiles": [
+            ".gitattributes"
+          ],
+          "verification": "Run 'git ls-files --eol' and verify no unexpected CRLF in LF-only files."
         }
       },
       {
+        "ciHints": {
+          "azure-devops": {
+            "notes": "Run CRLF detection as the first quality check before linting or testing.",
+            "stage": "quality"
+          }
+        },
+        "description": "Fail CI early for Linux-executed files containing CRLF line endings. Shell scripts, Python files, and other interpreted files fail silently or with cryptic errors when they contain \\r characters. Detect this before running deeper CI steps.",
         "id": "crlf-detection",
         "label": "CRLF Detection in CI",
-        "description": "Fail CI early for Linux-executed files containing CRLF line endings. Shell scripts, Python files, and other interpreted files fail silently or with cryptic errors when they contain \\r characters. Detect this before running deeper CI steps.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "quality",
-            "notes": "Run CRLF detection as the first quality check before linting or testing."
-          }
-        },
         "stack": {
-          "exampleTools": ["file", "grep"],
           "exampleConfigFiles": [],
-          "notes": "Check for CRLF in .sh, .js, .ts, .json files early in CI. Use 'file' command or grep for \\r to detect issues before they cause cryptic failures.",
-          "verification": "Run 'git ls-files --eol | grep w/crlf' and verify no unexpected CRLF files.",
+          "exampleTools": [
+            "file",
+            "grep"
+          ],
           "machineCheck": {
             "command": "git ls-files --eol | grep -E 'w/crlf.*\\.(sh|js|ts|mjs|cjs)$' && exit 1 || exit 0",
-            "expectExitCode": 0,
-            "description": "Detect CRLF in script files"
-          }
+            "description": "Detect CRLF in script files",
+            "expectExitCode": 0
+          },
+          "notes": "Check for CRLF in .sh, .js, .ts, .json files early in CI. Use 'file' command or grep for \\r to detect issues before they cause cryptic failures.",
+          "verification": "Run 'git ls-files --eol | grep w/crlf' and verify no unexpected CRLF files."
         }
       },
       {
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          }
+        },
+        "description": "Maintain proper .gitignore and .dockerignore files to prevent committing secrets, build artifacts, or unnecessary files.",
         "id": "gitignore-and-dockerignore",
         "label": "Git and Docker Ignore Files",
-        "description": "Maintain proper .gitignore and .dockerignore files to prevent committing secrets, build artifacts, or unnecessary files.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "quality"
-          }
-        },
         "stack": {
-          "exampleConfigFiles": [".gitignore", ".dockerignore"],
+          "exampleConfigFiles": [
+            ".gitignore",
+            ".dockerignore"
+          ],
           "notes": "Use the official github/gitignore Node template as a base and add .env*, node_modules, dist/, coverage/, *.log, npm-debug.log*, etc. .dockerignore must exclude node_modules, .git, and local build output.",
-          "verification": ".gitignore must exist; .dockerignore is recommended when containerizing or using Docker workflows.",
-          "requiredFiles": [".gitignore"],
-          "optionalFiles": [".dockerignore"]
+          "optionalFiles": [
+            ".dockerignore"
+          ],
+          "requiredFiles": [
+            ".gitignore"
+          ],
+          "verification": ".gitignore must exist; .dockerignore is recommended when containerizing or using Docker workflows."
         }
       },
       {
-        "id": "linting",
-        "label": "Linting",
-        "description": "Run static code linting to enforce consistency and catch common issues early.",
         "ciHints": {
           "azure-devops": {
             "stage": "quality"
           }
         },
+        "description": "Run static code linting to enforce consistency and catch common issues early.",
+        "id": "linting",
+        "label": "Linting",
         "stack": {
-          "exampleTools": ["eslint"],
-          "exampleConfigFiles": [".eslintrc.*", "eslint.config.js"],
-          "notes": "Treat new lint errors as CI failures; keep existing issues as warnings until addressed.",
-          "verification": "Presence of eslint.config.js (or any .eslintrc* file) indicates linting is enforced for the repository.",
           "anyOfFiles": [
             "eslint.config.js",
             "eslint.config.mjs",
@@ -213,6 +103,23 @@
             ".eslintrc.yaml",
             ".eslintrc.yml"
           ],
+          "bazelHints": {
+            "commands": [
+              "bazel test //... --aspects=//tools:lint.bzl%eslint_aspect --output_groups=report"
+            ],
+            "notes": "Example only; actual targets are repo-defined. Wrap eslint via aspect_rules_lint or a custom sh_test rule.",
+            "recommendedTargets": [
+              "//tools/lint:lint"
+            ]
+          },
+          "exampleConfigFiles": [
+            ".eslintrc.*",
+            "eslint.config.js"
+          ],
+          "exampleTools": [
+            "eslint"
+          ],
+          "notes": "Treat new lint errors as CI failures; keep existing issues as warnings until addressed.",
           "optionalFiles": [
             ".prettierrc",
             "prettier.config.js",
@@ -220,393 +127,509 @@
             "prettier.config.json",
             "prettier.config.yaml"
           ],
-          "requiredScripts": ["lint"],
-          "bazelHints": {
-            "commands": [
-              "bazel test //... --aspects=//tools:lint.bzl%eslint_aspect --output_groups=report"
-            ],
-            "recommendedTargets": ["//tools/lint:lint"],
-            "notes": "Example only; actual targets are repo-defined. Wrap eslint via aspect_rules_lint or a custom sh_test rule."
-          }
+          "requiredScripts": [
+            "lint"
+          ],
+          "verification": "Presence of eslint.config.js (or any .eslintrc* file) indicates linting is enforced for the repository."
         }
       },
       {
-        "id": "unit-test-runner",
-        "label": "Unit Test Runner",
-        "description": "Provide a deterministic unit test framework with a single command to run all tests.",
         "ciHints": {
           "azure-devops": {
             "stage": "test"
           }
         },
+        "description": "Provide a deterministic unit test framework with a single command to run all tests.",
+        "id": "unit-test-runner",
+        "label": "Unit Test Runner",
         "stack": {
-          "exampleTools": ["jest"],
-          "exampleConfigFiles": ["jest.config.*"],
+          "bazelHints": {
+            "commands": [
+              "bazel test //..."
+            ],
+            "notes": "Bazel discovers and runs all test targets. Use rules_js for Jest/Vitest integration."
+          },
+          "exampleConfigFiles": [
+            "jest.config.*"
+          ],
+          "exampleTools": [
+            "jest"
+          ],
           "notes": "Keep unit tests fast and deterministic; move slow or flaky tests into integration or E2E suites.",
-          "verification": "Test framework configuration is present; test script is defined in package.json.",
           "optionalFiles": [
             "jest.config.js",
             "jest.config.ts",
             "vitest.config.js",
             "vitest.config.ts"
           ],
-          "requiredScripts": ["test"],
-          "bazelHints": {
-            "commands": ["bazel test //..."],
-            "notes": "Bazel discovers and runs all test targets. Use rules_js for Jest/Vitest integration."
-          }
+          "requiredScripts": [
+            "test"
+          ],
+          "verification": "Test framework configuration is present; test script is defined in package.json."
         }
       },
       {
-        "id": "containerization",
-        "label": "Containerization (Docker / Docker Compose)",
-        "description": "Provide a Dockerfile and, if applicable, a docker-compose file for local dev and CI parity.",
         "ciHints": {
           "azure-devops": {
             "stage": "build"
           }
         },
+        "description": "Provide a Dockerfile and, if applicable, a docker-compose file for local dev and CI parity.",
+        "id": "containerization",
+        "label": "Containerization (Docker / Docker Compose)",
         "stack": {
+          "exampleConfigFiles": [
+            "Dockerfile",
+            "docker-compose.yml"
+          ],
           "exampleTools": [],
-          "exampleConfigFiles": ["Dockerfile", "docker-compose.yml"],
           "notes": "Use multi-stage builds and pin Node.js and base image versions in the Dockerfile to match CI (e.g., node:22-alpine).",
-          "verification": "Dockerfile must be present; docker-compose.yml is optional and indicates orchestration usage.",
-          "requiredFiles": ["Dockerfile"],
-          "optionalFiles": ["docker-compose.yml"]
+          "optionalFiles": [
+            "docker-compose.yml"
+          ],
+          "requiredFiles": [
+            "Dockerfile"
+          ],
+          "verification": "Dockerfile must be present; docker-compose.yml is optional and indicates orchestration usage."
         }
       },
       {
-        "id": "semantic-versioning",
-        "label": "Semantic Versioning",
-        "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history. Maintain a single canonical version source (for example, package.json or VERSION) that all release artifacts use.",
         "ciHints": {
           "azure-devops": {
             "stage": "release"
           }
         },
+        "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history. Maintain a single canonical version source (for example, package.json or VERSION) that all release artifacts use.",
+        "id": "semantic-versioning",
+        "label": "Semantic Versioning",
         "stack": {
-          "exampleTools": ["semantic-release", "standard-version"],
-          "exampleConfigFiles": [".releaserc", "package.json", "CHANGELOG.md"],
+          "exampleConfigFiles": [
+            ".releaserc",
+            "package.json",
+            "CHANGELOG.md"
+          ],
+          "exampleTools": [
+            "semantic-release",
+            "standard-version"
+          ],
           "notes": "Automate version bumping and changelog generation from Conventional Commits using semantic-release or standard-version. Keep package.json (or a VERSION file) as the single canonical version source and have CI publish npm/GitHub/Docker artifacts from that same version. Protect release branches and ensure release tooling only runs there.",
-          "verification": "Check that the canonical version field follows SemVer, and trigger the configured release workflow (for example, a dry run of semantic-release or standard-version) to confirm it generates the expected next version, updates package.json or VERSION, and creates/updates CHANGELOG.md with commit-based entries.",
-          "requiredFiles": ["package.json"],
-          "optionalFiles": ["VERSION", "CHANGELOG.md"],
-          "requiredScripts": ["release"]
+          "optionalFiles": [
+            "VERSION",
+            "CHANGELOG.md"
+          ],
+          "requiredFiles": [
+            "package.json"
+          ],
+          "requiredScripts": [
+            "release"
+          ],
+          "verification": "Check that the canonical version field follows SemVer, and trigger the configured release workflow (for example, a dry run of semantic-release or standard-version) to confirm it generates the expected next version, updates package.json or VERSION, and creates/updates CHANGELOG.md with commit-based entries."
         }
       },
       {
-        "id": "version-guard",
-        "label": "Version Guard (Automated Releases)",
-        "description": "If semantic-release or automated versioning is enabled, block manual edits to canonical version fields in pull requests. Enforce a CI guard (and optional pre-push hook) that fails when version lines change outside the release workflow.",
         "ciHints": {
           "azure-devops": {
-            "stage": "quality",
-            "notes": "Run the version guard in PR validation jobs before merge."
+            "notes": "Run the version guard in PR validation jobs before merge.",
+            "stage": "quality"
           }
         },
+        "description": "If semantic-release or automated versioning is enabled, block manual edits to canonical version fields in pull requests. Enforce a CI guard (and optional pre-push hook) that fails when version lines change outside the release workflow.",
+        "id": "version-guard",
+        "label": "Version Guard (Automated Releases)",
         "stack": {
-          "exampleTools": ["semantic-release", "git"],
           "exampleConfigFiles": [
             "scripts/check-version-unchanged.sh",
             ".github/workflows/ci.yml",
             "azure-pipelines.yml"
           ],
+          "exampleTools": [
+            "semantic-release",
+            "git"
+          ],
           "notes": "Add a CI step that runs scripts/check-version-unchanged.sh against the PR base ref. This blocks manual edits to package.json version when semantic-release owns versioning. Optionally wire the same script into a pre-push hook for fast feedback.",
-          "verification": "Run the guard with the PR base ref (for example, origin/main) and confirm it fails when package.json version changes.",
-          "requiredFiles": ["package.json"],
-          "optionalFiles": ["VERSION"]
+          "optionalFiles": [
+            "VERSION"
+          ],
+          "requiredFiles": [
+            "package.json"
+          ],
+          "verification": "Run the guard with the PR base ref (for example, origin/main) and confirm it fails when package.json version changes."
         }
       },
       {
-        "id": "release-artifact-exclusion",
-        "label": "Release Artifact Formatter Exclusion",
-        "description": "Exclude auto-generated release artifacts (CHANGELOG.md, package-lock.json, etc.) from code formatters to prevent CI failures. Release automation tools generate files that may not conform to your formatter's style, causing format checks to fail on subsequent CI runs.",
         "ciHints": {
           "azure-devops": {
-            "stage": "quality",
-            "notes": "Ensure format:check step uses ignore file that excludes release artifacts."
+            "notes": "Ensure format:check step uses ignore file that excludes release artifacts.",
+            "stage": "quality"
           }
         },
+        "description": "Exclude auto-generated release artifacts (CHANGELOG.md, package-lock.json, etc.) from code formatters to prevent CI failures. Release automation tools generate files that may not conform to your formatter's style, causing format checks to fail on subsequent CI runs.",
+        "id": "release-artifact-exclusion",
+        "label": "Release Artifact Formatter Exclusion",
         "stack": {
-          "exampleTools": ["prettier", "semantic-release"],
-          "exampleConfigFiles": [".prettierignore", ".releaserc.json"],
+          "exampleConfigFiles": [
+            ".prettierignore",
+            ".releaserc.json"
+          ],
+          "exampleTools": [
+            "prettier",
+            "semantic-release"
+          ],
           "notes": "Add CHANGELOG.md and package-lock.json to .prettierignore. These files are auto-generated by semantic-release and npm respectively. Without this exclusion, format:check fails after releases because the generated format differs from Prettier's expected style. Document each exclusion with a comment explaining it's auto-generated.",
-          "verification": "Run 'npm run format:check' and confirm CHANGELOG.md is not checked. Review .prettierignore and confirm auto-generated files are listed with explanatory comments.",
-          "requiredFiles": [".prettierignore"]
+          "requiredFiles": [
+            ".prettierignore"
+          ],
+          "verification": "Run 'npm run format:check' and confirm CHANGELOG.md is not checked. Review .prettierignore and confirm auto-generated files are listed with explanatory comments."
         }
       },
       {
-        "id": "unified-release-workflow",
-        "label": "Unified Release Workflow",
-        "description": "Use a single CI release pipeline that publishes all artifacts (GitHub releases, packages, containers) from the same canonical version source.",
         "ciHints": {
           "azure-devops": {
             "stage": "release"
           }
         },
+        "description": "Use a single CI release pipeline that publishes all artifacts (GitHub releases, packages, containers) from the same canonical version source.",
+        "id": "unified-release-workflow",
+        "label": "Unified Release Workflow",
         "stack": {
+          "exampleConfigFiles": [
+            ".github/workflows/release.yml",
+            "azure-pipelines.yml"
+          ],
           "exampleTools": [
             "semantic-release",
             "changesets",
             "npm publish",
             "docker buildx"
           ],
-          "exampleConfigFiles": [
-            ".github/workflows/release.yml",
-            "azure-pipelines.yml"
-          ],
           "notes": "Release workflow must publish npm packages, GitHub releases, and Docker images from the same canonical version (package.json or VERSION). Avoid separate manual steps or ad-hoc scripts for different artifacts.",
-          "verification": "Trigger the release pipeline and confirm all artifacts share the same version number and tag.",
-          "requiredScripts": ["release"],
-          "optionalFiles": ["CHANGELOG.md", "VERSION"]
+          "optionalFiles": [
+            "CHANGELOG.md",
+            "VERSION"
+          ],
+          "requiredScripts": [
+            "release"
+          ],
+          "verification": "Trigger the release pipeline and confirm all artifacts share the same version number and tag."
         }
       },
       {
-        "id": "release-hook-bypass",
-        "label": "Release Hook Bypass",
-        "description": "Release automation must bypass local developer hooks (HUSKY=0, --no-verify) and rely solely on CI gates for validation. This ensures idempotent, reproducible releases that don't fail due to hook environment differences.",
         "ciHints": {
           "azure-devops": {
-            "stage": "release",
-            "notes": "Set HUSKY=0 or equivalent in release pipeline to disable hooks."
+            "notes": "Set HUSKY=0 or equivalent in release pipeline to disable hooks.",
+            "stage": "release"
           }
         },
+        "description": "Release automation must bypass local developer hooks (HUSKY=0, --no-verify) and rely solely on CI gates for validation. This ensures idempotent, reproducible releases that don't fail due to hook environment differences.",
+        "id": "release-hook-bypass",
+        "label": "Release Hook Bypass",
         "stack": {
-          "exampleTools": ["semantic-release", "husky"],
-          "exampleConfigFiles": [".github/workflows/release.yml"],
-          "notes": "In release workflows, set HUSKY=0 environment variable to disable husky hooks. Release commits from semantic-release should bypass commitlint since they're generated. CI gates already validated the code.",
-          "verification": "Check release workflow for HUSKY=0 or --no-verify flags.",
+          "exampleConfigFiles": [
+            ".github/workflows/release.yml"
+          ],
+          "exampleTools": [
+            "semantic-release",
+            "husky"
+          ],
           "machineCheck": {
             "command": "grep -r 'HUSKY=0\\|--no-verify' .github/workflows/ || echo 'WARNING: No hook bypass in release workflow'",
-            "expectExitCode": 0,
-            "description": "Verify release workflows disable hooks"
-          }
+            "description": "Verify release workflows disable hooks",
+            "expectExitCode": 0
+          },
+          "notes": "In release workflows, set HUSKY=0 environment variable to disable husky hooks. Release commits from semantic-release should bypass commitlint since they're generated. CI gates already validated the code.",
+          "verification": "Check release workflow for HUSKY=0 or --no-verify flags."
         }
       },
       {
-        "id": "commit-linting",
-        "label": "Commit Linting",
-        "description": "Enforce structured commit messages such as Conventional Commits via commit-msg hooks and CI. This is required for deterministic versioning and changelog generation.",
         "ciHints": {
           "azure-devops": {
             "stage": "quality"
           }
         },
+        "description": "Enforce structured commit messages such as Conventional Commits via commit-msg hooks and CI. This is required for deterministic versioning and changelog generation.",
+        "id": "commit-linting",
+        "label": "Commit Linting",
         "stack": {
-          "exampleTools": [
-            "@commitlint/cli",
-            "@commitlint/config-conventional"
-          ],
-          "exampleConfigFiles": ["commitlint.config.*"],
-          "notes": "Enforce Conventional Commits via commit-msg hooks (e.g., Husky) and a CI job so versioning/changelog automation is deterministic.",
-          "verification": "Create a test commit using the documented convention and ensure the commit message passes both local commit-msg hooks and CI checks.",
           "anyOfFiles": [
             "commitlint.config.js",
             "commitlint.config.cjs",
             "commitlint.config.mjs",
             "commitlint.config.json"
           ],
-          "requiredScripts": ["commitlint"]
+          "exampleConfigFiles": [
+            "commitlint.config.*"
+          ],
+          "exampleTools": [
+            "@commitlint/cli",
+            "@commitlint/config-conventional"
+          ],
+          "notes": "Enforce Conventional Commits via commit-msg hooks (e.g., Husky) and a CI job so versioning/changelog automation is deterministic.",
+          "requiredScripts": [
+            "commitlint"
+          ],
+          "verification": "Create a test commit using the documented convention and ensure the commit message passes both local commit-msg hooks and CI checks."
         }
       },
       {
-        "id": "unit-test-reporter",
-        "label": "Unit Test Reporter / Coverage",
-        "description": "Generate readable unit test and coverage reports and enforce a minimum coverage threshold (around 80%) for new or changed code.",
         "ciHints": {
           "azure-devops": {
             "stage": "test"
           }
         },
+        "description": "Generate readable unit test and coverage reports and enforce a minimum coverage threshold (around 80%) for new or changed code.",
+        "id": "unit-test-reporter",
+        "label": "Unit Test Reporter / Coverage",
         "stack": {
-          "exampleTools": ["jest", "nyc"],
-          "exampleConfigFiles": ["jest.config.*"],
-          "notes": "Collect coverage in lcov or similar format; use diff coverage so legacy gaps are visible but non-blocking.",
-          "verification": "Run the unit tests with coverage enabled and confirm that a coverage report is produced and that the configured threshold (around 80%) is enforced for new changes.",
           "bazelHints": {
-            "commands": ["bazel coverage //..."],
+            "commands": [
+              "bazel coverage //..."
+            ],
             "notes": "Bazel coverage collects coverage data from all test targets. Use --combined_report=lcov for aggregated reports."
-          }
+          },
+          "exampleConfigFiles": [
+            "jest.config.*"
+          ],
+          "exampleTools": [
+            "jest",
+            "nyc"
+          ],
+          "notes": "Collect coverage in lcov or similar format; use diff coverage so legacy gaps are visible but non-blocking.",
+          "verification": "Run the unit tests with coverage enabled and confirm that a coverage report is produced and that the configured threshold (around 80%) is enforced for new changes."
         }
       },
       {
-        "id": "ci-quality-gates",
-        "label": "CI Quality Gates",
-        "description": "Single CI pipeline that runs linting, formatting, type checking, tests, coverage, build, and containerization.",
         "ciHints": {
           "azure-devops": {
             "stage": "ci"
           }
         },
+        "description": "Single CI pipeline that runs linting, formatting, type checking, tests, coverage, build, and containerization.",
+        "id": "ci-quality-gates",
+        "label": "CI Quality Gates",
         "stack": {
-          "exampleTools": [],
-          "exampleConfigFiles": [".github/workflows/*", "azure-pipelines.yml"],
-          "notes": "Expose a single npm script (e.g., `npm run ci`) that mirrors the CI pipeline so contributors can reproduce failures locally.",
-          "verification": "Open the CI configuration and verify there is a job or stage that runs linting, type checking, tests, build, and any required container checks before merging to main.",
           "bazelHints": {
-            "commands": ["bazel build //...", "bazel test //..."],
+            "commands": [
+              "bazel build //...",
+              "bazel test //..."
+            ],
             "notes": "Replace npm run ci with Bazel commands. All quality gates run as Bazel targets."
-          }
+          },
+          "exampleConfigFiles": [
+            ".github/workflows/*",
+            "azure-pipelines.yml"
+          ],
+          "exampleTools": [],
+          "notes": "Expose a single npm script (e.g., `npm run ci`) that mirrors the CI pipeline so contributors can reproduce failures locally.",
+          "verification": "Open the CI configuration and verify there is a job or stage that runs linting, type checking, tests, build, and any required container checks before merging to main."
         }
       },
       {
-        "id": "code-formatter",
-        "label": "Code Formatter",
-        "description": "Automatic code formatting to maintain a consistent style across all contributors.",
         "ciHints": {
           "azure-devops": {
             "stage": "quality"
           }
         },
+        "description": "Automatic code formatting to maintain a consistent style across all contributors.",
+        "id": "code-formatter",
+        "label": "Code Formatter",
         "stack": {
-          "exampleTools": ["prettier"],
-          "exampleConfigFiles": [".prettierrc.*", ".prettierignore"],
-          "notes": "Run Prettier in check mode in CI; auto-fix locally via pre-commit hooks or editor integration.",
-          "verification": "Run the formatter in check mode (for example, `npm run format:check`) and confirm it reports clean formatting on committed code and auto-fixes as expected locally.",
           "bazelHints": {
             "commands": [
               "bazel run //tools/format:check",
               "bazel test //...:format_test"
             ],
             "notes": "Wrap Prettier as a run target for formatting checks. Use aspect_rules_lint for format aspects."
-          }
+          },
+          "exampleConfigFiles": [
+            ".prettierrc.*",
+            ".prettierignore"
+          ],
+          "exampleTools": [
+            "prettier"
+          ],
+          "notes": "Run Prettier in check mode in CI; auto-fix locally via pre-commit hooks or editor integration.",
+          "verification": "Run the formatter in check mode (for example, `npm run format:check`) and confirm it reports clean formatting on committed code and auto-fixes as expected locally."
         }
       },
       {
-        "id": "pre-commit-hooks",
-        "label": "Pre-Commit Hooks",
-        "description": "Use git hooks to run linting, formatting, and commit linting before changes are committed. Hooks should CHECK by default (not auto-fix), be fast, and scope to changed files only. Use a single entry hook mechanism (e.g., Husky as entry point calling pre-commit or lint-staged).",
         "ciHints": {
           "azure-devops": {
-            "stage": "quality",
-            "notes": "Hooks and CI must invoke identical verification commands. Use npm run verify or equivalent."
+            "notes": "Hooks and CI must invoke identical verification commands. Use npm run verify or equivalent.",
+            "stage": "quality"
           }
         },
+        "description": "Use git hooks to run linting, formatting, and commit linting before changes are committed. Hooks should CHECK by default (not auto-fix), be fast, and scope to changed files only. Use a single entry hook mechanism (e.g., Husky as entry point calling pre-commit or lint-staged).",
+        "id": "pre-commit-hooks",
+        "label": "Pre-Commit Hooks",
         "stack": {
-          "exampleTools": ["husky", "lint-staged"],
           "exampleConfigFiles": [
             ".husky/",
             "package.json",
             "lint-staged.config.js"
+          ],
+          "exampleTools": [
+            "husky",
+            "lint-staged"
           ],
           "notes": "Use Husky as the entry hook mechanism calling lint-staged. Hooks should CHECK (--check flags) not auto-fix to keep developers aware of issues. Scope to staged files only for speed. Invoke hooks through the repo toolchain (npx) not global installs to ensure environment pinning. Never let hook enforcement drift from CI.",
           "verification": "Run 'npm run verify' (or equivalent) and confirm the same checks run in both hooks and CI."
         }
       },
       {
-        "id": "hook-ci-parity",
-        "label": "Hook/CI Parity",
-        "description": "Local hooks and CI must invoke identical verification commands to prevent 'works locally, fails in CI' issues. Use a single canonical verify entrypoint (e.g., npm run verify) that both hooks and CI call.",
         "ciHints": {
           "azure-devops": {
-            "stage": "quality",
-            "notes": "CI should call the same verify script that hooks use locally."
+            "notes": "CI should call the same verify script that hooks use locally.",
+            "stage": "quality"
           }
         },
+        "description": "Local hooks and CI must invoke identical verification commands to prevent 'works locally, fails in CI' issues. Use a single canonical verify entrypoint (e.g., npm run verify) that both hooks and CI call.",
+        "id": "hook-ci-parity",
+        "label": "Hook/CI Parity",
         "stack": {
-          "exampleTools": ["npm scripts"],
-          "exampleConfigFiles": ["package.json"],
+          "exampleConfigFiles": [
+            "package.json"
+          ],
+          "exampleTools": [
+            "npm scripts"
+          ],
           "notes": "Define a 'verify' script in package.json that runs all checks (lint, format:check, typecheck). Both .husky/pre-commit and CI should call 'npm run verify'. Never add checks to CI that don't run locally.",
-          "verification": "Compare hook commands with CI commands and confirm they invoke the same scripts.",
-          "requiredScripts": ["verify"]
+          "requiredScripts": [
+            "verify"
+          ],
+          "verification": "Compare hook commands with CI commands and confirm they invoke the same scripts."
         }
       },
       {
-        "id": "secret-scanning-precommit",
-        "label": "Pre-commit Secret Scanning",
-        "description": "Scan staged diffs for credentials, API keys, and secrets before they reach the remote repository. Catch secrets at commit time rather than after they're pushed.",
         "ciHints": {
           "azure-devops": {
-            "stage": "quality",
-            "notes": "Also run secret scanning in CI as a safety net for commits that bypassed hooks."
+            "notes": "Also run secret scanning in CI as a safety net for commits that bypassed hooks.",
+            "stage": "quality"
           }
         },
+        "description": "Scan staged diffs for credentials, API keys, and secrets before they reach the remote repository. Catch secrets at commit time rather than after they're pushed.",
+        "id": "secret-scanning-precommit",
+        "label": "Pre-commit Secret Scanning",
         "stack": {
-          "exampleTools": ["gitleaks", "detect-secrets", "trufflehog"],
-          "exampleConfigFiles": [".gitleaks.toml", ".secrets.baseline"],
+          "exampleConfigFiles": [
+            ".gitleaks.toml",
+            ".secrets.baseline"
+          ],
+          "exampleTools": [
+            "gitleaks",
+            "detect-secrets",
+            "trufflehog"
+          ],
           "notes": "Add gitleaks or detect-secrets to pre-commit hooks. Scan only staged changes for speed. Configure allowlists for false positives in .gitleaks.toml.",
           "verification": "Run 'gitleaks protect --staged' and verify it catches test secrets."
         }
       },
       {
-        "id": "type-checking",
-        "label": "Type Checking",
-        "description": "Use static type checking to catch errors before runtime and enforce strictness on new code. For JS/TS stacks, require a TypeScript-first policy with strict mode and a CI typecheck step; allow JSDoc/checkJs migration for legacy JS.",
         "ciHints": {
           "azure-devops": {
             "stage": "quality"
           }
         },
+        "description": "Use static type checking to catch errors before runtime and enforce strictness on new code. For JS/TS stacks, require a TypeScript-first policy with strict mode and a CI typecheck step; allow JSDoc/checkJs migration for legacy JS.",
+        "id": "type-checking",
+        "label": "Type Checking",
         "stack": {
-          "exampleTools": ["TypeScript compiler (tsc)"],
-          "exampleConfigFiles": ["tsconfig.json"],
-          "notes": "Adopt a TypeScript-first policy. Require tsconfig.json with strict mode enabled ('strict': true) and enforce `npm run typecheck` (or equivalent) in CI. For legacy JS, allow JSDoc + `checkJs` or staged migration with `allowJs` while incrementally increasing coverage.",
-          "verification": "tsconfig.json exists with strict mode enabled and CI runs the typecheck script; legacy JS modules use JSDoc/checkJs or allowJs as an explicit migration path.",
-          "requiredFiles": ["tsconfig.json"],
-          "requiredScripts": ["typecheck"],
           "bazelHints": {
-            "commands": ["bazel build //..."],
+            "commands": [
+              "bazel build //..."
+            ],
             "notes": "TypeScript type errors surface during bazel build with rules_ts. No separate typecheck step needed."
-          }
+          },
+          "exampleConfigFiles": [
+            "tsconfig.json"
+          ],
+          "exampleTools": [
+            "TypeScript compiler (tsc)"
+          ],
+          "notes": "Adopt a TypeScript-first policy. Require tsconfig.json with strict mode enabled ('strict': true) and enforce `npm run typecheck` (or equivalent) in CI. For legacy JS, allow JSDoc + `checkJs` or staged migration with `allowJs` while incrementally increasing coverage.",
+          "requiredFiles": [
+            "tsconfig.json"
+          ],
+          "requiredScripts": [
+            "typecheck"
+          ],
+          "verification": "tsconfig.json exists with strict mode enabled and CI runs the typecheck script; legacy JS modules use JSDoc/checkJs or allowJs as an explicit migration path."
         }
       },
       {
-        "id": "dependency-security",
-        "label": "Dependency Management & Vulnerability Scanning",
-        "description": "Lock dependencies and scan regularly for known vulnerabilities; fail CI on newly introduced high-severity issues.",
         "ciHints": {
           "azure-devops": {
             "stage": "quality"
           }
         },
+        "description": "Lock dependencies and scan regularly for known vulnerabilities; fail CI on newly introduced high-severity issues.",
+        "id": "dependency-security",
+        "label": "Dependency Management & Vulnerability Scanning",
         "stack": {
-          "exampleTools": ["npm audit", "Snyk"],
           "exampleConfigFiles": [
             "package-lock.json",
             "pnpm-lock.yaml",
             "yarn.lock"
           ],
+          "exampleTools": [
+            "npm audit",
+            "Snyk"
+          ],
           "notes": "Require a lockfile for reproducible installs and pin Node.js/tooling versions; block merges on new high-severity vulnerabilities.",
-          "verification": "Dependency lockfile is present; security scanning is configured in CI or project tooling.",
-          "optionalFiles": ["package-lock.json", "pnpm-lock.yaml", "yarn.lock"]
+          "optionalFiles": [
+            "package-lock.json",
+            "pnpm-lock.yaml",
+            "yarn.lock"
+          ],
+          "verification": "Dependency lockfile is present; security scanning is configured in CI or project tooling."
         }
       },
       {
-        "id": "deterministic-builds",
-        "label": "Deterministic & Hermetic Builds",
-        "description": "Ensure builds are reproducible by pinning dependencies, base images, and tool/runtime versions. Avoid network/time variance and fail when lockfiles drift.",
         "ciHints": {
           "azure-devops": {
             "stage": "build"
           }
         },
+        "description": "Ensure builds are reproducible by pinning dependencies, base images, and tool/runtime versions. Avoid network/time variance and fail when lockfiles drift.",
+        "id": "deterministic-builds",
+        "label": "Deterministic & Hermetic Builds",
         "stack": {
-          "exampleTools": [
-            "npm ci",
-            "pnpm install --frozen-lockfile",
-            "yarn --immutable"
+          "anyOfFiles": [
+            "package-lock.json",
+            "pnpm-lock.yaml",
+            "yarn.lock"
           ],
           "exampleConfigFiles": [
             "package-lock.json",
             "pnpm-lock.yaml",
             "yarn.lock"
           ],
+          "exampleTools": [
+            "npm ci",
+            "pnpm install --frozen-lockfile",
+            "yarn --immutable"
+          ],
           "notes": "Require a lockfile and pinned Node/tool versions (.nvmrc or .tool-versions). Pin base images in Dockerfiles and avoid non-deterministic install flags.",
-          "verification": "Lockfile is present and CI uses a frozen/immutable install. Dockerfiles reference pinned base images.",
-          "anyOfFiles": ["package-lock.json", "pnpm-lock.yaml", "yarn.lock"],
-          "optionalFiles": [".nvmrc", ".tool-versions"]
+          "optionalFiles": [
+            ".nvmrc",
+            ".tool-versions"
+          ],
+          "verification": "Lockfile is present and CI uses a frozen/immutable install. Dockerfiles reference pinned base images."
         }
       },
       {
-        "id": "provenance-security",
-        "label": "Provenance & Security Metadata",
-        "description": "Produce SBOMs or provenance metadata, enable secret/code scanning, and sign tags or commits for critical repos.",
         "ciHints": {
           "azure-devops": {
             "stage": "security"
           }
         },
+        "description": "Produce SBOMs or provenance metadata, enable secret/code scanning, and sign tags or commits for critical repos.",
+        "id": "provenance-security",
+        "label": "Provenance & Security Metadata",
         "stack": {
+          "exampleConfigFiles": [
+            ".github/workflows/codeql.yml",
+            ".github/workflows/provenance.yml"
+          ],
           "exampleTools": [
             "syft",
             "cyclonedx-npm",
@@ -614,174 +637,266 @@
             "gitleaks",
             "cosign"
           ],
-          "exampleConfigFiles": [
-            ".github/workflows/codeql.yml",
-            ".github/workflows/provenance.yml"
-          ],
           "notes": "Generate SBOM/provenance for npm and container artifacts, enable secret scanning, and sign tags/commits for protected branches.",
-          "verification": "SBOM/provenance artifacts are published alongside releases, and CI runs secret/code scanning.",
-          "optionalFiles": ["SECURITY.md", ".github/workflows/codeql.yml"]
+          "optionalFiles": [
+            "SECURITY.md",
+            ".github/workflows/codeql.yml"
+          ],
+          "verification": "SBOM/provenance artifacts are published alongside releases, and CI runs secret/code scanning."
         }
       },
       {
-        "id": "ci-templates-automation",
-        "label": "CI Templates & Automation",
-        "description": "Adopt standard CI templates and config samples to scale across repositories, minimizing bespoke pipeline logic.",
         "ciHints": {
           "azure-devops": {
             "stage": "ci"
           }
         },
+        "description": "Adopt standard CI templates and config samples to scale across repositories, minimizing bespoke pipeline logic.",
+        "id": "ci-templates-automation",
+        "label": "CI Templates & Automation",
         "stack": {
-          "exampleTools": [
-            "GitHub Actions reusable workflows",
-            "Azure DevOps templates"
+          "anyOfFiles": [
+            ".github/workflows/ci.yml",
+            "azure-pipelines.yml"
           ],
           "exampleConfigFiles": [
             ".github/workflows/ci.yml",
             "azure-pipelines.yml"
           ],
+          "exampleTools": [
+            "GitHub Actions reusable workflows",
+            "Azure DevOps templates"
+          ],
           "notes": "Use shared CI templates for lint/test/build/release stages and keep repo-specific overrides minimal.",
-          "verification": "CI pipeline references a shared template or reusable workflow and follows the standard job naming.",
-          "anyOfFiles": [".github/workflows/ci.yml", "azure-pipelines.yml"],
-          "requiredScripts": ["ci"]
+          "requiredScripts": [
+            "ci"
+          ],
+          "verification": "CI pipeline references a shared template or reusable workflow and follows the standard job naming."
         }
       },
       {
-        "id": "runtime-version",
-        "label": "Runtime Version Specification",
-        "description": "Specify required runtime/engine versions in package manifests appropriate for your application. Use minimum version constraints (>=) rather than strict ranges to avoid blocking consumers from upgrading.",
         "ciHints": {
           "azure-devops": {
             "stage": "quality"
           }
         },
+        "description": "Specify required runtime/engine versions in package manifests appropriate for your application. Use minimum version constraints (>=) rather than strict ranges to avoid blocking consumers from upgrading.",
+        "id": "runtime-version",
+        "label": "Runtime Version Specification",
         "stack": {
+          "exampleConfigFiles": [
+            "package.json"
+          ],
           "exampleTools": [],
-          "exampleConfigFiles": ["package.json"],
           "notes": "Specify the 'engines' field in package.json with a minimum version appropriate for your application (e.g., \"engines\": { \"node\": \">=20\" }). Use open-ended constraints (>=) to avoid blocking consumers from upgrading. Only use upper bounds (<) when there are known incompatibilities.",
-          "verification": "package.json must contain an 'engines' field specifying the minimum required Node.js version.",
-          "requiredFiles": ["package.json"]
+          "requiredFiles": [
+            "package.json"
+          ],
+          "verification": "package.json must contain an 'engines' field specifying the minimum required Node.js version."
         }
       },
       {
-        "id": "documentation",
-        "label": "Documentation Standards",
-        "description": "Maintain a comprehensive README and, where applicable, auto-generated API docs to support onboarding and maintainability.",
         "ciHints": {
           "azure-devops": {
             "stage": "docs"
           }
         },
+        "description": "Maintain a comprehensive README and, where applicable, auto-generated API docs to support onboarding and maintainability.",
+        "id": "documentation",
+        "label": "Documentation Standards",
         "stack": {
-          "exampleTools": ["JSDoc", "TypeDoc"],
-          "exampleConfigFiles": ["README.md", "docs/"],
+          "exampleConfigFiles": [
+            "README.md",
+            "docs/"
+          ],
+          "exampleTools": [
+            "JSDoc",
+            "TypeDoc"
+          ],
           "notes": "README should describe setup, scripts, and architecture; generate API docs from TypeScript types and JSDoc where helpful.",
-          "verification": "README.md is present in the repository root; docs/ directory or documentation tooling configuration exists if applicable.",
-          "requiredFiles": ["README.md"],
-          "optionalFiles": ["docs/", "typedoc.json"]
+          "optionalFiles": [
+            "docs/",
+            "typedoc.json"
+          ],
+          "requiredFiles": [
+            "README.md"
+          ],
+          "verification": "README.md is present in the repository root; docs/ directory or documentation tooling configuration exists if applicable."
         }
       },
       {
-        "id": "repository-governance",
-        "label": "Repository Governance",
-        "description": "Include standard governance files (LICENSE, CODE_OF_CONDUCT.md, CONTRIBUTING.md), branch protection rules, and review standards to define legal, ethical, and workflow expectations.",
         "ciHints": {
           "azure-devops": {
             "stage": "governance"
           }
         },
+        "description": "Include standard governance files (LICENSE, CODE_OF_CONDUCT.md, CONTRIBUTING.md), branch protection rules, and review standards to define legal, ethical, and workflow expectations.",
+        "id": "repository-governance",
+        "label": "Repository Governance",
         "stack": {
-          "exampleTools": [],
           "exampleConfigFiles": [
             "LICENSE",
             "CODE_OF_CONDUCT.md",
             "CONTRIBUTING.md"
           ],
+          "exampleTools": [],
           "notes": "Use an SPDX license identifier in package.json and describe review expectations, tests, and docs requirements in CONTRIBUTING.md.",
-          "verification": "LICENSE file is present in the repository root; CODE_OF_CONDUCT.md and CONTRIBUTING.md are present for contribution guidance.",
-          "requiredFiles": ["LICENSE"],
-          "optionalFiles": ["CODE_OF_CONDUCT.md", "CONTRIBUTING.md"]
+          "optionalFiles": [
+            "CODE_OF_CONDUCT.md",
+            "CONTRIBUTING.md"
+          ],
+          "requiredFiles": [
+            "LICENSE"
+          ],
+          "verification": "LICENSE file is present in the repository root; CODE_OF_CONDUCT.md and CONTRIBUTING.md are present for contribution guidance."
         }
       },
       {
+        "ciHints": {
+          "azure-devops": {
+            "notes": "CI should call the canonical verify command, not duplicate check logic.",
+            "stage": "quality"
+          }
+        },
+        "description": "Provide one canonical 'verify' command per repository/stack that all stages call with appropriate flags. This prevents duplication, drift, and ensures consistency between local development and CI.",
         "id": "canonical-verify",
         "label": "Canonical Verify Entrypoint",
-        "description": "Provide one canonical 'verify' command per repository/stack that all stages call with appropriate flags. This prevents duplication, drift, and ensures consistency between local development and CI.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "quality",
-            "notes": "CI should call the canonical verify command, not duplicate check logic."
-          }
-        },
         "stack": {
-          "exampleTools": ["npm scripts"],
-          "exampleConfigFiles": ["package.json"],
+          "exampleConfigFiles": [
+            "package.json"
+          ],
+          "exampleTools": [
+            "npm scripts"
+          ],
           "notes": "Define 'npm run verify' that runs lint, format:check, typecheck, and test. Pre-commit hooks call 'npm run verify:quick' (lint + format only). CI calls 'npm run verify' (full suite). Never duplicate verification logic across multiple scripts.",
-          "verification": "package.json contains a 'verify' script that orchestrates all checks.",
-          "requiredScripts": ["verify"]
+          "requiredScripts": [
+            "verify"
+          ],
+          "verification": "package.json contains a 'verify' script that orchestrates all checks."
         }
       },
       {
-        "id": "config-authority",
-        "label": "Config File Authority Rules",
-        "description": "Each configuration rule must live in exactly one authoritative config file. Avoid duplication across .editorconfig, linter configs, and CI definitions. Document which file is authoritative for each concern.",
         "ciHints": {
           "azure-devops": {
-            "stage": "quality",
-            "notes": "Ensure CI reads from authoritative configs, not duplicated settings."
+            "notes": "Ensure CI reads from authoritative configs, not duplicated settings.",
+            "stage": "quality"
           }
         },
+        "description": "Each configuration rule must live in exactly one authoritative config file. Avoid duplication across .editorconfig, linter configs, and CI definitions. Document which file is authoritative for each concern.",
+        "id": "config-authority",
+        "label": "Config File Authority Rules",
         "stack": {
-          "exampleTools": [],
           "exampleConfigFiles": [
             ".gitattributes",
             ".editorconfig",
             "eslint.config.js",
             "tsconfig.json"
           ],
+          "exampleTools": [],
           "notes": "Authority mapping: .gitattributes for EOL (Git layer), .editorconfig for editor display, eslint.config.js for lint rules, tsconfig.json for TS compiler options, prettier for formatting. Never duplicate rules across files.",
           "verification": "Review configs and confirm no rule is defined in multiple places with potential for drift."
         }
       },
       {
-        "id": "explicit-skip-paths",
-        "label": "Explicit Skip Paths",
-        "description": "Encode path exclusions and skip rules deterministically in config files, not through ad-hoc human judgment. Make it clear which paths are excluded from checks and why.",
         "ciHints": {
           "azure-devops": {
-            "stage": "quality",
-            "notes": "CI should read skip paths from config files, not hardcode them in pipeline."
+            "notes": "CI should read skip paths from config files, not hardcode them in pipeline.",
+            "stage": "quality"
           }
         },
+        "description": "Encode path exclusions and skip rules deterministically in config files, not through ad-hoc human judgment. Make it clear which paths are excluded from checks and why.",
+        "id": "explicit-skip-paths",
+        "label": "Explicit Skip Paths",
         "stack": {
-          "exampleTools": ["eslint", "prettier"],
           "exampleConfigFiles": [
             ".eslintignore",
             ".prettierignore",
             "eslint.config.js"
+          ],
+          "exampleTools": [
+            "eslint",
+            "prettier"
           ],
           "notes": "Define ignores in eslint.config.js (ignores array) and .prettierignore. Document why each path is excluded (generated code, vendor, etc.). Avoid ad-hoc --ignore-path flags in scripts.",
           "verification": "Review ignore configs and confirm all exclusions are documented and intentional."
         }
       }
     ],
-    "recommended": [
+    "optionalEnhancements": [
       {
-        "id": "dependency-update-automation",
-        "label": "Dependency Update Automation",
-        "description": "Automate dependency updates using Renovate or Dependabot to keep dependencies current and reduce security exposure window.",
         "ciHints": {
           "azure-devops": {
-            "stage": "quality",
-            "notes": "CI hints are suggested mappings; adjust to your pipeline topology."
+            "stage": "observability"
           }
         },
+        "description": "Standardize error handling and structured logging to make debugging and production monitoring easier.",
+        "id": "observability",
+        "label": "Observability (Logging & Error Handling)",
         "stack": {
-          "exampleTools": ["renovate", "dependabot"],
-          "exampleConfigFiles": ["renovate.json", ".github/dependabot.yml"],
-          "notes": "Renovate supports GHA + AzDO (self-hosted or Mend Renovate App). Dependabot is GitHub-native only. For AzDO: use Renovate via self-hosted runner, Docker container job, or Mend's hosted service.",
-          "verification": "Check for renovate.json (or .renovaterc.json) OR .github/dependabot.yml. Verify dependency update PRs are being created.",
+          "exampleConfigFiles": [],
+          "exampleTools": [
+            "Winston",
+            "Pino"
+          ],
+          "notes": "Adopt structured JSON logging with correlation IDs and send logs to a centralized sink in production.",
+          "verification": "Confirm that a structured logging library (such as Winston or Pino) is configured to emit JSON or key-value logs and that error handling routes important failures through this logger."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "stage": "governance"
+          }
+        },
+        "description": "Define phase transition requirements in phase-gates.md for autonomous agent workflows with clear pre-conditions and approval gates.",
+        "id": "agent-phase-gates",
+        "label": "Agent Phase Gates",
+        "stack": {
+          "exampleConfigFiles": [
+            "phase-gates.md"
+          ],
+          "exampleTools": [],
+          "notes": "Document phase transitions (Planning → Implementation → Verification → Release) with required pre-conditions, approval mechanisms, and evidence artifacts for each gate.",
+          "optionalFiles": [
+            "phase-gates.md"
+          ],
+          "verification": "phase-gates.md exists defining transition requirements between project phases."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "stage": "governance"
+          }
+        },
+        "description": "Document milestone completion criteria in victory-gates.md defining 'done' for releases and major deliverables with evidence requirements.",
+        "id": "agent-victory-gates",
+        "label": "Agent Victory Gates",
+        "stack": {
+          "exampleConfigFiles": [
+            "victory-gates.md"
+          ],
+          "exampleTools": [],
+          "notes": "Define completion criteria for milestones (MVP, Beta, GA) with all required conditions, verification commands, and evidence artifacts (test reports, coverage, deployment confirmations).",
+          "optionalFiles": [
+            "victory-gates.md"
+          ],
+          "verification": "victory-gates.md exists with milestone completion criteria and evidence requirements."
+        }
+      }
+    ],
+    "recommended": [
+      {
+        "ciHints": {
+          "azure-devops": {
+            "notes": "CI hints are suggested mappings; adjust to your pipeline topology.",
+            "stage": "quality"
+          }
+        },
+        "description": "Automate dependency updates using Renovate or Dependabot to keep dependencies current and reduce security exposure window.",
+        "id": "dependency-update-automation",
+        "label": "Dependency Update Automation",
+        "stack": {
           "anyOfFiles": [
             "renovate.json",
             ".renovaterc.json",
@@ -789,256 +904,407 @@
             ".renovaterc.json5",
             ".github/dependabot.yml"
           ],
-          "pinningNotes": "Pin Renovate Docker image version in AzDO pipelines for determinism."
+          "exampleConfigFiles": [
+            "renovate.json",
+            ".github/dependabot.yml"
+          ],
+          "exampleTools": [
+            "renovate",
+            "dependabot"
+          ],
+          "notes": "Renovate supports GHA + AzDO (self-hosted or Mend Renovate App). Dependabot is GitHub-native only. For AzDO: use Renovate via self-hosted runner, Docker container job, or Mend's hosted service.",
+          "pinningNotes": "Pin Renovate Docker image version in AzDO pipelines for determinism.",
+          "verification": "Check for renovate.json (or .renovaterc.json) OR .github/dependabot.yml. Verify dependency update PRs are being created."
         }
       },
       {
-        "id": "dependency-architecture-rules",
-        "label": "Dependency Architecture Rules",
-        "description": "Enforce module boundaries and import constraints to prevent architectural drift and unwanted coupling.",
         "ciHints": {
           "azure-devops": {
-            "stage": "quality",
-            "notes": "CI hints are suggested mappings; adjust to your pipeline topology."
+            "notes": "CI hints are suggested mappings; adjust to your pipeline topology.",
+            "stage": "quality"
           }
         },
+        "description": "Enforce module boundaries and import constraints to prevent architectural drift and unwanted coupling.",
+        "id": "dependency-architecture-rules",
+        "label": "Dependency Architecture Rules",
         "stack": {
-          "exampleTools": ["dependency-cruiser"],
-          "exampleConfigFiles": [
-            ".dependency-cruiser.cjs",
-            ".dependency-cruiser.js",
-            "dependency-cruiser.config.cjs"
-          ],
-          "notes": "Define forbidden imports, layer rules, and circular dependency bans. Run in CI as blocking check.",
-          "verification": "Run 'npx depcruise --validate' or equivalent. Verify architectural rules are documented and enforced.",
           "anyOfFiles": [
             ".dependency-cruiser.cjs",
             ".dependency-cruiser.js",
             "dependency-cruiser.config.cjs",
             ".dependency-cruiser.mjs"
           ],
-          "pinningNotes": "Pin dependency-cruiser version in package.json devDependencies."
+          "exampleConfigFiles": [
+            ".dependency-cruiser.cjs",
+            ".dependency-cruiser.js",
+            "dependency-cruiser.config.cjs"
+          ],
+          "exampleTools": [
+            "dependency-cruiser"
+          ],
+          "notes": "Define forbidden imports, layer rules, and circular dependency bans. Run in CI as blocking check.",
+          "pinningNotes": "Pin dependency-cruiser version in package.json devDependencies.",
+          "verification": "Run 'npx depcruise --validate' or equivalent. Verify architectural rules are documented and enforced."
         }
       },
       {
-        "id": "integration-testing",
-        "label": "Integration Testing",
-        "description": "Test how components interact with each other and external systems, running after unit tests with more relaxed coverage thresholds.",
         "ciHints": {
           "azure-devops": {
             "stage": "test"
           }
         },
+        "description": "Test how components interact with each other and external systems, running after unit tests with more relaxed coverage thresholds.",
+        "id": "integration-testing",
+        "label": "Integration Testing",
         "stack": {
-          "exampleTools": ["Jest", "Supertest", "Playwright"],
-          "exampleConfigFiles": ["jest.config.*", "playwright.config.*"],
+          "exampleConfigFiles": [
+            "jest.config.*",
+            "playwright.config.*"
+          ],
+          "exampleTools": [
+            "Jest",
+            "Supertest",
+            "Playwright"
+          ],
           "notes": "Use Supertest for HTTP APIs and Playwright or similar tools for end-to-end flows; keep integration suites slower but reliable.",
           "verification": "Confirm there is a separate integration or end-to-end test command or configuration and run it to verify that cross-component flows behave as expected."
         }
       },
       {
-        "id": "performance-baselining",
-        "label": "Performance Baselines",
-        "description": "Establish performance baselines and monitor for regressions using lightweight benchmarks or audits in CI.",
         "ciHints": {
           "azure-devops": {
             "stage": "performance"
           }
         },
+        "description": "Establish performance baselines and monitor for regressions using lightweight benchmarks or audits in CI.",
+        "id": "performance-baselining",
+        "label": "Performance Baselines",
         "stack": {
-          "exampleTools": ["Lighthouse CI", "custom Node.js benchmarks"],
-          "exampleConfigFiles": ["lighthouserc.json"],
+          "exampleConfigFiles": [
+            "lighthouserc.json"
+          ],
+          "exampleTools": [
+            "Lighthouse CI",
+            "custom Node.js benchmarks"
+          ],
           "notes": "Run Lighthouse CI for web apps and basic Node benchmarks on critical endpoints; schedule runs or limit to key branches to keep CI fast.",
           "verification": "Identify and run the configured performance or Lighthouse-style checks and verify that key metrics are captured and compared to documented baselines."
         }
       },
       {
-        "id": "complexity-analysis",
-        "label": "Complexity Analysis",
-        "description": "Measure cyclomatic complexity or similar metrics to keep code maintainable, starting as a warning-only check.",
         "ciHints": {
           "azure-devops": {
             "stage": "quality"
           }
         },
+        "description": "Measure cyclomatic complexity or similar metrics to keep code maintainable, starting as a warning-only check.",
+        "id": "complexity-analysis",
+        "label": "Complexity Analysis",
         "stack": {
-          "exampleTools": ["ESLint complexity rules", "SonarQube"],
-          "exampleConfigFiles": [".eslintrc.*", "sonar-project.properties"],
+          "exampleConfigFiles": [
+            ".eslintrc.*",
+            "sonar-project.properties"
+          ],
+          "exampleTools": [
+            "ESLint complexity rules",
+            "SonarQube"
+          ],
           "notes": "Warn on overly complex functions and methods; fail CI only when new or modified code exceeds thresholds.",
           "verification": "Run the configured complexity tooling or rules (for example, ESLint complexity rules or Sonar analysis) and review any hot spots, ensuring new code does not exceed agreed thresholds."
         }
       },
       {
-        "id": "accessibility-auditing",
-        "label": "Accessibility Auditing",
-        "description": "Run accessibility checks on web-facing components to detect critical issues and improve inclusive UX.",
         "ciHints": {
           "azure-devops": {
             "stage": "quality"
           }
         },
+        "description": "Run accessibility checks on web-facing components to detect critical issues and improve inclusive UX.",
+        "id": "accessibility-auditing",
+        "label": "Accessibility Auditing",
         "stack": {
-          "exampleTools": ["axe-core", "Lighthouse accessibility audits"],
           "exampleConfigFiles": [],
+          "exampleTools": [
+            "axe-core",
+            "Lighthouse accessibility audits"
+          ],
           "notes": "Run accessibility checks against key pages or components in CI; fail on critical violations while treating minor issues as warnings initially.",
           "verification": "For web-facing apps, run the configured accessibility tooling (for example, axe, pa11y, or Lighthouse accessibility audits) against key pages and confirm that critical issues are resolved."
         }
       },
       {
-        "id": "ai-drift-detection",
-        "label": "AI Drift Detection",
-        "description": "Run nightly or scheduled checks comparing AI-generated outputs against pinned baselines to detect model drift, prompt drift, or code changes affecting AI behavior. Attribute regressions to code changes vs model updates vs prompt changes.",
         "ciHints": {
           "azure-devops": {
-            "stage": "nightly",
-            "notes": "Run AI drift detection in a scheduled nightly pipeline separate from main CI."
+            "notes": "Run AI drift detection in a scheduled nightly pipeline separate from main CI.",
+            "stage": "nightly"
           }
         },
+        "description": "Run nightly or scheduled checks comparing AI-generated outputs against pinned baselines to detect model drift, prompt drift, or code changes affecting AI behavior. Attribute regressions to code changes vs model updates vs prompt changes.",
+        "id": "ai-drift-detection",
+        "label": "AI Drift Detection",
         "stack": {
-          "exampleTools": ["jest snapshots", "custom baseline comparator"],
-          "exampleConfigFiles": ["__snapshots__/", "ai-baselines/"],
+          "exampleConfigFiles": [
+            "__snapshots__/",
+            "ai-baselines/"
+          ],
+          "exampleTools": [
+            "jest snapshots",
+            "custom baseline comparator"
+          ],
           "notes": "Pin AI outputs as baseline snapshots. Nightly runs compare current outputs against baselines. When drift detected, investigate: was it a code change, model update, or prompt change? Log model version, prompt hash, and code SHA for attribution.",
           "verification": "Run AI baseline tests and confirm outputs match pinned baselines or drift is intentional."
         }
       },
       {
-        "id": "ai-schema-enforcement",
-        "label": "AI Output Schema Enforcement",
-        "description": "Validate all AI-generated outputs against strict JSON schemas or type definitions at system boundaries. Reject invalid outputs early rather than letting malformed data propagate through the system.",
         "ciHints": {
           "azure-devops": {
-            "stage": "quality",
-            "notes": "Run schema validation tests as part of quality gates."
+            "notes": "Run schema validation tests as part of quality gates.",
+            "stage": "quality"
           }
         },
+        "description": "Validate all AI-generated outputs against strict JSON schemas or type definitions at system boundaries. Reject invalid outputs early rather than letting malformed data propagate through the system.",
+        "id": "ai-schema-enforcement",
+        "label": "AI Output Schema Enforcement",
         "stack": {
-          "exampleTools": ["zod", "ajv", "TypeScript"],
-          "exampleConfigFiles": ["src/schemas/", "*.schema.json"],
+          "exampleConfigFiles": [
+            "src/schemas/",
+            "*.schema.json"
+          ],
+          "exampleTools": [
+            "zod",
+            "ajv",
+            "TypeScript"
+          ],
           "notes": "Define strict schemas for AI outputs using Zod or JSON Schema. Parse and validate AI responses at integration boundaries. Fail fast on schema violations rather than handling partial/invalid data.",
           "verification": "Review AI integration code and confirm all AI outputs are validated against schemas."
         }
       },
       {
-        "id": "ai-golden-tests",
-        "label": "AI Golden Contract Tests",
-        "description": "Validate AI tool-generated patches, configs, and code against exact expected formats. Test that AI outputs respect forbidden paths, file patterns, and format constraints through golden contract tests.",
         "ciHints": {
           "azure-devops": {
-            "stage": "test",
-            "notes": "Run AI golden tests as part of the test stage."
+            "notes": "Run AI golden tests as part of the test stage.",
+            "stage": "test"
           }
         },
+        "description": "Validate AI tool-generated patches, configs, and code against exact expected formats. Test that AI outputs respect forbidden paths, file patterns, and format constraints through golden contract tests.",
+        "id": "ai-golden-tests",
+        "label": "AI Golden Contract Tests",
         "stack": {
-          "exampleTools": ["jest", "vitest"],
-          "exampleConfigFiles": ["__fixtures__/ai-outputs/", "*.golden.json"],
+          "exampleConfigFiles": [
+            "__fixtures__/ai-outputs/",
+            "*.golden.json"
+          ],
+          "exampleTools": [
+            "jest",
+            "vitest"
+          ],
           "notes": "Create golden test fixtures for AI-generated patches and configs. Test that outputs match exact formats, don't touch forbidden paths (node_modules, .git), and respect file naming conventions.",
           "verification": "Run golden tests and confirm AI outputs match expected fixtures exactly."
         }
       },
       {
-        "id": "ai-safety-checks",
-        "label": "AI Adversarial & Safety Testing",
-        "description": "Test AI integrations for prompt injection resistance, input sanitization, output filtering, and data exfiltration prevention. Include adversarial test cases that attempt to manipulate AI behavior.",
         "ciHints": {
           "azure-devops": {
-            "stage": "security",
-            "notes": "Run AI safety tests as part of security stage on main branch."
+            "notes": "Run AI safety tests as part of security stage on main branch.",
+            "stage": "security"
           }
         },
+        "description": "Test AI integrations for prompt injection resistance, input sanitization, output filtering, and data exfiltration prevention. Include adversarial test cases that attempt to manipulate AI behavior.",
+        "id": "ai-safety-checks",
+        "label": "AI Adversarial & Safety Testing",
         "stack": {
-          "exampleTools": ["jest", "custom adversarial tests"],
-          "exampleConfigFiles": ["tests/ai-safety/"],
+          "exampleConfigFiles": [
+            "tests/ai-safety/"
+          ],
+          "exampleTools": [
+            "jest",
+            "custom adversarial tests"
+          ],
           "notes": "Create adversarial test suite with prompt injection attempts, malicious input patterns, and exfiltration scenarios. Test that AI outputs are sanitized before use in sensitive contexts (SQL, shell, HTML).",
           "verification": "Run AI safety test suite and confirm all adversarial cases are handled safely."
         }
       },
       {
-        "id": "ai-provenance-tracking",
-        "label": "AI Provenance & Audit Logging",
-        "description": "Log AI provider, model version, prompt template version, parameters, and tool versions for all AI operations. Enable attribution of outputs to specific model+prompt combinations for debugging and compliance.",
         "ciHints": {
           "azure-devops": {
-            "stage": "quality",
-            "notes": "Verify AI provenance logging is implemented in quality checks."
+            "notes": "Verify AI provenance logging is implemented in quality checks.",
+            "stage": "quality"
           }
         },
+        "description": "Log AI provider, model version, prompt template version, parameters, and tool versions for all AI operations. Enable attribution of outputs to specific model+prompt combinations for debugging and compliance.",
+        "id": "ai-provenance-tracking",
+        "label": "AI Provenance & Audit Logging",
         "stack": {
-          "exampleTools": ["OpenTelemetry", "custom logging"],
-          "exampleConfigFiles": ["src/ai/provenance.ts"],
+          "exampleConfigFiles": [
+            "src/ai/provenance.ts"
+          ],
+          "exampleTools": [
+            "OpenTelemetry",
+            "custom logging"
+          ],
           "notes": "Log for each AI call: provider (OpenAI, Anthropic), model ID, prompt template hash/version, temperature, timestamp, request ID. Store provenance alongside outputs for debugging 'why did AI do X?'",
           "verification": "Review AI integration code and confirm provenance is logged for all AI calls."
         }
       },
       {
+        "ciHints": {
+          "azure-devops": {
+            "notes": "Run invariant verification commands in a dedicated quality stage.",
+            "stage": "quality"
+          }
+        },
+        "description": "Maintain INVARIANTS.md defining repository-wide rules that must always hold true, with machine-readable verification commands for autonomous agents.",
         "id": "agent-invariants",
         "label": "Autonomous Agent Invariants",
-        "description": "Maintain INVARIANTS.md defining repository-wide rules that must always hold true, with machine-readable verification commands for autonomous agents.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "quality",
-            "notes": "Run invariant verification commands in a dedicated quality stage."
-          }
-        },
         "stack": {
+          "exampleConfigFiles": [
+            "INVARIANTS.md"
+          ],
           "exampleTools": [],
-          "exampleConfigFiles": ["INVARIANTS.md"],
           "notes": "Create INVARIANTS.md with a table of rules, verification commands, and severity levels. Include commands like 'npm test', 'npm run lint', 'npm run typecheck' that agents can run to validate state.",
-          "verification": "INVARIANTS.md exists with machine-readable verification commands for all critical repository rules.",
-          "requiredFiles": ["INVARIANTS.md"]
-        }
-      }
-    ],
-    "optionalEnhancements": [
-      {
-        "id": "observability",
-        "label": "Observability (Logging & Error Handling)",
-        "description": "Standardize error handling and structured logging to make debugging and production monitoring easier.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "observability"
-          }
-        },
-        "stack": {
-          "exampleTools": ["Winston", "Pino"],
-          "exampleConfigFiles": [],
-          "notes": "Adopt structured JSON logging with correlation IDs and send logs to a centralized sink in production.",
-          "verification": "Confirm that a structured logging library (such as Winston or Pino) is configured to emit JSON or key-value logs and that error handling routes important failures through this logger."
-        }
-      },
-      {
-        "id": "agent-phase-gates",
-        "label": "Agent Phase Gates",
-        "description": "Define phase transition requirements in phase-gates.md for autonomous agent workflows with clear pre-conditions and approval gates.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "governance"
-          }
-        },
-        "stack": {
-          "exampleTools": [],
-          "exampleConfigFiles": ["phase-gates.md"],
-          "notes": "Document phase transitions (Planning → Implementation → Verification → Release) with required pre-conditions, approval mechanisms, and evidence artifacts for each gate.",
-          "verification": "phase-gates.md exists defining transition requirements between project phases.",
-          "optionalFiles": ["phase-gates.md"]
-        }
-      },
-      {
-        "id": "agent-victory-gates",
-        "label": "Agent Victory Gates",
-        "description": "Document milestone completion criteria in victory-gates.md defining 'done' for releases and major deliverables with evidence requirements.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "governance"
-          }
-        },
-        "stack": {
-          "exampleTools": [],
-          "exampleConfigFiles": ["victory-gates.md"],
-          "notes": "Define completion criteria for milestones (MVP, Beta, GA) with all required conditions, verification commands, and evidence artifacts (test reports, coverage, deployment confirmations).",
-          "verification": "victory-gates.md exists with milestone completion criteria and evidence requirements.",
-          "optionalFiles": ["victory-gates.md"]
+          "requiredFiles": [
+            "INVARIANTS.md"
+          ],
+          "verification": "INVARIANTS.md exists with machine-readable verification commands for all critical repository rules."
         }
       }
     ]
-  }
+  },
+  "ciSystems": [
+    "azure-devops"
+  ],
+  "meta": {
+    "complexityChecks": {
+      "description": "When supported by the stack, run cyclomatic complexity or similar metrics in CI as a warning-only check initially.",
+      "enabledByDefault": true
+    },
+    "coverageThresholdDescription": "Expressed as a ratio (0-1), e.g., 0.8 = 80% coverage. Must be between 0 and 1.",
+    "coverageThresholdUnit": "ratio",
+    "defaultCoverageThreshold": 0.8,
+    "executorHints": {
+      "bazel": {
+        "advisoryNotice": "bazelHints are suggestions, not required execution paths. Consumers should prefer stack-native commands unless explicitly adopting Bazel.",
+        "ciContract": {
+          "configFlag": "--config=ci (define in .bazelrc)",
+          "deterministicFlags": [
+            "--nokeep_going",
+            "--test_output=errors"
+          ],
+          "remoteCache": "Optional; not required for CI",
+          "versionPinning": "Use .bazelversion file for Bazelisk"
+        },
+        "detectionRules": {
+          "notes": "Detection uses repo-root markers only. Nested BUILD files do not trigger Bazel mode.",
+          "optionalMarkers": [
+            ".bazelrc",
+            ".bazelversion"
+          ],
+          "rootMarkers": [
+            "MODULE.bazel",
+            "WORKSPACE.bazel",
+            "WORKSPACE"
+          ]
+        },
+        "optOut": {
+          "configPath": "meta.executorHints.bazel.enabled",
+          "description": "Set meta.executorHints.bazel.enabled = false in repo config to disable Bazel hints"
+        },
+        "targetConventions": {
+          "build": "bazel build //...",
+          "coverage": "bazel coverage //...",
+          "description": "Recommended target naming (not assumed to exist). These are illustrative patterns; actual targets are repo-defined.",
+          "format": "bazel run //tools/format:check",
+          "lint": "//tools/lint:lint or bazel test //... with lint aspects",
+          "test": "bazel test //..."
+        }
+      },
+      "description": "Advisory execution substrate hints. Bazel is the first supported executor; future monorepo executors may follow the same pattern."
+    },
+    "migrationGuide": [
+      {
+        "description": "Configure .gitattributes for cross-platform line ending correctness and establish the canonical verify entrypoint before adding any checks. This prevents 'works locally, fails in CI' issues from day one.",
+        "focusIds": [
+          "gitattributes-eol",
+          "canonical-verify",
+          "hook-ci-parity",
+          "config-authority"
+        ],
+        "notes": "Start here to avoid debugging cryptic CRLF failures later. Use .gitattributes as the authority for EOL (not .editorconfig). Run 'git add --renormalize .' after adding .gitattributes to fix existing files.",
+        "step": 0,
+        "title": "Foundation: Line Endings and Hook Entry Point"
+      },
+      {
+        "description": "Add pre-commit hooks with secret scanning, formatting, and linting. Hooks should CHECK (not auto-fix) and scope to changed files only for speed.",
+        "focusIds": [
+          "pre-commit-hooks",
+          "secret-scanning-precommit",
+          "linting",
+          "code-formatter"
+        ],
+        "notes": "Keep hooks fast by scoping to staged files. Use Husky as entry point calling lint-staged or pre-commit. Hooks should check, not fix, to keep developers aware of issues.",
+        "step": 1,
+        "title": "Establish Local Safety Nets First"
+      },
+      {
+        "description": "Introduce CI quality gates that mirror local hooks exactly. Add CRLF detection early in pipeline. Treat existing violations as warnings where possible.",
+        "focusIds": [
+          "crlf-detection",
+          "ci-quality-gates",
+          "linting",
+          "code-formatter",
+          "commit-linting"
+        ],
+        "notes": "CI must call the same verify scripts that hooks use. Add CRLF detection before other checks to fail fast on line ending issues. Use diff-based tools so only new violations break builds.",
+        "step": 2,
+        "title": "Mirror Local Checks in CI with CRLF Detection"
+      },
+      {
+        "description": "Enable type-checking, coverage thresholds, and dependency/vulnerability scanning with gradual enforcement.",
+        "focusIds": [
+          "type-checking",
+          "unit-test-runner",
+          "unit-test-reporter",
+          "dependency-security",
+          "dependency-update-automation"
+        ],
+        "notes": "Pin tool and runtime versions in CI and containers to avoid flaky differences across environments.",
+        "step": 3,
+        "title": "Add Type Safety, Coverage, and Dependency Security"
+      },
+      {
+        "description": "Add documentation standards, governance files, integration testing, performance baselines, complexity analysis, accessibility auditing, and (optionally) ML-specific practices for data-heavy Python repos.",
+        "focusIds": [
+          "documentation",
+          "repository-governance",
+          "integration-testing",
+          "performance-baselining",
+          "complexity-analysis",
+          "accessibility-auditing"
+        ],
+        "notes": "Tackle recommended items in order of business value; backend-only repos can skip web-focused checks like accessibility.",
+        "step": 4,
+        "title": "Layer in Docs, Governance, and Recommended Checks"
+      },
+      {
+        "description": "For repos using or building with generative AI, add drift detection, schema enforcement, golden contract tests, safety testing, and provenance tracking.",
+        "focusIds": [
+          "ai-drift-detection",
+          "ai-schema-enforcement",
+          "ai-golden-tests",
+          "ai-safety-checks",
+          "ai-provenance-tracking"
+        ],
+        "notes": "Skip this step if your repo has no AI/ML components. For AI-heavy repos: add nightly drift detection to catch model changes, enforce strict schemas at AI output boundaries, and log provenance for debugging 'why did AI do X?'",
+        "step": 5,
+        "title": "AI/ML Governance (If Applicable)"
+      }
+    ],
+    "qualityGatePolicy": {
+      "description": "New quality checks should warn on existing code and fail CI only for violations introduced in new or changed code, to reduce friction on legacy codebases.",
+      "preferSoftFailOnLegacy": true
+    }
+  },
+  "stack": "typescript-js",
+  "stackLabel": "TypeScript / JavaScript",
+  "version": 6
 }

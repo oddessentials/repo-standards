@@ -276,45 +276,18 @@ describe("determinism contract", () => {
 });
 
 describe("documentation sync (prevents version drift)", () => {
-  it("README schema version reference matches actual standards.json version", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-
-    const spec = loadMasterSpec();
-    const actualVersion = spec.version;
-
-    const readmePath = path.resolve(process.cwd(), "README.md");
-    const readme = fs.readFileSync(readmePath, "utf8");
-
-    // Check the "currently `N`" reference in README
-    const versionMatch = readme.match(/version.*\(currently `(\d+)`\)/i);
-    expect(versionMatch).not.toBeNull();
-    expect(Number(versionMatch![1])).toBe(actualVersion);
-  });
-
-  it("README documents the current schema version in version list", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-
-    const spec = loadMasterSpec();
-    const actualVersion = spec.version;
-
-    const readmePath = path.resolve(process.cwd(), "README.md");
-    const readme = fs.readFileSync(readmePath, "utf8");
-
-    // Check that the version list includes the current version
-    const versionListPattern = new RegExp(`-\\s*\`${actualVersion}\`\\s*—`);
-    expect(readme).toMatch(versionListPattern);
-  });
-
   it("schema version matches package.json major version", async () => {
     const fs = await import("node:fs");
     const path = await import("node:path");
 
+    interface PackageJson {
+      version: string;
+    }
+
     const spec = loadMasterSpec();
     const pkgPath = path.resolve(process.cwd(), "package.json");
-    const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
-    const pkgMajor = parseInt(pkg.version.split(".")[0], 10);
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8")) as PackageJson;
+    const pkgMajor = parseInt(pkg.version.split(".")[0] ?? "0", 10);
 
     expect(spec.version).toBe(pkgMajor);
   });

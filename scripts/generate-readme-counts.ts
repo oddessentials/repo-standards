@@ -24,7 +24,7 @@ function main() {
   }
 
   const raw = fs.readFileSync(masterPath, "utf8");
-  const master: MasterJson = JSON.parse(raw);
+  const master = JSON.parse(raw) as MasterJson;
 
   const coreCount = master.checklist.core.length;
   const recommendedCount = master.checklist.recommended.length;

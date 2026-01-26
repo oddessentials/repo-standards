@@ -14,15 +14,19 @@
     "lint": "eslint .",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
+    "check": "npm run lint && npm run format:check && npm run typecheck",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
+    "security": "npm audit --audit-level=high --omit=dev",
+    "policy": "npm run deps:check && tsx scripts/env-guard.ts",
+    "deps:check": "depcruise src --config .dependency-cruiser.cjs",
     "sync:version": "node scripts/sync-schema-version-pretest.cjs",
     "prepare": "husky",
     "postinstall": "git config core.hooksPath .husky || true",
-    "ci": "npm run lint && npm run format:check && npm run typecheck && npm run sync:version && npm run test && npm run build",
+    "ci": "npm run check && npm run sync:version && npm run test && npm run build",
     "generate:standards": "tsx scripts/generate-standards.ts",
     "validate:schema": "tsx scripts/validate-schema.ts",
-    "verify": "npm run ci"
+    "verify": "npm run check && npm run test && npm run security && npm run policy && npm run build"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.2.0",
@@ -34,10 +38,13 @@
     "@types/node": "^24.10.1",
     "@typescript-eslint/eslint-plugin": "^8.48.1",
     "@typescript-eslint/parser": "^8.48.1",
+    "@vitest/coverage-v8": "^4.0.18",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "coverage-v8": "^0.0.1-security",
+    "dependency-cruiser": "^17.3.7",
     "eslint": "^9.39.1",
+    "eslint-plugin-security": "^3.0.1",
     "fast-json-stable-stringify": "^2.1.0",
     "globals": "^16.5.0",
     "happy-dom": "^20.0.11",
@@ -52,10 +59,11 @@
     "vitest": "^4.0.15"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=22.0.0",
+    "npm": ">=10.0.0"
   },
   "lint-staged": {
-    "*.{js,cjs,ts,mjs,json,md}": [
+    "*.{js,cjs,ts,mjs,json,md,yml,yaml}": [
       "prettier --write"
     ],
     "*.{js,cjs,ts,mjs}": [

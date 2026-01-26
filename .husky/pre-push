@@ -1,0 +1,14 @@
+[ -n "$CI" ] && exit 0
+npm run verify
+
+# Auto-commit version.ts if it changed during build
+if git diff --quiet src/version.ts 2>/dev/null; then
+  : # No changes, continue
+else
+  echo "Auto-committing src/version.ts (version sync)"
+  git add src/version.ts
+  git commit -m "chore: sync version.ts with package.json [skip ci]"
+fi
+
+npm audit --audit-level=high --omit=dev
+npm run deps:check

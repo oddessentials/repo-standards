@@ -1,9 +1,11 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"],
-  "schedule": ["before 5am on monday"],
+  "extends": ["config:recommended", ":semanticCommits"],
+  "schedule": ["after 6am and before 9am on Monday"],
   "timezone": "America/New_York",
   "labels": ["dependencies"],
+  "automerge": true,
+  "automergeType": "pr",
   "packageRules": [
     {
       "description": "Group all @oddessentials packages",
@@ -12,16 +14,18 @@
       "automerge": false
     },
     {
-      "description": "Auto-merge patch updates for dev dependencies",
+      "description": "Auto-merge patch and minor updates for dev dependencies",
       "matchDepTypes": ["devDependencies"],
-      "matchUpdateTypes": ["patch"],
+      "matchUpdateTypes": ["patch", "minor"],
       "automerge": true,
       "automergeType": "pr"
     },
     {
-      "description": "Pin major versions for stability",
+      "description": "Major versions require dashboard approval",
       "matchUpdateTypes": ["major"],
-      "dependencyDashboardApproval": true
+      "automerge": false,
+      "dependencyDashboardApproval": true,
+      "labels": ["dependencies", "breaking-change"]
     }
   ],
   "vulnerabilityAlerts": {

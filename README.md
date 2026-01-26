@@ -4,11 +4,14 @@
 [![Release](https://github.com/oddessentials/repo-standards/actions/workflows/release.yml/badge.svg)](https://github.com/oddessentials/repo-standards/actions/workflows/release.yml)
 [![Renovate](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovatebot.com)
 [![semantic-release](https://img.shields.io/badge/semantic--release-%E2%9C%93-brightgreen?logo=semantic-release)](https://github.com/semantic-release/semantic-release)
-[![semantic-release](https://img.shields.io/badge/semantic--release-24-e10079?logo=semantic-release)](https://github.com/semantic-release/semantic-release)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
 [![license](https://img.shields.io/npm/l/@oddessentials/repo-standards.svg)](LICENSE)
 [![node](https://img.shields.io/node/v/@oddessentials/repo-standards.svg)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
+[![ESLint](https://img.shields.io/badge/ESLint-v9-4B32C3?logo=eslint)](https://eslint.org/)
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://prettier.io/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![Maintenance](https://img.shields.io/badge/Maintained-yes-green.svg)](https://github.com/oddessentials/repo-standards/graphs/commit-activity)
 
 # 🐝 Repository Standards & CI Checklist
 
@@ -26,7 +29,7 @@ It is designed to be:
 
 ---
 
-## What’s Included
+## 📦 What’s Included
 
 - **Master spec (source of truth)**
   `config/standards.json`
@@ -39,7 +42,7 @@ It is designed to be:
 
 ---
 
-## Meta Rules (Global Policy)
+## 🔧 Meta Rules (Global Policy)
 
 The master spec includes a `meta` block that defines system-wide expectations:
 
@@ -74,9 +77,9 @@ The master spec includes a `meta` block that defines system-wide expectations:
 
 ---
 
-## Structure of `config/standards.json`
+## 📋 Structure of `config/standards.json`
 
-- `version` — schema version (currently `6`)
+- `version` — schema version (matches package.json major version)
 - `meta` — global rules and migration policy
 - `ciSystems` — supported CI platforms
   _(currently `github-actions`, `azure-devops`)_
@@ -115,16 +118,14 @@ The `version` field indicates schema compatibility:
 - `5` — Adds automated version-guard guidance for repositories using semantic-release; schema aligned to package major version 5.
 - `6` — Schema version aligned to package major version 6; introduces automated pre-test version sync.
 
-To keep `config/standards.json` in sync with semantic-release major bumps, use
-`scripts/sync-standards-version.cjs` during the semantic-release prepare step
-and commit the updated files. This updates the schema version and README
-references in one place.
+To keep `config/standards.json` in sync with semantic-release major bumps, the
+`sync:version` script runs automatically before tests.
 
 Consumers should ignore unknown fields for forward compatibility.
 
 ---
 
-## Dependency Governance (Recommended Items)
+## 🔗 Dependency Governance (Recommended Items)
 
 Two recommended checklist items support supply-chain governance:
 
@@ -161,7 +162,7 @@ Required secrets:
 
 ---
 
-## Bazel Integration
+## 🛠️ Bazel Integration
 
 This framework supports Bazel as an **optional build executor** for quality checks.
 
@@ -239,7 +240,7 @@ To disable Bazel hints for a repo that contains Bazel files but uses npm for qua
 
 ---
 
-## Generating Stack-Specific JSON
+## 🚀 Generating Stack-Specific JSON
 
 The generator reads the master spec and produces filtered, deterministic outputs.
 
@@ -284,7 +285,7 @@ config/standards.typescript-js.github-actions.json
 
 ---
 
-## Consuming This Package (npm)
+## 📥 Consuming This Package (npm)
 
 Install:
 
@@ -304,7 +305,7 @@ This package is intentionally **read-only** and **side-effect free**.
 
 ---
 
-## How to Apply to a Repository
+## 📖 How to Apply to a Repository
 
 1. Identify the stack (`typescript-js`, `csharp-dotnet`, `python`)
 2. Generate the filtered checklist
@@ -317,7 +318,7 @@ For existing repositories, follow `meta.migrationGuide` to adopt standards incre
 
 ---
 
-## Instruction Generation
+## 📝 Instruction Generation
 
 Human-readable “agent instructions” can also be generated:
 
@@ -334,7 +335,38 @@ npm run generate:instructions -- standards.csharp-dotnet.azure-devops.json
 
 ---
 
-## Philosophy
+## ✅ Dogfooding Compliance
+
+This repository follows its own standards. See [docs/COMPLIANCE.md](docs/COMPLIANCE.md) for the full audit.
+
+| Category                  | Status | Notes                               |
+| ------------------------- | ------ | ----------------------------------- |
+| ⚙️ Core (29 items)        | 28/29  | Secret scanning N/A for public repo |
+| 📋 Recommended (12 items) | 6/12   | AI/E2E items N/A for library        |
+| 🎯 Optional (3 items)     | 0/3    | Not targeted                        |
+
+<details>
+<summary>📊 Core Requirements</summary>
+
+| Status | Standard                                    |
+| ------ | ------------------------------------------- |
+| ✅     | Line Endings, CRLF Detection, Ignore Files  |
+| ✅     | Linting (ESLint v9), Formatter (Prettier)   |
+| ✅     | Unit Tests (Vitest), CI Quality Gates       |
+| ✅     | Semantic Versioning, Version Guard          |
+| ✅     | Unified Release, Hook Bypass, Commit Lint   |
+| ✅     | Type Checking (strict), Dependency Security |
+| ✅     | Deterministic Builds, Provenance            |
+| ✅     | Hooks (Husky), Hook/CI Parity               |
+| ✅     | Runtime Version, Documentation, Governance  |
+| ⚠️     | Coverage (low thresholds - intentional)     |
+| ⬜     | Secret Scanning (N/A for public repo)       |
+
+</details>
+
+---
+
+## 💡 Philosophy
 
 🐝 **Small rules. Shared language. Predictable outcomes.**
 

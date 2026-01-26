@@ -18,6 +18,7 @@ import {
 } from "node:fs";
 import { resolve, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import type { PackageJson, MasterJson } from "./types.internal.js";
 
 const __filename = fileURLToPath(import.meta.url);
 
@@ -44,11 +45,13 @@ function syncSchemaVersion(rootDir: string): void {
   const pkgPath = join(rootDir, "package.json");
   const standardsPath = join(rootDir, "config", "standards.json");
 
-  const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
-  const standards = JSON.parse(readFileSync(standardsPath, "utf8"));
+  const pkg = JSON.parse(readFileSync(pkgPath, "utf8")) as PackageJson;
+  const standards = JSON.parse(
+    readFileSync(standardsPath, "utf8"),
+  ) as MasterJson;
 
   // Extract major version from package.json (e.g., "2.1.0" -> 2)
-  const pkgMajor = parseInt(pkg.version.split(".")[0], 10);
+  const pkgMajor = parseInt(pkg.version.split(".")[0] ?? "0", 10);
 
   if (pkgMajor > standards.version) {
     // Auto-upgrade schema version when semantic-release bumps package.json
@@ -83,15 +86,16 @@ function generateStack(stack: string, ci?: string) {
 /**
  * Generate src/version.ts with current package version
  * This runs before TypeScript compilation so the values are baked in
+ * Only writes if content has changed to avoid dirty working tree
  */
 function generateVersionFile(rootDir: string): void {
   const pkgPath = join(rootDir, "package.json");
   const versionPath = join(rootDir, "src", "version.ts");
 
-  const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
+  const pkg = JSON.parse(readFileSync(pkgPath, "utf8")) as PackageJson;
   const standards = JSON.parse(
     readFileSync(join(rootDir, "config", "standards.json"), "utf8"),
-  );
+  ) as MasterJson;
 
   const content = `/**
  * AUTO-GENERATED at build time by scripts/build.ts
@@ -102,12 +106,24 @@ function generateVersionFile(rootDir: string): void {
  * ESM/CJS interop issues.
  */
 
-export const STANDARDS_VERSION = '${pkg.version}';
+export const STANDARDS_VERSION = "${pkg.version}";
 export const STANDARDS_SCHEMA_VERSION = ${standards.version};
 `;
 
-  writeFileSync(versionPath, content);
-  console.log(`Generated src/version.ts with version ${pkg.version}`);
+  // Only write if content has changed (prevents dirty working tree)
+  let existingContent = "";
+  try {
+    existingContent = readFileSync(versionPath, "utf8");
+  } catch {
+    // File doesn't exist, will be created
+  }
+
+  if (existingContent === content) {
+    console.log(`src/version.ts already at version ${pkg.version} (no change)`);
+  } else {
+    writeFileSync(versionPath, content);
+    console.log(`Generated src/version.ts with version ${pkg.version}`);
+  }
 }
 
 function main() {
@@ -156,7 +172,7 @@ function main() {
     const destPath = join(configDest, file);
 
     // Read, sort for determinism, and write
-    const data = JSON.parse(readFileSync(srcPath, "utf8"));
+    const data: unknown = JSON.parse(readFileSync(srcPath, "utf8"));
     const sorted = sortObject(data);
     writeFileSync(destPath, JSON.stringify(sorted, null, 2) + "\n");
   }

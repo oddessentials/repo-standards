@@ -1,18 +1,26 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "strict": true,
+    "noImplicitAny": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
     "outDir": "dist",
     "rootDir": ".",
     "moduleDetection": "force",
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
+    "declaration": true,
+    "sourceMap": true,
     "types": ["node"]
   },
-  "include": ["src", "scripts"],
-  "exclude": ["dist", "node_modules"]
+  "include": ["src", "scripts", "test", "*.config.ts"],
+  "exclude": ["dist", "node_modules", "test/fixtures"]
 }

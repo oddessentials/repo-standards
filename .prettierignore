@@ -18,3 +18,7 @@ coverage/
 
 # Generated instruction files (machine-generated from standards.json)
 instructions*.md
+
+# Generated stack-specific standards files (machine-generated, deterministically sorted)
+# These use JSON.stringify formatting to maintain deterministic output across builds
+config/standards.*.json

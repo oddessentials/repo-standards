@@ -1,24 +1,1319 @@
 {
-  "version": 6,
-  "stack": "rust",
-  "stackLabel": "Rust",
-  "ciSystems": ["azure-devops", "github-actions"],
+  "checklist": {
+    "core": [
+      {
+        "ciHints": {
+          "azure-devops": {
+            "notes": "Run CRLF detection early in pipeline before other checks.",
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "Add .gitattributes check as first step in CI job."
+          }
+        },
+        "description": "Enforce line endings at the Git layer using .gitattributes. Mark text files with appropriate EOL handling (eol=lf for shell scripts, eol=auto for most files) and binary files as binary to prevent corruption. This prevents 'works locally, fails in CI' issues caused by CRLF/LF mismatches.",
+        "id": "gitattributes-eol",
+        "label": "Git Attributes (Line Endings)",
+        "stack": {
+          "exampleConfigFiles": [
+            ".gitattributes",
+            ".editorconfig"
+          ],
+          "exampleTools": [
+            "git"
+          ],
+          "machineCheck": {
+            "command": "git ls-files --eol | grep -E 'w/crlf.*\\.sh$' && exit 1 || exit 0",
+            "description": "Verify no CRLF in shell scripts",
+            "expectExitCode": 0
+          },
+          "notes": "Mark *.rs, *.toml as text with auto EOL handling. Mark shell scripts as eol=lf. Binary files (*.exe, *.dll) should be marked as binary.",
+          "optionalFiles": [
+            ".editorconfig"
+          ],
+          "requiredFiles": [
+            ".gitattributes"
+          ],
+          "verification": "Run 'git ls-files --eol' to verify EOL consistency."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "notes": "Run CRLF detection as the first quality check before linting or testing.",
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "Add CRLF detection step before main CI steps."
+          }
+        },
+        "description": "Fail CI early for Linux-executed files containing CRLF line endings. Shell scripts, Python files, and other interpreted files fail silently or with cryptic errors when they contain \\r characters. Detect this before running deeper CI steps.",
+        "id": "crlf-detection",
+        "label": "CRLF Detection in CI",
+        "stack": {
+          "exampleConfigFiles": [],
+          "exampleTools": [
+            "file",
+            "grep"
+          ],
+          "machineCheck": {
+            "command": "git ls-files --eol | grep -E 'w/crlf.*\\.(sh|bash)$' && exit 1 || exit 0",
+            "description": "Detect CRLF in shell scripts",
+            "expectExitCode": 0
+          },
+          "notes": "Rust build scripts (build.rs) and shell scripts must not have CRLF. Cargo tolerates CRLF in .rs files but shell invocations fail.",
+          "verification": "Run CRLF detection on shell and build scripts."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "description": "Maintain proper .gitignore and .dockerignore files to prevent committing secrets, build artifacts, or unnecessary files.",
+        "id": "gitignore-and-dockerignore",
+        "label": "Git and Docker Ignore Files",
+        "stack": {
+          "exampleConfigFiles": [
+            ".gitignore",
+            ".dockerignore"
+          ],
+          "notes": "Use the official github/gitignore Rust template. Exclude target/, Cargo.lock (for libraries), *.pdb, and similar build artifacts. .dockerignore must exclude target/, .git, and local development files.",
+          "optionalFiles": [
+            ".dockerignore"
+          ],
+          "requiredFiles": [
+            ".gitignore"
+          ],
+          "verification": ".gitignore must exist; .dockerignore is recommended when containerizing or using Docker workflows."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "description": "Run static code linting to enforce consistency and catch common issues early.",
+        "id": "linting",
+        "label": "Linting",
+        "stack": {
+          "bazelHints": {
+            "commands": [
+              "bazel build //... --aspects=@rules_rust//rust:defs.bzl%clippy_aspect --output_groups=clippy_checks"
+            ],
+            "notes": "Example only; actual targets are repo-defined. rules_rust includes clippy_aspect for Bazel-native Clippy linting."
+          },
+          "exampleConfigFiles": [
+            "clippy.toml",
+            ".clippy.toml"
+          ],
+          "exampleTools": [
+            "clippy",
+            "cargo-clippy"
+          ],
+          "notes": "Use Clippy for comprehensive Rust linting. Configure via clippy.toml for project-specific rules. Treat warnings as errors in CI with -D warnings.",
+          "optionalFiles": [
+            "clippy.toml",
+            ".clippy.toml"
+          ],
+          "requiredFiles": [
+            "Cargo.toml"
+          ],
+          "verification": "Clippy is available via rustup component. Run 'cargo clippy' to verify linting is configured."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "stage": "test"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "description": "Provide a deterministic unit test framework with a single command to run all tests.",
+        "id": "unit-test-runner",
+        "label": "Unit Test Runner",
+        "stack": {
+          "bazelHints": {
+            "commands": [
+              "bazel test //..."
+            ],
+            "notes": "rules_rust rust_test targets run cargo test under Bazel's hermetic environment."
+          },
+          "exampleConfigFiles": [
+            "Cargo.toml"
+          ],
+          "exampleTools": [
+            "cargo test"
+          ],
+          "notes": "Use cargo test as the built-in test runner. Organize tests in tests/ directory for integration tests and inline #[test] functions for unit tests.",
+          "optionalFiles": [
+            "tests/"
+          ],
+          "requiredFiles": [
+            "Cargo.toml"
+          ],
+          "verification": "Run 'cargo test' to verify the test suite is configured and passing."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "stage": "build"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "description": "Provide a Dockerfile and, if applicable, a docker-compose file for local dev and CI parity.",
+        "id": "containerization",
+        "label": "Containerization (Docker / Docker Compose)",
+        "stack": {
+          "exampleConfigFiles": [
+            "Dockerfile",
+            "docker-compose.yml"
+          ],
+          "exampleTools": [],
+          "notes": "Use multi-stage builds: builder stage with rust:alpine for compiling, then copy binary to distroless or alpine for minimal runtime image. Pin Rust version via rust-toolchain.toml.",
+          "optionalFiles": [
+            "docker-compose.yml"
+          ],
+          "requiredFiles": [
+            "Dockerfile"
+          ],
+          "verification": "Dockerfile must be present; docker-compose.yml is optional and indicates orchestration usage."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "stage": "release"
+          },
+          "github-actions": {
+            "job": "release"
+          }
+        },
+        "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history. Maintain a single canonical version source (for example, package.json or VERSION) that all release artifacts use.",
+        "id": "semantic-versioning",
+        "label": "Semantic Versioning",
+        "stack": {
+          "exampleConfigFiles": [
+            "Cargo.toml",
+            "CHANGELOG.md"
+          ],
+          "exampleTools": [
+            "cargo-release",
+            "semantic-release"
+          ],
+          "notes": "Version is defined in Cargo.toml as the canonical source. Use cargo-release or semantic-release-cargo for automated versioning and GitHub release publishing, and follow Conventional Commits for changelog generation.",
+          "optionalFiles": [
+            "CHANGELOG.md"
+          ],
+          "requiredFiles": [
+            "Cargo.toml"
+          ],
+          "requiredScripts": [
+            "release"
+          ],
+          "verification": "Check that Cargo.toml version follows SemVer and verify changelog generation from commit history."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "notes": "Run the version guard in PR validation jobs before merge.",
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "Run the version guard in PR workflows against the base ref."
+          }
+        },
+        "description": "If semantic-release or automated versioning is enabled, block manual edits to canonical version fields in pull requests. Enforce a CI guard (and optional pre-push hook) that fails when version lines change outside the release workflow.",
+        "id": "version-guard",
+        "label": "Version Guard (Automated Releases)",
+        "stack": {
+          "exampleConfigFiles": [
+            "scripts/check-version-unchanged.sh",
+            ".github/workflows/ci.yml",
+            "azure-pipelines.yml"
+          ],
+          "exampleTools": [
+            "cargo-release",
+            "semantic-release",
+            "git"
+          ],
+          "notes": "When using cargo-release or semantic-release-cargo, guard against manual edits to Cargo.toml version fields in PRs.",
+          "requiredFiles": [
+            "Cargo.toml"
+          ],
+          "verification": "Run the guard and confirm it fails when Cargo.toml version changes."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "notes": "Ensure format:check step uses ignore file that excludes release artifacts.",
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "Ensure format:check step uses ignore file that excludes release artifacts."
+          }
+        },
+        "description": "Exclude auto-generated release artifacts (CHANGELOG.md, package-lock.json, etc.) from code formatters to prevent CI failures. Release automation tools generate files that may not conform to your formatter's style, causing format checks to fail on subsequent CI runs.",
+        "id": "release-artifact-exclusion",
+        "label": "Release Artifact Formatter Exclusion",
+        "stack": {
+          "exampleConfigFiles": [
+            "rustfmt.toml"
+          ],
+          "exampleTools": [
+            "rustfmt",
+            "cargo-release"
+          ],
+          "notes": "Rust rarely has auto-generated source files, but if using tools that generate Rust code, exclude those directories in rustfmt.toml. CHANGELOG.md isn't checked by rustfmt (it only checks .rs files).",
+          "verification": "Run 'cargo fmt --check' and confirm it passes after releases."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "stage": "release"
+          },
+          "github-actions": {
+            "job": "release"
+          }
+        },
+        "description": "Use a single CI release pipeline that publishes all artifacts (GitHub releases, packages, containers) from the same canonical version source.",
+        "id": "unified-release-workflow",
+        "label": "Unified Release Workflow",
+        "stack": {
+          "exampleConfigFiles": [
+            ".github/workflows/release.yml",
+            "azure-pipelines.yml"
+          ],
+          "exampleTools": [
+            "cargo-release",
+            "cargo publish",
+            "docker buildx"
+          ],
+          "notes": "Use a single release pipeline to publish crates.io packages, GitHub releases, and Docker images from the Cargo.toml version.",
+          "optionalFiles": [
+            "CHANGELOG.md"
+          ],
+          "requiredScripts": [
+            "release"
+          ],
+          "verification": "Trigger the release pipeline and confirm all artifacts share the same version number and tag."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "notes": "Set HUSKY=0 or equivalent in release pipeline to disable hooks.",
+            "stage": "release"
+          },
+          "github-actions": {
+            "job": "release",
+            "notes": "Set HUSKY=0 or equivalent in release job to disable hooks."
+          }
+        },
+        "description": "Release automation must bypass local developer hooks (HUSKY=0, --no-verify) and rely solely on CI gates for validation. This ensures idempotent, reproducible releases that don't fail due to hook environment differences.",
+        "id": "release-hook-bypass",
+        "label": "Release Hook Bypass",
+        "stack": {
+          "exampleConfigFiles": [
+            ".github/workflows/release.yml"
+          ],
+          "exampleTools": [
+            "cargo-release"
+          ],
+          "notes": "Use --no-verify with git commands in release scripts. If using pre-commit, set SKIP=all.",
+          "verification": "Check release workflow for hook bypass."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "description": "Enforce structured commit messages such as Conventional Commits via commit-msg hooks and CI. This is required for deterministic versioning and changelog generation.",
+        "id": "commit-linting",
+        "label": "Commit Linting",
+        "stack": {
+          "anyOfFiles": [
+            "commitlint.config.js",
+            "commitlint.config.cjs",
+            "commitlint.config.mjs",
+            "commitlint.config.json",
+            ".cz.toml"
+          ],
+          "exampleConfigFiles": [
+            "commitlint.config.js",
+            ".cz.toml"
+          ],
+          "exampleTools": [
+            "commitlint",
+            "commitizen"
+          ],
+          "notes": "Use commitlint with husky or pre-commit for enforcing Conventional Commits and add a CI check to keep version/changelog automation deterministic.",
+          "requiredScripts": [
+            "commitlint"
+          ],
+          "verification": "Test that non-conforming commit messages are rejected by the configured hooks and CI check."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "stage": "test"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "description": "Generate readable unit test and coverage reports and enforce a minimum coverage threshold (around 80%) for new or changed code.",
+        "id": "unit-test-reporter",
+        "label": "Unit Test Reporter / Coverage",
+        "stack": {
+          "bazelHints": {
+            "commands": [
+              "bazel coverage //..."
+            ],
+            "notes": "Bazel coverage with rules_rust requires LLVM instrumentation. May need additional toolchain configuration."
+          },
+          "exampleConfigFiles": [
+            "Cargo.toml"
+          ],
+          "exampleTools": [
+            "cargo-tarpaulin",
+            "llvm-cov",
+            "grcov"
+          ],
+          "notes": "Use cargo-tarpaulin or llvm-cov for code coverage. Generate lcov or cobertura reports for CI integration.",
+          "verification": "Run 'cargo tarpaulin' or equivalent and verify coverage reports are generated and thresholds enforced."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "stage": "ci"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "description": "Single CI pipeline that runs linting, formatting, type checking, tests, coverage, build, and containerization.",
+        "id": "ci-quality-gates",
+        "label": "CI Quality Gates",
+        "stack": {
+          "bazelHints": {
+            "commands": [
+              "bazel build //...",
+              "bazel test //..."
+            ],
+            "notes": "rules_rust provides rust_library, rust_test, and clippy_aspect for complete CI."
+          },
+          "exampleConfigFiles": [
+            ".github/workflows/*",
+            "azure-pipelines.yml"
+          ],
+          "exampleTools": [],
+          "notes": "Use 'cargo clippy', 'cargo test', 'cargo build --release' as quality gates. Consider cargo-deny for dependency auditing.",
+          "verification": "Verify CI runs cargo clippy, cargo test, and cargo build before merging to main."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "description": "Automatic code formatting to maintain a consistent style across all contributors.",
+        "id": "code-formatter",
+        "label": "Code Formatter",
+        "stack": {
+          "bazelHints": {
+            "commands": [
+              "bazel build //... --aspects=@rules_rust//rust:defs.bzl%rustfmt_aspect --output_groups=rustfmt_checks"
+            ],
+            "notes": "rules_rust includes rustfmt_aspect for Bazel-native format checking."
+          },
+          "exampleConfigFiles": [
+            "rustfmt.toml",
+            ".rustfmt.toml"
+          ],
+          "exampleTools": [
+            "rustfmt"
+          ],
+          "notes": "Use rustfmt (via 'cargo fmt') as the standard formatter. Configure via rustfmt.toml. Run 'cargo fmt --check' in CI.",
+          "verification": "Run 'cargo fmt --check' and confirm it reports clean formatting. Use 'cargo fmt' to auto-fix."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "notes": "Hooks and CI must invoke identical verification commands. Use npm run verify or equivalent.",
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "Hooks and CI must invoke identical verification commands. Use npm run verify or equivalent."
+          }
+        },
+        "description": "Use git hooks to run linting, formatting, and commit linting before changes are committed. Hooks should CHECK by default (not auto-fix), be fast, and scope to changed files only. Use a single entry hook mechanism (e.g., Husky as entry point calling pre-commit or lint-staged).",
+        "id": "pre-commit-hooks",
+        "label": "Pre-Commit Hooks",
+        "stack": {
+          "exampleConfigFiles": [
+            ".pre-commit-config.yaml"
+          ],
+          "exampleTools": [
+            "pre-commit",
+            "cargo-husky"
+          ],
+          "notes": "Use pre-commit with rust hooks for 'cargo fmt --check' and 'cargo clippy' on staged files. Pin rust-toolchain.toml for determinism across environments.",
+          "verification": "Confirm hooks run cargo fmt --check (not cargo fmt) and cargo clippy before commits."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "notes": "CI should call the same verify script that hooks use locally.",
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "CI should call the same verify script that hooks use locally."
+          }
+        },
+        "description": "Local hooks and CI must invoke identical verification commands to prevent 'works locally, fails in CI' issues. Use a single canonical verify entrypoint (e.g., npm run verify) that both hooks and CI call.",
+        "id": "hook-ci-parity",
+        "label": "Hook/CI Parity",
+        "stack": {
+          "exampleConfigFiles": [
+            "Makefile",
+            "Cargo.toml"
+          ],
+          "exampleTools": [
+            "cargo",
+            "make"
+          ],
+          "notes": "Define a verify target (make verify or cargo make verify) that runs fmt --check, clippy, and test. Both hooks and CI should use this target.",
+          "verification": "Compare hook commands with CI commands and confirm they invoke the same cargo commands."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "notes": "Also run secret scanning in CI as a safety net for commits that bypassed hooks.",
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "Enable GitHub secret scanning and also run gitleaks in CI."
+          }
+        },
+        "description": "Scan staged diffs for credentials, API keys, and secrets before they reach the remote repository. Catch secrets at commit time rather than after they're pushed.",
+        "id": "secret-scanning-precommit",
+        "label": "Pre-commit Secret Scanning",
+        "stack": {
+          "exampleConfigFiles": [
+            ".gitleaks.toml",
+            ".pre-commit-config.yaml"
+          ],
+          "exampleTools": [
+            "gitleaks"
+          ],
+          "notes": "Add gitleaks to pre-commit hooks. Configure Rust-specific patterns if needed.",
+          "verification": "Run 'gitleaks protect --staged' and verify it catches test secrets."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "description": "Use static type checking to catch errors before runtime and enforce strictness on new code. For JS/TS stacks, require a TypeScript-first policy with strict mode and a CI typecheck step; allow JSDoc/checkJs migration for legacy JS.",
+        "id": "type-checking",
+        "label": "Type Checking",
+        "stack": {
+          "bazelHints": {
+            "commands": [
+              "bazel build //..."
+            ],
+            "notes": "Rust type checking is inherent to compilation. bazel build with rules_rust enforces type safety."
+          },
+          "exampleConfigFiles": [
+            "Cargo.toml"
+          ],
+          "exampleTools": [
+            "rustc (built-in)"
+          ],
+          "notes": "Rust has compile-time type checking built into the language. The borrow checker enforces memory safety. No additional tooling needed for type safety.",
+          "requiredFiles": [
+            "Cargo.toml"
+          ],
+          "verification": "Run 'cargo check' or 'cargo build' to verify type correctness. All Rust code is type-checked by default."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "description": "Lock dependencies and scan regularly for known vulnerabilities; fail CI on newly introduced high-severity issues.",
+        "id": "dependency-security",
+        "label": "Dependency Management & Vulnerability Scanning",
+        "stack": {
+          "anyOfFiles": [
+            "Cargo.lock"
+          ],
+          "exampleConfigFiles": [
+            "Cargo.lock",
+            "deny.toml"
+          ],
+          "exampleTools": [
+            "cargo-audit",
+            "cargo-deny"
+          ],
+          "notes": "Use cargo-audit for vulnerability scanning or cargo-deny for comprehensive dependency checking (licenses, advisories, bans). Cargo.lock locks versions.",
+          "optionalFiles": [
+            "deny.toml"
+          ],
+          "pinningNotes": "Required for binaries/services; optional for libraries (add to .gitignore for libs). See https://doc.rust-lang.org/cargo/faq.html#why-have-cargolock-in-version-control",
+          "verification": "Cargo.lock is present; run 'cargo audit' or 'cargo deny check' to verify security scanning."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "stage": "build"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "description": "Ensure builds are reproducible by pinning dependencies, base images, and tool/runtime versions. Avoid network/time variance and fail when lockfiles drift.",
+        "id": "deterministic-builds",
+        "label": "Deterministic & Hermetic Builds",
+        "stack": {
+          "exampleConfigFiles": [
+            "Cargo.lock",
+            "rust-toolchain.toml"
+          ],
+          "exampleTools": [
+            "cargo build --locked"
+          ],
+          "notes": "Commit Cargo.lock for binaries/services and pin Rust versions with rust-toolchain.toml. Use --locked in CI.",
+          "optionalFiles": [
+            "rust-toolchain.toml"
+          ],
+          "requiredFiles": [
+            "Cargo.lock"
+          ],
+          "verification": "Cargo.lock is present and CI uses --locked. Rust toolchain is pinned."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "stage": "security"
+          },
+          "github-actions": {
+            "job": "security"
+          }
+        },
+        "description": "Produce SBOMs or provenance metadata, enable secret/code scanning, and sign tags or commits for critical repos.",
+        "id": "provenance-security",
+        "label": "Provenance & Security Metadata",
+        "stack": {
+          "exampleConfigFiles": [
+            ".github/workflows/codeql.yml",
+            ".github/workflows/provenance.yml"
+          ],
+          "exampleTools": [
+            "cargo-cyclonedx",
+            "syft",
+            "codeql",
+            "gitleaks",
+            "cosign"
+          ],
+          "notes": "Generate SBOM/provenance for crates and container artifacts, enable secret scanning, and sign tags/commits for critical repos.",
+          "optionalFiles": [
+            "SECURITY.md",
+            ".github/workflows/codeql.yml"
+          ],
+          "verification": "SBOM/provenance artifacts are published alongside releases, and CI runs secret/code scanning."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "stage": "ci"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "description": "Adopt standard CI templates and config samples to scale across repositories, minimizing bespoke pipeline logic.",
+        "id": "ci-templates-automation",
+        "label": "CI Templates & Automation",
+        "stack": {
+          "anyOfFiles": [
+            ".github/workflows/ci.yml",
+            "azure-pipelines.yml"
+          ],
+          "exampleConfigFiles": [
+            ".github/workflows/ci.yml",
+            "azure-pipelines.yml"
+          ],
+          "exampleTools": [
+            "GitHub Actions reusable workflows",
+            "Azure DevOps templates"
+          ],
+          "notes": "Use shared CI templates for build/test/release stages to standardize across Rust repos.",
+          "requiredScripts": [
+            "ci"
+          ],
+          "verification": "CI pipeline references a shared template or reusable workflow and follows the standard job naming."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "description": "Specify required runtime/engine versions in package manifests appropriate for your application. Use minimum version constraints (>=) rather than strict ranges to avoid blocking consumers from upgrading.",
+        "id": "runtime-version",
+        "label": "Runtime Version Specification",
+        "stack": {
+          "exampleConfigFiles": [
+            "rust-toolchain.toml",
+            "rust-toolchain"
+          ],
+          "exampleTools": [],
+          "notes": "Use rust-toolchain.toml to pin the Rust version (e.g., channel = 'stable' or specific version '1.75.0'). This ensures consistent builds across the team via rustup.",
+          "optionalFiles": [
+            "rust-toolchain.toml",
+            "rust-toolchain"
+          ],
+          "verification": "rust-toolchain.toml or rust-toolchain file specifies the required Rust version."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "stage": "docs"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "description": "Maintain a comprehensive README and, where applicable, auto-generated API docs to support onboarding and maintainability.",
+        "id": "documentation",
+        "label": "Documentation Standards",
+        "stack": {
+          "exampleConfigFiles": [
+            "README.md",
+            "docs/"
+          ],
+          "exampleTools": [
+            "rustdoc",
+            "mdBook"
+          ],
+          "notes": "Use rustdoc (via 'cargo doc') for API documentation from doc comments. Consider mdBook for user guides and tutorials.",
+          "optionalFiles": [
+            "docs/",
+            "book.toml"
+          ],
+          "requiredFiles": [
+            "README.md"
+          ],
+          "verification": "README.md is present; run 'cargo doc' to generate API docs."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "stage": "governance"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "description": "Include standard governance files (LICENSE, CODE_OF_CONDUCT.md, CONTRIBUTING.md), branch protection rules, and review standards to define legal, ethical, and workflow expectations.",
+        "id": "repository-governance",
+        "label": "Repository Governance",
+        "stack": {
+          "exampleConfigFiles": [
+            "LICENSE",
+            "CODE_OF_CONDUCT.md",
+            "CONTRIBUTING.md"
+          ],
+          "exampleTools": [],
+          "notes": "Include license in Cargo.toml metadata. Document cargo workspace conventions and testing requirements in CONTRIBUTING.md.",
+          "optionalFiles": [
+            "CODE_OF_CONDUCT.md",
+            "CONTRIBUTING.md"
+          ],
+          "requiredFiles": [
+            "LICENSE"
+          ],
+          "verification": "LICENSE file is present; CODE_OF_CONDUCT.md and CONTRIBUTING.md provide contribution guidance."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "notes": "CI should call the canonical verify command, not duplicate check logic.",
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "CI should call the canonical verify command, not duplicate check logic."
+          }
+        },
+        "description": "Provide one canonical 'verify' command per repository/stack that all stages call with appropriate flags. This prevents duplication, drift, and ensures consistency between local development and CI.",
+        "id": "canonical-verify",
+        "label": "Canonical Verify Entrypoint",
+        "stack": {
+          "exampleConfigFiles": [
+            "Makefile",
+            "Makefile.toml"
+          ],
+          "exampleTools": [
+            "cargo",
+            "make",
+            "cargo-make"
+          ],
+          "notes": "Define 'make verify' or 'cargo make verify' that runs fmt --check, clippy, and test. Both hooks and CI use this entrypoint.",
+          "verification": "Makefile or Makefile.toml contains a 'verify' task."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "notes": "Ensure CI reads from authoritative configs, not duplicated settings.",
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "Ensure CI reads from authoritative configs, not duplicated settings."
+          }
+        },
+        "description": "Each configuration rule must live in exactly one authoritative config file. Avoid duplication across .editorconfig, linter configs, and CI definitions. Document which file is authoritative for each concern.",
+        "id": "config-authority",
+        "label": "Config File Authority Rules",
+        "stack": {
+          "exampleConfigFiles": [
+            ".gitattributes",
+            "Cargo.toml",
+            "rustfmt.toml",
+            "clippy.toml"
+          ],
+          "exampleTools": [],
+          "notes": "Authority mapping: .gitattributes for EOL, Cargo.toml for project config, rustfmt.toml for formatting, clippy.toml for linting. Each concern has one file.",
+          "verification": "Review configs and confirm no rules are duplicated across files."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "notes": "CI should read skip paths from config files, not hardcode them in pipeline.",
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "CI should read skip paths from config files, not hardcode them in pipeline."
+          }
+        },
+        "description": "Encode path exclusions and skip rules deterministically in config files, not through ad-hoc human judgment. Make it clear which paths are excluded from checks and why.",
+        "id": "explicit-skip-paths",
+        "label": "Explicit Skip Paths",
+        "stack": {
+          "exampleConfigFiles": [
+            "rustfmt.toml",
+            ".clippy.toml"
+          ],
+          "exampleTools": [
+            "rustfmt",
+            "clippy"
+          ],
+          "notes": "Use #[rustfmt::skip] or #[allow(clippy::*)] sparingly and document why. For directory-level exclusions, use Cargo.toml workspace exclude.",
+          "verification": "Search for skip annotations and confirm each is documented."
+        }
+      }
+    ],
+    "optionalEnhancements": [
+      {
+        "ciHints": {
+          "azure-devops": {
+            "stage": "observability"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "description": "Standardize error handling and structured logging to make debugging and production monitoring easier.",
+        "id": "observability",
+        "label": "Observability (Logging & Error Handling)",
+        "stack": {
+          "exampleConfigFiles": [],
+          "exampleTools": [
+            "tracing",
+            "log"
+          ],
+          "notes": "Use the tracing crate for structured logging with spans and events. Configure tracing-subscriber for output formatting.",
+          "verification": "Confirm that tracing or log crate is configured with appropriate subscriber/logger and emits structured output."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "stage": "governance"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "description": "Define phase transition requirements in phase-gates.md for autonomous agent workflows with clear pre-conditions and approval gates.",
+        "id": "agent-phase-gates",
+        "label": "Agent Phase Gates",
+        "stack": {
+          "exampleConfigFiles": [
+            "phase-gates.md"
+          ],
+          "exampleTools": [],
+          "notes": "Document phase gates with Rust-specific verification (cargo test, cargo check, crates.io publishing) and sign-off requirements.",
+          "optionalFiles": [
+            "phase-gates.md"
+          ],
+          "verification": "phase-gates.md exists defining transition requirements."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "stage": "governance"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "description": "Document milestone completion criteria in victory-gates.md defining 'done' for releases and major deliverables with evidence requirements.",
+        "id": "agent-victory-gates",
+        "label": "Agent Victory Gates",
+        "stack": {
+          "exampleConfigFiles": [
+            "victory-gates.md"
+          ],
+          "exampleTools": [],
+          "notes": "Define done criteria including Rust-specific conditions (crates.io publication, documentation hosting, security audits) with evidence requirements.",
+          "optionalFiles": [
+            "victory-gates.md"
+          ],
+          "verification": "victory-gates.md exists with milestone criteria."
+        }
+      }
+    ],
+    "recommended": [
+      {
+        "ciHints": {
+          "azure-devops": {
+            "notes": "CI hints are suggested mappings; adjust to your pipeline topology.",
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "CI hints are suggested mappings; adjust to your workflow structure."
+          }
+        },
+        "description": "Automate dependency updates using Renovate or Dependabot to keep dependencies current and reduce security exposure window.",
+        "id": "dependency-update-automation",
+        "label": "Dependency Update Automation",
+        "stack": {
+          "anyOfFiles": [
+            "renovate.json",
+            ".renovaterc.json",
+            ".github/dependabot.yml"
+          ],
+          "exampleConfigFiles": [
+            "renovate.json",
+            ".github/dependabot.yml"
+          ],
+          "exampleTools": [
+            "renovate",
+            "dependabot"
+          ],
+          "notes": "Both support Cargo.toml/Cargo.lock. Works with cargo workspaces. Security scanning is covered by dependency-security (cargo-audit/cargo-deny).",
+          "verification": "Check for renovate.json OR .github/dependabot.yml. Verify Cargo dependency PRs."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "notes": "CI hints are suggested mappings; adjust to your pipeline topology.",
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "CI hints are suggested mappings; adjust to your workflow structure."
+          }
+        },
+        "description": "Enforce module boundaries and import constraints to prevent architectural drift and unwanted coupling.",
+        "id": "dependency-architecture-rules",
+        "label": "Dependency Architecture Rules",
+        "stack": {
+          "exampleConfigFiles": [
+            "deny.toml"
+          ],
+          "exampleTools": [
+            "cargo-deny"
+          ],
+          "notes": "cargo-deny's [bans] section enforces dependency graph rules (deny specific crates, wildcards). Extend existing config if using for security scanning.",
+          "optionalFiles": [
+            "deny.toml"
+          ],
+          "verification": "Run 'cargo deny check bans' to verify dependency constraints."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "stage": "test"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "description": "Test how components interact with each other and external systems, running after unit tests with more relaxed coverage thresholds.",
+        "id": "integration-testing",
+        "label": "Integration Testing",
+        "stack": {
+          "exampleConfigFiles": [
+            "tests/"
+          ],
+          "exampleTools": [
+            "cargo test"
+          ],
+          "notes": "Use the tests/ directory for integration tests. Use #[ignore] attribute for slow tests and run with 'cargo test -- --ignored'.",
+          "verification": "Confirm tests/ directory contains integration tests and run 'cargo test' to verify cross-component flows."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "stage": "performance"
+          },
+          "github-actions": {
+            "job": "performance"
+          }
+        },
+        "description": "Establish performance baselines and monitor for regressions using lightweight benchmarks or audits in CI.",
+        "id": "performance-baselining",
+        "label": "Performance Baselines",
+        "stack": {
+          "exampleConfigFiles": [
+            "benches/"
+          ],
+          "exampleTools": [
+            "criterion",
+            "cargo bench"
+          ],
+          "notes": "Use criterion for statistical benchmarking. Create benches/ directory for benchmark files. Track results over time in CI.",
+          "verification": "Run 'cargo bench' and verify benchmark results are captured and compared against baselines."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "description": "Measure cyclomatic complexity or similar metrics to keep code maintainable, starting as a warning-only check.",
+        "id": "complexity-analysis",
+        "label": "Complexity Analysis",
+        "stack": {
+          "exampleConfigFiles": [
+            "clippy.toml"
+          ],
+          "exampleTools": [
+            "clippy",
+            "cargo-geiger"
+          ],
+          "notes": "Clippy includes cognitive complexity warnings. Use cargo-geiger for unsafe code metrics. Configure thresholds in clippy.toml.",
+          "verification": "Run 'cargo clippy' and review complexity-related warnings. Ensure new code stays within acceptable limits."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci"
+          }
+        },
+        "description": "Run accessibility checks on web-facing components to detect critical issues and improve inclusive UX.",
+        "id": "accessibility-auditing",
+        "label": "Accessibility Auditing",
+        "stack": {
+          "exampleConfigFiles": [],
+          "exampleTools": [
+            "axe-core",
+            "pa11y"
+          ],
+          "notes": "For Rust web frameworks (Actix, Axum, Rocket), use headless browser-based accessibility tools to audit rendered HTML.",
+          "verification": "For web-facing Rust apps, run accessibility audits against key routes using axe or pa11y."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "notes": "Run AI drift detection in a scheduled nightly pipeline separate from main CI.",
+            "stage": "nightly"
+          },
+          "github-actions": {
+            "job": "nightly",
+            "notes": "Use scheduled workflow (cron) to run AI drift detection nightly."
+          }
+        },
+        "description": "Run nightly or scheduled checks comparing AI-generated outputs against pinned baselines to detect model drift, prompt drift, or code changes affecting AI behavior. Attribute regressions to code changes vs model updates vs prompt changes.",
+        "id": "ai-drift-detection",
+        "label": "AI Drift Detection",
+        "stack": {
+          "exampleConfigFiles": [
+            "snapshots/",
+            "ai-baselines/"
+          ],
+          "exampleTools": [
+            "insta",
+            "custom baseline tests"
+          ],
+          "notes": "Use insta for snapshot testing of AI outputs. Pin model versions and prompt templates. Run nightly to detect drift.",
+          "verification": "Run 'cargo insta test' and confirm AI outputs match baselines."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "notes": "Run schema validation tests as part of quality gates.",
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "Include AI output schema validation in CI test suite."
+          }
+        },
+        "description": "Validate all AI-generated outputs against strict JSON schemas or type definitions at system boundaries. Reject invalid outputs early rather than letting malformed data propagate through the system.",
+        "id": "ai-schema-enforcement",
+        "label": "AI Output Schema Enforcement",
+        "stack": {
+          "exampleConfigFiles": [
+            "src/schemas/"
+          ],
+          "exampleTools": [
+            "serde",
+            "jsonschema",
+            "validator"
+          ],
+          "notes": "Use serde with #[serde(deny_unknown_fields)] for strict deserialization of AI outputs. Add validator derives for business rule validation.",
+          "verification": "Review AI integration code and confirm strict deserialization is enforced."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "notes": "Run AI golden tests as part of the test stage.",
+            "stage": "test"
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "Include AI golden contract tests in CI test suite."
+          }
+        },
+        "description": "Validate AI tool-generated patches, configs, and code against exact expected formats. Test that AI outputs respect forbidden paths, file patterns, and format constraints through golden contract tests.",
+        "id": "ai-golden-tests",
+        "label": "AI Golden Contract Tests",
+        "stack": {
+          "exampleConfigFiles": [
+            "snapshots/"
+          ],
+          "exampleTools": [
+            "insta"
+          ],
+          "notes": "Use insta for snapshot testing AI-generated code and configs. Test format compliance and forbidden path restrictions.",
+          "verification": "Run 'cargo insta test' and confirm AI outputs match snapshots."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "notes": "Run AI safety tests as part of security stage on main branch.",
+            "stage": "security"
+          },
+          "github-actions": {
+            "job": "security",
+            "notes": "Run AI safety checks on main branch merges."
+          }
+        },
+        "description": "Test AI integrations for prompt injection resistance, input sanitization, output filtering, and data exfiltration prevention. Include adversarial test cases that attempt to manipulate AI behavior.",
+        "id": "ai-safety-checks",
+        "label": "AI Adversarial & Safety Testing",
+        "stack": {
+          "exampleConfigFiles": [
+            "tests/ai_safety/"
+          ],
+          "exampleTools": [
+            "proptest",
+            "custom tests"
+          ],
+          "notes": "Use proptest for property-based testing of AI input validation. Test that malicious inputs don't escape sandboxing.",
+          "verification": "Run AI safety tests with adversarial inputs."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "notes": "Verify AI provenance logging is implemented in quality checks.",
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "Check AI provenance logging implementation in CI."
+          }
+        },
+        "description": "Log AI provider, model version, prompt template version, parameters, and tool versions for all AI operations. Enable attribution of outputs to specific model+prompt combinations for debugging and compliance.",
+        "id": "ai-provenance-tracking",
+        "label": "AI Provenance & Audit Logging",
+        "stack": {
+          "exampleConfigFiles": [
+            "src/ai/provenance.rs"
+          ],
+          "exampleTools": [
+            "tracing",
+            "OpenTelemetry"
+          ],
+          "notes": "Use tracing spans to capture AI call provenance. Include model version, prompt hash, and parameters as span attributes.",
+          "verification": "Review AI integration and confirm provenance is logged."
+        }
+      },
+      {
+        "ciHints": {
+          "azure-devops": {
+            "notes": "Run invariant verification commands in a dedicated quality stage.",
+            "stage": "quality"
+          },
+          "github-actions": {
+            "job": "ci",
+            "notes": "Add invariant checks to existing CI job or create dedicated invariants job."
+          }
+        },
+        "description": "Maintain INVARIANTS.md defining repository-wide rules that must always hold true, with machine-readable verification commands for autonomous agents.",
+        "id": "agent-invariants",
+        "label": "Autonomous Agent Invariants",
+        "stack": {
+          "exampleConfigFiles": [
+            "INVARIANTS.md"
+          ],
+          "exampleTools": [],
+          "notes": "Document invariants with verification commands like 'cargo test', 'cargo clippy', 'cargo fmt --check' for deterministic validation.",
+          "requiredFiles": [
+            "INVARIANTS.md"
+          ],
+          "verification": "INVARIANTS.md exists with machine-readable verification commands."
+        }
+      }
+    ]
+  },
+  "ciSystems": [
+    "azure-devops",
+    "github-actions"
+  ],
   "meta": {
-    "defaultCoverageThreshold": 0.8,
-    "coverageThresholdUnit": "ratio",
-    "coverageThresholdDescription": "Expressed as a ratio (0-1), e.g., 0.8 = 80% coverage. Must be between 0 and 1.",
     "complexityChecks": {
-      "enabledByDefault": true,
-      "description": "When supported by the stack, run cyclomatic complexity or similar metrics in CI as a warning-only check initially."
+      "description": "When supported by the stack, run cyclomatic complexity or similar metrics in CI as a warning-only check initially.",
+      "enabledByDefault": true
     },
-    "qualityGatePolicy": {
-      "preferSoftFailOnLegacy": true,
-      "description": "New quality checks should warn on existing code and fail CI only for violations introduced in new or changed code, to reduce friction on legacy codebases."
+    "coverageThresholdDescription": "Expressed as a ratio (0-1), e.g., 0.8 = 80% coverage. Must be between 0 and 1.",
+    "coverageThresholdUnit": "ratio",
+    "defaultCoverageThreshold": 0.8,
+    "executorHints": {
+      "bazel": {
+        "advisoryNotice": "bazelHints are suggestions, not required execution paths. Consumers should prefer stack-native commands unless explicitly adopting Bazel.",
+        "ciContract": {
+          "configFlag": "--config=ci (define in .bazelrc)",
+          "deterministicFlags": [
+            "--nokeep_going",
+            "--test_output=errors"
+          ],
+          "remoteCache": "Optional; not required for CI",
+          "versionPinning": "Use .bazelversion file for Bazelisk"
+        },
+        "detectionRules": {
+          "notes": "Detection uses repo-root markers only. Nested BUILD files do not trigger Bazel mode.",
+          "optionalMarkers": [
+            ".bazelrc",
+            ".bazelversion"
+          ],
+          "rootMarkers": [
+            "MODULE.bazel",
+            "WORKSPACE.bazel",
+            "WORKSPACE"
+          ]
+        },
+        "optOut": {
+          "configPath": "meta.executorHints.bazel.enabled",
+          "description": "Set meta.executorHints.bazel.enabled = false in repo config to disable Bazel hints"
+        },
+        "targetConventions": {
+          "build": "bazel build //...",
+          "coverage": "bazel coverage //...",
+          "description": "Recommended target naming (not assumed to exist). These are illustrative patterns; actual targets are repo-defined.",
+          "format": "bazel run //tools/format:check",
+          "lint": "//tools/lint:lint or bazel test //... with lint aspects",
+          "test": "bazel test //..."
+        }
+      },
+      "description": "Advisory execution substrate hints. Bazel is the first supported executor; future monorepo executors may follow the same pattern."
     },
     "migrationGuide": [
       {
-        "step": 0,
-        "title": "Foundation: Line Endings and Hook Entry Point",
         "description": "Configure .gitattributes for cross-platform line ending correctness and establish the canonical verify entrypoint before adding any checks. This prevents 'works locally, fails in CI' issues from day one.",
         "focusIds": [
           "gitattributes-eol",
@@ -26,11 +1321,11 @@
           "hook-ci-parity",
           "config-authority"
         ],
-        "notes": "Start here to avoid debugging cryptic CRLF failures later. Use .gitattributes as the authority for EOL (not .editorconfig). Run 'git add --renormalize .' after adding .gitattributes to fix existing files."
+        "notes": "Start here to avoid debugging cryptic CRLF failures later. Use .gitattributes as the authority for EOL (not .editorconfig). Run 'git add --renormalize .' after adding .gitattributes to fix existing files.",
+        "step": 0,
+        "title": "Foundation: Line Endings and Hook Entry Point"
       },
       {
-        "step": 1,
-        "title": "Establish Local Safety Nets First",
         "description": "Add pre-commit hooks with secret scanning, formatting, and linting. Hooks should CHECK (not auto-fix) and scope to changed files only for speed.",
         "focusIds": [
           "pre-commit-hooks",
@@ -38,11 +1333,11 @@
           "linting",
           "code-formatter"
         ],
-        "notes": "Keep hooks fast by scoping to staged files. Use Husky as entry point calling lint-staged or pre-commit. Hooks should check, not fix, to keep developers aware of issues."
+        "notes": "Keep hooks fast by scoping to staged files. Use Husky as entry point calling lint-staged or pre-commit. Hooks should check, not fix, to keep developers aware of issues.",
+        "step": 1,
+        "title": "Establish Local Safety Nets First"
       },
       {
-        "step": 2,
-        "title": "Mirror Local Checks in CI with CRLF Detection",
         "description": "Introduce CI quality gates that mirror local hooks exactly. Add CRLF detection early in pipeline. Treat existing violations as warnings where possible.",
         "focusIds": [
           "crlf-detection",
@@ -51,11 +1346,11 @@
           "code-formatter",
           "commit-linting"
         ],
-        "notes": "CI must call the same verify scripts that hooks use. Add CRLF detection before other checks to fail fast on line ending issues. Use diff-based tools so only new violations break builds."
+        "notes": "CI must call the same verify scripts that hooks use. Add CRLF detection before other checks to fail fast on line ending issues. Use diff-based tools so only new violations break builds.",
+        "step": 2,
+        "title": "Mirror Local Checks in CI with CRLF Detection"
       },
       {
-        "step": 3,
-        "title": "Add Type Safety, Coverage, and Dependency Security",
         "description": "Enable type-checking, coverage thresholds, and dependency/vulnerability scanning with gradual enforcement.",
         "focusIds": [
           "type-checking",
@@ -64,11 +1359,11 @@
           "dependency-security",
           "dependency-update-automation"
         ],
-        "notes": "Pin tool and runtime versions in CI and containers to avoid flaky differences across environments."
+        "notes": "Pin tool and runtime versions in CI and containers to avoid flaky differences across environments.",
+        "step": 3,
+        "title": "Add Type Safety, Coverage, and Dependency Security"
       },
       {
-        "step": 4,
-        "title": "Layer in Docs, Governance, and Recommended Checks",
         "description": "Add documentation standards, governance files, integration testing, performance baselines, complexity analysis, accessibility auditing, and (optionally) ML-specific practices for data-heavy Python repos.",
         "focusIds": [
           "documentation",
@@ -78,11 +1373,11 @@
           "complexity-analysis",
           "accessibility-auditing"
         ],
-        "notes": "Tackle recommended items in order of business value; backend-only repos can skip web-focused checks like accessibility."
+        "notes": "Tackle recommended items in order of business value; backend-only repos can skip web-focused checks like accessibility.",
+        "step": 4,
+        "title": "Layer in Docs, Governance, and Recommended Checks"
       },
       {
-        "step": 5,
-        "title": "AI/ML Governance (If Applicable)",
         "description": "For repos using or building with generative AI, add drift detection, schema enforcement, golden contract tests, safety testing, and provenance tracking.",
         "focusIds": [
           "ai-drift-detection",
@@ -91,1034 +1386,17 @@
           "ai-safety-checks",
           "ai-provenance-tracking"
         ],
-        "notes": "Skip this step if your repo has no AI/ML components. For AI-heavy repos: add nightly drift detection to catch model changes, enforce strict schemas at AI output boundaries, and log provenance for debugging 'why did AI do X?'"
+        "notes": "Skip this step if your repo has no AI/ML components. For AI-heavy repos: add nightly drift detection to catch model changes, enforce strict schemas at AI output boundaries, and log provenance for debugging 'why did AI do X?'",
+        "step": 5,
+        "title": "AI/ML Governance (If Applicable)"
       }
     ],
-    "executorHints": {
-      "description": "Advisory execution substrate hints. Bazel is the first supported executor; future monorepo executors may follow the same pattern.",
-      "bazel": {
-        "detectionRules": {
-          "rootMarkers": ["MODULE.bazel", "WORKSPACE.bazel", "WORKSPACE"],
-          "optionalMarkers": [".bazelrc", ".bazelversion"],
-          "notes": "Detection uses repo-root markers only. Nested BUILD files do not trigger Bazel mode."
-        },
-        "optOut": {
-          "description": "Set meta.executorHints.bazel.enabled = false in repo config to disable Bazel hints",
-          "configPath": "meta.executorHints.bazel.enabled"
-        },
-        "targetConventions": {
-          "description": "Recommended target naming (not assumed to exist). These are illustrative patterns; actual targets are repo-defined.",
-          "lint": "//tools/lint:lint or bazel test //... with lint aspects",
-          "format": "bazel run //tools/format:check",
-          "test": "bazel test //...",
-          "coverage": "bazel coverage //...",
-          "build": "bazel build //..."
-        },
-        "ciContract": {
-          "versionPinning": "Use .bazelversion file for Bazelisk",
-          "configFlag": "--config=ci (define in .bazelrc)",
-          "deterministicFlags": ["--nokeep_going", "--test_output=errors"],
-          "remoteCache": "Optional; not required for CI"
-        },
-        "advisoryNotice": "bazelHints are suggestions, not required execution paths. Consumers should prefer stack-native commands unless explicitly adopting Bazel."
-      }
+    "qualityGatePolicy": {
+      "description": "New quality checks should warn on existing code and fail CI only for violations introduced in new or changed code, to reduce friction on legacy codebases.",
+      "preferSoftFailOnLegacy": true
     }
   },
-  "checklist": {
-    "core": [
-      {
-        "id": "gitattributes-eol",
-        "label": "Git Attributes (Line Endings)",
-        "description": "Enforce line endings at the Git layer using .gitattributes. Mark text files with appropriate EOL handling (eol=lf for shell scripts, eol=auto for most files) and binary files as binary to prevent corruption. This prevents 'works locally, fails in CI' issues caused by CRLF/LF mismatches.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "quality",
-            "notes": "Run CRLF detection early in pipeline before other checks."
-          },
-          "github-actions": {
-            "job": "ci",
-            "notes": "Add .gitattributes check as first step in CI job."
-          }
-        },
-        "stack": {
-          "exampleTools": ["git"],
-          "exampleConfigFiles": [".gitattributes", ".editorconfig"],
-          "notes": "Mark *.rs, *.toml as text with auto EOL handling. Mark shell scripts as eol=lf. Binary files (*.exe, *.dll) should be marked as binary.",
-          "verification": "Run 'git ls-files --eol' to verify EOL consistency.",
-          "requiredFiles": [".gitattributes"],
-          "optionalFiles": [".editorconfig"],
-          "machineCheck": {
-            "command": "git ls-files --eol | grep -E 'w/crlf.*\\.sh$' && exit 1 || exit 0",
-            "expectExitCode": 0,
-            "description": "Verify no CRLF in shell scripts"
-          }
-        }
-      },
-      {
-        "id": "crlf-detection",
-        "label": "CRLF Detection in CI",
-        "description": "Fail CI early for Linux-executed files containing CRLF line endings. Shell scripts, Python files, and other interpreted files fail silently or with cryptic errors when they contain \\r characters. Detect this before running deeper CI steps.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "quality",
-            "notes": "Run CRLF detection as the first quality check before linting or testing."
-          },
-          "github-actions": {
-            "job": "ci",
-            "notes": "Add CRLF detection step before main CI steps."
-          }
-        },
-        "stack": {
-          "exampleTools": ["file", "grep"],
-          "exampleConfigFiles": [],
-          "notes": "Rust build scripts (build.rs) and shell scripts must not have CRLF. Cargo tolerates CRLF in .rs files but shell invocations fail.",
-          "verification": "Run CRLF detection on shell and build scripts.",
-          "machineCheck": {
-            "command": "git ls-files --eol | grep -E 'w/crlf.*\\.(sh|bash)$' && exit 1 || exit 0",
-            "expectExitCode": 0,
-            "description": "Detect CRLF in shell scripts"
-          }
-        }
-      },
-      {
-        "id": "gitignore-and-dockerignore",
-        "label": "Git and Docker Ignore Files",
-        "description": "Maintain proper .gitignore and .dockerignore files to prevent committing secrets, build artifacts, or unnecessary files.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "quality"
-          },
-          "github-actions": {
-            "job": "ci"
-          }
-        },
-        "stack": {
-          "exampleConfigFiles": [".gitignore", ".dockerignore"],
-          "notes": "Use the official github/gitignore Rust template. Exclude target/, Cargo.lock (for libraries), *.pdb, and similar build artifacts. .dockerignore must exclude target/, .git, and local development files.",
-          "verification": ".gitignore must exist; .dockerignore is recommended when containerizing or using Docker workflows.",
-          "requiredFiles": [".gitignore"],
-          "optionalFiles": [".dockerignore"]
-        }
-      },
-      {
-        "id": "linting",
-        "label": "Linting",
-        "description": "Run static code linting to enforce consistency and catch common issues early.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "quality"
-          },
-          "github-actions": {
-            "job": "ci"
-          }
-        },
-        "stack": {
-          "exampleTools": ["clippy", "cargo-clippy"],
-          "exampleConfigFiles": ["clippy.toml", ".clippy.toml"],
-          "notes": "Use Clippy for comprehensive Rust linting. Configure via clippy.toml for project-specific rules. Treat warnings as errors in CI with -D warnings.",
-          "verification": "Clippy is available via rustup component. Run 'cargo clippy' to verify linting is configured.",
-          "requiredFiles": ["Cargo.toml"],
-          "optionalFiles": ["clippy.toml", ".clippy.toml"],
-          "bazelHints": {
-            "commands": [
-              "bazel build //... --aspects=@rules_rust//rust:defs.bzl%clippy_aspect --output_groups=clippy_checks"
-            ],
-            "notes": "Example only; actual targets are repo-defined. rules_rust includes clippy_aspect for Bazel-native Clippy linting."
-          }
-        }
-      },
-      {
-        "id": "unit-test-runner",
-        "label": "Unit Test Runner",
-        "description": "Provide a deterministic unit test framework with a single command to run all tests.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "test"
-          },
-          "github-actions": {
-            "job": "ci"
-          }
-        },
-        "stack": {
-          "exampleTools": ["cargo test"],
-          "exampleConfigFiles": ["Cargo.toml"],
-          "notes": "Use cargo test as the built-in test runner. Organize tests in tests/ directory for integration tests and inline #[test] functions for unit tests.",
-          "verification": "Run 'cargo test' to verify the test suite is configured and passing.",
-          "requiredFiles": ["Cargo.toml"],
-          "optionalFiles": ["tests/"],
-          "bazelHints": {
-            "commands": ["bazel test //..."],
-            "notes": "rules_rust rust_test targets run cargo test under Bazel's hermetic environment."
-          }
-        }
-      },
-      {
-        "id": "containerization",
-        "label": "Containerization (Docker / Docker Compose)",
-        "description": "Provide a Dockerfile and, if applicable, a docker-compose file for local dev and CI parity.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "build"
-          },
-          "github-actions": {
-            "job": "ci"
-          }
-        },
-        "stack": {
-          "exampleTools": [],
-          "exampleConfigFiles": ["Dockerfile", "docker-compose.yml"],
-          "notes": "Use multi-stage builds: builder stage with rust:alpine for compiling, then copy binary to distroless or alpine for minimal runtime image. Pin Rust version via rust-toolchain.toml.",
-          "verification": "Dockerfile must be present; docker-compose.yml is optional and indicates orchestration usage.",
-          "requiredFiles": ["Dockerfile"],
-          "optionalFiles": ["docker-compose.yml"]
-        }
-      },
-      {
-        "id": "semantic-versioning",
-        "label": "Semantic Versioning",
-        "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history. Maintain a single canonical version source (for example, package.json or VERSION) that all release artifacts use.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "release"
-          },
-          "github-actions": {
-            "job": "release"
-          }
-        },
-        "stack": {
-          "exampleTools": ["cargo-release", "semantic-release"],
-          "exampleConfigFiles": ["Cargo.toml", "CHANGELOG.md"],
-          "notes": "Version is defined in Cargo.toml as the canonical source. Use cargo-release or semantic-release-cargo for automated versioning and GitHub release publishing, and follow Conventional Commits for changelog generation.",
-          "verification": "Check that Cargo.toml version follows SemVer and verify changelog generation from commit history.",
-          "requiredFiles": ["Cargo.toml"],
-          "optionalFiles": ["CHANGELOG.md"],
-          "requiredScripts": ["release"]
-        }
-      },
-      {
-        "id": "version-guard",
-        "label": "Version Guard (Automated Releases)",
-        "description": "If semantic-release or automated versioning is enabled, block manual edits to canonical version fields in pull requests. Enforce a CI guard (and optional pre-push hook) that fails when version lines change outside the release workflow.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "quality",
-            "notes": "Run the version guard in PR validation jobs before merge."
-          },
-          "github-actions": {
-            "job": "ci",
-            "notes": "Run the version guard in PR workflows against the base ref."
-          }
-        },
-        "stack": {
-          "exampleTools": ["cargo-release", "semantic-release", "git"],
-          "exampleConfigFiles": [
-            "scripts/check-version-unchanged.sh",
-            ".github/workflows/ci.yml",
-            "azure-pipelines.yml"
-          ],
-          "notes": "When using cargo-release or semantic-release-cargo, guard against manual edits to Cargo.toml version fields in PRs.",
-          "verification": "Run the guard and confirm it fails when Cargo.toml version changes.",
-          "requiredFiles": ["Cargo.toml"]
-        }
-      },
-      {
-        "id": "release-artifact-exclusion",
-        "label": "Release Artifact Formatter Exclusion",
-        "description": "Exclude auto-generated release artifacts (CHANGELOG.md, package-lock.json, etc.) from code formatters to prevent CI failures. Release automation tools generate files that may not conform to your formatter's style, causing format checks to fail on subsequent CI runs.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "quality",
-            "notes": "Ensure format:check step uses ignore file that excludes release artifacts."
-          },
-          "github-actions": {
-            "job": "ci",
-            "notes": "Ensure format:check step uses ignore file that excludes release artifacts."
-          }
-        },
-        "stack": {
-          "exampleTools": ["rustfmt", "cargo-release"],
-          "exampleConfigFiles": ["rustfmt.toml"],
-          "notes": "Rust rarely has auto-generated source files, but if using tools that generate Rust code, exclude those directories in rustfmt.toml. CHANGELOG.md isn't checked by rustfmt (it only checks .rs files).",
-          "verification": "Run 'cargo fmt --check' and confirm it passes after releases."
-        }
-      },
-      {
-        "id": "unified-release-workflow",
-        "label": "Unified Release Workflow",
-        "description": "Use a single CI release pipeline that publishes all artifacts (GitHub releases, packages, containers) from the same canonical version source.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "release"
-          },
-          "github-actions": {
-            "job": "release"
-          }
-        },
-        "stack": {
-          "exampleTools": ["cargo-release", "cargo publish", "docker buildx"],
-          "exampleConfigFiles": [
-            ".github/workflows/release.yml",
-            "azure-pipelines.yml"
-          ],
-          "notes": "Use a single release pipeline to publish crates.io packages, GitHub releases, and Docker images from the Cargo.toml version.",
-          "verification": "Trigger the release pipeline and confirm all artifacts share the same version number and tag.",
-          "requiredScripts": ["release"],
-          "optionalFiles": ["CHANGELOG.md"]
-        }
-      },
-      {
-        "id": "release-hook-bypass",
-        "label": "Release Hook Bypass",
-        "description": "Release automation must bypass local developer hooks (HUSKY=0, --no-verify) and rely solely on CI gates for validation. This ensures idempotent, reproducible releases that don't fail due to hook environment differences.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "release",
-            "notes": "Set HUSKY=0 or equivalent in release pipeline to disable hooks."
-          },
-          "github-actions": {
-            "job": "release",
-            "notes": "Set HUSKY=0 or equivalent in release job to disable hooks."
-          }
-        },
-        "stack": {
-          "exampleTools": ["cargo-release"],
-          "exampleConfigFiles": [".github/workflows/release.yml"],
-          "notes": "Use --no-verify with git commands in release scripts. If using pre-commit, set SKIP=all.",
-          "verification": "Check release workflow for hook bypass."
-        }
-      },
-      {
-        "id": "commit-linting",
-        "label": "Commit Linting",
-        "description": "Enforce structured commit messages such as Conventional Commits via commit-msg hooks and CI. This is required for deterministic versioning and changelog generation.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "quality"
-          },
-          "github-actions": {
-            "job": "ci"
-          }
-        },
-        "stack": {
-          "exampleTools": ["commitlint", "commitizen"],
-          "exampleConfigFiles": ["commitlint.config.js", ".cz.toml"],
-          "notes": "Use commitlint with husky or pre-commit for enforcing Conventional Commits and add a CI check to keep version/changelog automation deterministic.",
-          "verification": "Test that non-conforming commit messages are rejected by the configured hooks and CI check.",
-          "anyOfFiles": [
-            "commitlint.config.js",
-            "commitlint.config.cjs",
-            "commitlint.config.mjs",
-            "commitlint.config.json",
-            ".cz.toml"
-          ],
-          "requiredScripts": ["commitlint"]
-        }
-      },
-      {
-        "id": "unit-test-reporter",
-        "label": "Unit Test Reporter / Coverage",
-        "description": "Generate readable unit test and coverage reports and enforce a minimum coverage threshold (around 80%) for new or changed code.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "test"
-          },
-          "github-actions": {
-            "job": "ci"
-          }
-        },
-        "stack": {
-          "exampleTools": ["cargo-tarpaulin", "llvm-cov", "grcov"],
-          "exampleConfigFiles": ["Cargo.toml"],
-          "notes": "Use cargo-tarpaulin or llvm-cov for code coverage. Generate lcov or cobertura reports for CI integration.",
-          "verification": "Run 'cargo tarpaulin' or equivalent and verify coverage reports are generated and thresholds enforced.",
-          "bazelHints": {
-            "commands": ["bazel coverage //..."],
-            "notes": "Bazel coverage with rules_rust requires LLVM instrumentation. May need additional toolchain configuration."
-          }
-        }
-      },
-      {
-        "id": "ci-quality-gates",
-        "label": "CI Quality Gates",
-        "description": "Single CI pipeline that runs linting, formatting, type checking, tests, coverage, build, and containerization.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "ci"
-          },
-          "github-actions": {
-            "job": "ci"
-          }
-        },
-        "stack": {
-          "exampleTools": [],
-          "exampleConfigFiles": [".github/workflows/*", "azure-pipelines.yml"],
-          "notes": "Use 'cargo clippy', 'cargo test', 'cargo build --release' as quality gates. Consider cargo-deny for dependency auditing.",
-          "verification": "Verify CI runs cargo clippy, cargo test, and cargo build before merging to main.",
-          "bazelHints": {
-            "commands": ["bazel build //...", "bazel test //..."],
-            "notes": "rules_rust provides rust_library, rust_test, and clippy_aspect for complete CI."
-          }
-        }
-      },
-      {
-        "id": "code-formatter",
-        "label": "Code Formatter",
-        "description": "Automatic code formatting to maintain a consistent style across all contributors.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "quality"
-          },
-          "github-actions": {
-            "job": "ci"
-          }
-        },
-        "stack": {
-          "exampleTools": ["rustfmt"],
-          "exampleConfigFiles": ["rustfmt.toml", ".rustfmt.toml"],
-          "notes": "Use rustfmt (via 'cargo fmt') as the standard formatter. Configure via rustfmt.toml. Run 'cargo fmt --check' in CI.",
-          "verification": "Run 'cargo fmt --check' and confirm it reports clean formatting. Use 'cargo fmt' to auto-fix.",
-          "bazelHints": {
-            "commands": [
-              "bazel build //... --aspects=@rules_rust//rust:defs.bzl%rustfmt_aspect --output_groups=rustfmt_checks"
-            ],
-            "notes": "rules_rust includes rustfmt_aspect for Bazel-native format checking."
-          }
-        }
-      },
-      {
-        "id": "pre-commit-hooks",
-        "label": "Pre-Commit Hooks",
-        "description": "Use git hooks to run linting, formatting, and commit linting before changes are committed. Hooks should CHECK by default (not auto-fix), be fast, and scope to changed files only. Use a single entry hook mechanism (e.g., Husky as entry point calling pre-commit or lint-staged).",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "quality",
-            "notes": "Hooks and CI must invoke identical verification commands. Use npm run verify or equivalent."
-          },
-          "github-actions": {
-            "job": "ci",
-            "notes": "Hooks and CI must invoke identical verification commands. Use npm run verify or equivalent."
-          }
-        },
-        "stack": {
-          "exampleTools": ["pre-commit", "cargo-husky"],
-          "exampleConfigFiles": [".pre-commit-config.yaml"],
-          "notes": "Use pre-commit with rust hooks for 'cargo fmt --check' and 'cargo clippy' on staged files. Pin rust-toolchain.toml for determinism across environments.",
-          "verification": "Confirm hooks run cargo fmt --check (not cargo fmt) and cargo clippy before commits."
-        }
-      },
-      {
-        "id": "hook-ci-parity",
-        "label": "Hook/CI Parity",
-        "description": "Local hooks and CI must invoke identical verification commands to prevent 'works locally, fails in CI' issues. Use a single canonical verify entrypoint (e.g., npm run verify) that both hooks and CI call.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "quality",
-            "notes": "CI should call the same verify script that hooks use locally."
-          },
-          "github-actions": {
-            "job": "ci",
-            "notes": "CI should call the same verify script that hooks use locally."
-          }
-        },
-        "stack": {
-          "exampleTools": ["cargo", "make"],
-          "exampleConfigFiles": ["Makefile", "Cargo.toml"],
-          "notes": "Define a verify target (make verify or cargo make verify) that runs fmt --check, clippy, and test. Both hooks and CI should use this target.",
-          "verification": "Compare hook commands with CI commands and confirm they invoke the same cargo commands."
-        }
-      },
-      {
-        "id": "secret-scanning-precommit",
-        "label": "Pre-commit Secret Scanning",
-        "description": "Scan staged diffs for credentials, API keys, and secrets before they reach the remote repository. Catch secrets at commit time rather than after they're pushed.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "quality",
-            "notes": "Also run secret scanning in CI as a safety net for commits that bypassed hooks."
-          },
-          "github-actions": {
-            "job": "ci",
-            "notes": "Enable GitHub secret scanning and also run gitleaks in CI."
-          }
-        },
-        "stack": {
-          "exampleTools": ["gitleaks"],
-          "exampleConfigFiles": [".gitleaks.toml", ".pre-commit-config.yaml"],
-          "notes": "Add gitleaks to pre-commit hooks. Configure Rust-specific patterns if needed.",
-          "verification": "Run 'gitleaks protect --staged' and verify it catches test secrets."
-        }
-      },
-      {
-        "id": "type-checking",
-        "label": "Type Checking",
-        "description": "Use static type checking to catch errors before runtime and enforce strictness on new code. For JS/TS stacks, require a TypeScript-first policy with strict mode and a CI typecheck step; allow JSDoc/checkJs migration for legacy JS.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "quality"
-          },
-          "github-actions": {
-            "job": "ci"
-          }
-        },
-        "stack": {
-          "exampleTools": ["rustc (built-in)"],
-          "exampleConfigFiles": ["Cargo.toml"],
-          "notes": "Rust has compile-time type checking built into the language. The borrow checker enforces memory safety. No additional tooling needed for type safety.",
-          "verification": "Run 'cargo check' or 'cargo build' to verify type correctness. All Rust code is type-checked by default.",
-          "requiredFiles": ["Cargo.toml"],
-          "bazelHints": {
-            "commands": ["bazel build //..."],
-            "notes": "Rust type checking is inherent to compilation. bazel build with rules_rust enforces type safety."
-          }
-        }
-      },
-      {
-        "id": "dependency-security",
-        "label": "Dependency Management & Vulnerability Scanning",
-        "description": "Lock dependencies and scan regularly for known vulnerabilities; fail CI on newly introduced high-severity issues.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "quality"
-          },
-          "github-actions": {
-            "job": "ci"
-          }
-        },
-        "stack": {
-          "exampleTools": ["cargo-audit", "cargo-deny"],
-          "exampleConfigFiles": ["Cargo.lock", "deny.toml"],
-          "notes": "Use cargo-audit for vulnerability scanning or cargo-deny for comprehensive dependency checking (licenses, advisories, bans). Cargo.lock locks versions.",
-          "verification": "Cargo.lock is present; run 'cargo audit' or 'cargo deny check' to verify security scanning.",
-          "optionalFiles": ["deny.toml"],
-          "anyOfFiles": ["Cargo.lock"],
-          "pinningNotes": "Required for binaries/services; optional for libraries (add to .gitignore for libs). See https://doc.rust-lang.org/cargo/faq.html#why-have-cargolock-in-version-control"
-        }
-      },
-      {
-        "id": "deterministic-builds",
-        "label": "Deterministic & Hermetic Builds",
-        "description": "Ensure builds are reproducible by pinning dependencies, base images, and tool/runtime versions. Avoid network/time variance and fail when lockfiles drift.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "build"
-          },
-          "github-actions": {
-            "job": "ci"
-          }
-        },
-        "stack": {
-          "exampleTools": ["cargo build --locked"],
-          "exampleConfigFiles": ["Cargo.lock", "rust-toolchain.toml"],
-          "notes": "Commit Cargo.lock for binaries/services and pin Rust versions with rust-toolchain.toml. Use --locked in CI.",
-          "verification": "Cargo.lock is present and CI uses --locked. Rust toolchain is pinned.",
-          "requiredFiles": ["Cargo.lock"],
-          "optionalFiles": ["rust-toolchain.toml"]
-        }
-      },
-      {
-        "id": "provenance-security",
-        "label": "Provenance & Security Metadata",
-        "description": "Produce SBOMs or provenance metadata, enable secret/code scanning, and sign tags or commits for critical repos.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "security"
-          },
-          "github-actions": {
-            "job": "security"
-          }
-        },
-        "stack": {
-          "exampleTools": [
-            "cargo-cyclonedx",
-            "syft",
-            "codeql",
-            "gitleaks",
-            "cosign"
-          ],
-          "exampleConfigFiles": [
-            ".github/workflows/codeql.yml",
-            ".github/workflows/provenance.yml"
-          ],
-          "notes": "Generate SBOM/provenance for crates and container artifacts, enable secret scanning, and sign tags/commits for critical repos.",
-          "verification": "SBOM/provenance artifacts are published alongside releases, and CI runs secret/code scanning.",
-          "optionalFiles": ["SECURITY.md", ".github/workflows/codeql.yml"]
-        }
-      },
-      {
-        "id": "ci-templates-automation",
-        "label": "CI Templates & Automation",
-        "description": "Adopt standard CI templates and config samples to scale across repositories, minimizing bespoke pipeline logic.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "ci"
-          },
-          "github-actions": {
-            "job": "ci"
-          }
-        },
-        "stack": {
-          "exampleTools": [
-            "GitHub Actions reusable workflows",
-            "Azure DevOps templates"
-          ],
-          "exampleConfigFiles": [
-            ".github/workflows/ci.yml",
-            "azure-pipelines.yml"
-          ],
-          "notes": "Use shared CI templates for build/test/release stages to standardize across Rust repos.",
-          "verification": "CI pipeline references a shared template or reusable workflow and follows the standard job naming.",
-          "anyOfFiles": [".github/workflows/ci.yml", "azure-pipelines.yml"],
-          "requiredScripts": ["ci"]
-        }
-      },
-      {
-        "id": "runtime-version",
-        "label": "Runtime Version Specification",
-        "description": "Specify required runtime/engine versions in package manifests appropriate for your application. Use minimum version constraints (>=) rather than strict ranges to avoid blocking consumers from upgrading.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "quality"
-          },
-          "github-actions": {
-            "job": "ci"
-          }
-        },
-        "stack": {
-          "exampleTools": [],
-          "exampleConfigFiles": ["rust-toolchain.toml", "rust-toolchain"],
-          "notes": "Use rust-toolchain.toml to pin the Rust version (e.g., channel = 'stable' or specific version '1.75.0'). This ensures consistent builds across the team via rustup.",
-          "verification": "rust-toolchain.toml or rust-toolchain file specifies the required Rust version.",
-          "optionalFiles": ["rust-toolchain.toml", "rust-toolchain"]
-        }
-      },
-      {
-        "id": "documentation",
-        "label": "Documentation Standards",
-        "description": "Maintain a comprehensive README and, where applicable, auto-generated API docs to support onboarding and maintainability.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "docs"
-          },
-          "github-actions": {
-            "job": "ci"
-          }
-        },
-        "stack": {
-          "exampleTools": ["rustdoc", "mdBook"],
-          "exampleConfigFiles": ["README.md", "docs/"],
-          "notes": "Use rustdoc (via 'cargo doc') for API documentation from doc comments. Consider mdBook for user guides and tutorials.",
-          "verification": "README.md is present; run 'cargo doc' to generate API docs.",
-          "requiredFiles": ["README.md"],
-          "optionalFiles": ["docs/", "book.toml"]
-        }
-      },
-      {
-        "id": "repository-governance",
-        "label": "Repository Governance",
-        "description": "Include standard governance files (LICENSE, CODE_OF_CONDUCT.md, CONTRIBUTING.md), branch protection rules, and review standards to define legal, ethical, and workflow expectations.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "governance"
-          },
-          "github-actions": {
-            "job": "ci"
-          }
-        },
-        "stack": {
-          "exampleTools": [],
-          "exampleConfigFiles": [
-            "LICENSE",
-            "CODE_OF_CONDUCT.md",
-            "CONTRIBUTING.md"
-          ],
-          "notes": "Include license in Cargo.toml metadata. Document cargo workspace conventions and testing requirements in CONTRIBUTING.md.",
-          "verification": "LICENSE file is present; CODE_OF_CONDUCT.md and CONTRIBUTING.md provide contribution guidance.",
-          "requiredFiles": ["LICENSE"],
-          "optionalFiles": ["CODE_OF_CONDUCT.md", "CONTRIBUTING.md"]
-        }
-      },
-      {
-        "id": "canonical-verify",
-        "label": "Canonical Verify Entrypoint",
-        "description": "Provide one canonical 'verify' command per repository/stack that all stages call with appropriate flags. This prevents duplication, drift, and ensures consistency between local development and CI.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "quality",
-            "notes": "CI should call the canonical verify command, not duplicate check logic."
-          },
-          "github-actions": {
-            "job": "ci",
-            "notes": "CI should call the canonical verify command, not duplicate check logic."
-          }
-        },
-        "stack": {
-          "exampleTools": ["cargo", "make", "cargo-make"],
-          "exampleConfigFiles": ["Makefile", "Makefile.toml"],
-          "notes": "Define 'make verify' or 'cargo make verify' that runs fmt --check, clippy, and test. Both hooks and CI use this entrypoint.",
-          "verification": "Makefile or Makefile.toml contains a 'verify' task."
-        }
-      },
-      {
-        "id": "config-authority",
-        "label": "Config File Authority Rules",
-        "description": "Each configuration rule must live in exactly one authoritative config file. Avoid duplication across .editorconfig, linter configs, and CI definitions. Document which file is authoritative for each concern.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "quality",
-            "notes": "Ensure CI reads from authoritative configs, not duplicated settings."
-          },
-          "github-actions": {
-            "job": "ci",
-            "notes": "Ensure CI reads from authoritative configs, not duplicated settings."
-          }
-        },
-        "stack": {
-          "exampleTools": [],
-          "exampleConfigFiles": [
-            ".gitattributes",
-            "Cargo.toml",
-            "rustfmt.toml",
-            "clippy.toml"
-          ],
-          "notes": "Authority mapping: .gitattributes for EOL, Cargo.toml for project config, rustfmt.toml for formatting, clippy.toml for linting. Each concern has one file.",
-          "verification": "Review configs and confirm no rules are duplicated across files."
-        }
-      },
-      {
-        "id": "explicit-skip-paths",
-        "label": "Explicit Skip Paths",
-        "description": "Encode path exclusions and skip rules deterministically in config files, not through ad-hoc human judgment. Make it clear which paths are excluded from checks and why.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "quality",
-            "notes": "CI should read skip paths from config files, not hardcode them in pipeline."
-          },
-          "github-actions": {
-            "job": "ci",
-            "notes": "CI should read skip paths from config files, not hardcode them in pipeline."
-          }
-        },
-        "stack": {
-          "exampleTools": ["rustfmt", "clippy"],
-          "exampleConfigFiles": ["rustfmt.toml", ".clippy.toml"],
-          "notes": "Use #[rustfmt::skip] or #[allow(clippy::*)] sparingly and document why. For directory-level exclusions, use Cargo.toml workspace exclude.",
-          "verification": "Search for skip annotations and confirm each is documented."
-        }
-      }
-    ],
-    "recommended": [
-      {
-        "id": "dependency-update-automation",
-        "label": "Dependency Update Automation",
-        "description": "Automate dependency updates using Renovate or Dependabot to keep dependencies current and reduce security exposure window.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "quality",
-            "notes": "CI hints are suggested mappings; adjust to your pipeline topology."
-          },
-          "github-actions": {
-            "job": "ci",
-            "notes": "CI hints are suggested mappings; adjust to your workflow structure."
-          }
-        },
-        "stack": {
-          "exampleTools": ["renovate", "dependabot"],
-          "exampleConfigFiles": ["renovate.json", ".github/dependabot.yml"],
-          "notes": "Both support Cargo.toml/Cargo.lock. Works with cargo workspaces. Security scanning is covered by dependency-security (cargo-audit/cargo-deny).",
-          "verification": "Check for renovate.json OR .github/dependabot.yml. Verify Cargo dependency PRs.",
-          "anyOfFiles": [
-            "renovate.json",
-            ".renovaterc.json",
-            ".github/dependabot.yml"
-          ]
-        }
-      },
-      {
-        "id": "dependency-architecture-rules",
-        "label": "Dependency Architecture Rules",
-        "description": "Enforce module boundaries and import constraints to prevent architectural drift and unwanted coupling.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "quality",
-            "notes": "CI hints are suggested mappings; adjust to your pipeline topology."
-          },
-          "github-actions": {
-            "job": "ci",
-            "notes": "CI hints are suggested mappings; adjust to your workflow structure."
-          }
-        },
-        "stack": {
-          "exampleTools": ["cargo-deny"],
-          "exampleConfigFiles": ["deny.toml"],
-          "notes": "cargo-deny's [bans] section enforces dependency graph rules (deny specific crates, wildcards). Extend existing config if using for security scanning.",
-          "verification": "Run 'cargo deny check bans' to verify dependency constraints.",
-          "optionalFiles": ["deny.toml"]
-        }
-      },
-      {
-        "id": "integration-testing",
-        "label": "Integration Testing",
-        "description": "Test how components interact with each other and external systems, running after unit tests with more relaxed coverage thresholds.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "test"
-          },
-          "github-actions": {
-            "job": "ci"
-          }
-        },
-        "stack": {
-          "exampleTools": ["cargo test"],
-          "exampleConfigFiles": ["tests/"],
-          "notes": "Use the tests/ directory for integration tests. Use #[ignore] attribute for slow tests and run with 'cargo test -- --ignored'.",
-          "verification": "Confirm tests/ directory contains integration tests and run 'cargo test' to verify cross-component flows."
-        }
-      },
-      {
-        "id": "performance-baselining",
-        "label": "Performance Baselines",
-        "description": "Establish performance baselines and monitor for regressions using lightweight benchmarks or audits in CI.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "performance"
-          },
-          "github-actions": {
-            "job": "performance"
-          }
-        },
-        "stack": {
-          "exampleTools": ["criterion", "cargo bench"],
-          "exampleConfigFiles": ["benches/"],
-          "notes": "Use criterion for statistical benchmarking. Create benches/ directory for benchmark files. Track results over time in CI.",
-          "verification": "Run 'cargo bench' and verify benchmark results are captured and compared against baselines."
-        }
-      },
-      {
-        "id": "complexity-analysis",
-        "label": "Complexity Analysis",
-        "description": "Measure cyclomatic complexity or similar metrics to keep code maintainable, starting as a warning-only check.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "quality"
-          },
-          "github-actions": {
-            "job": "ci"
-          }
-        },
-        "stack": {
-          "exampleTools": ["clippy", "cargo-geiger"],
-          "exampleConfigFiles": ["clippy.toml"],
-          "notes": "Clippy includes cognitive complexity warnings. Use cargo-geiger for unsafe code metrics. Configure thresholds in clippy.toml.",
-          "verification": "Run 'cargo clippy' and review complexity-related warnings. Ensure new code stays within acceptable limits."
-        }
-      },
-      {
-        "id": "accessibility-auditing",
-        "label": "Accessibility Auditing",
-        "description": "Run accessibility checks on web-facing components to detect critical issues and improve inclusive UX.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "quality"
-          },
-          "github-actions": {
-            "job": "ci"
-          }
-        },
-        "stack": {
-          "exampleTools": ["axe-core", "pa11y"],
-          "exampleConfigFiles": [],
-          "notes": "For Rust web frameworks (Actix, Axum, Rocket), use headless browser-based accessibility tools to audit rendered HTML.",
-          "verification": "For web-facing Rust apps, run accessibility audits against key routes using axe or pa11y."
-        }
-      },
-      {
-        "id": "ai-drift-detection",
-        "label": "AI Drift Detection",
-        "description": "Run nightly or scheduled checks comparing AI-generated outputs against pinned baselines to detect model drift, prompt drift, or code changes affecting AI behavior. Attribute regressions to code changes vs model updates vs prompt changes.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "nightly",
-            "notes": "Run AI drift detection in a scheduled nightly pipeline separate from main CI."
-          },
-          "github-actions": {
-            "job": "nightly",
-            "notes": "Use scheduled workflow (cron) to run AI drift detection nightly."
-          }
-        },
-        "stack": {
-          "exampleTools": ["insta", "custom baseline tests"],
-          "exampleConfigFiles": ["snapshots/", "ai-baselines/"],
-          "notes": "Use insta for snapshot testing of AI outputs. Pin model versions and prompt templates. Run nightly to detect drift.",
-          "verification": "Run 'cargo insta test' and confirm AI outputs match baselines."
-        }
-      },
-      {
-        "id": "ai-schema-enforcement",
-        "label": "AI Output Schema Enforcement",
-        "description": "Validate all AI-generated outputs against strict JSON schemas or type definitions at system boundaries. Reject invalid outputs early rather than letting malformed data propagate through the system.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "quality",
-            "notes": "Run schema validation tests as part of quality gates."
-          },
-          "github-actions": {
-            "job": "ci",
-            "notes": "Include AI output schema validation in CI test suite."
-          }
-        },
-        "stack": {
-          "exampleTools": ["serde", "jsonschema", "validator"],
-          "exampleConfigFiles": ["src/schemas/"],
-          "notes": "Use serde with #[serde(deny_unknown_fields)] for strict deserialization of AI outputs. Add validator derives for business rule validation.",
-          "verification": "Review AI integration code and confirm strict deserialization is enforced."
-        }
-      },
-      {
-        "id": "ai-golden-tests",
-        "label": "AI Golden Contract Tests",
-        "description": "Validate AI tool-generated patches, configs, and code against exact expected formats. Test that AI outputs respect forbidden paths, file patterns, and format constraints through golden contract tests.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "test",
-            "notes": "Run AI golden tests as part of the test stage."
-          },
-          "github-actions": {
-            "job": "ci",
-            "notes": "Include AI golden contract tests in CI test suite."
-          }
-        },
-        "stack": {
-          "exampleTools": ["insta"],
-          "exampleConfigFiles": ["snapshots/"],
-          "notes": "Use insta for snapshot testing AI-generated code and configs. Test format compliance and forbidden path restrictions.",
-          "verification": "Run 'cargo insta test' and confirm AI outputs match snapshots."
-        }
-      },
-      {
-        "id": "ai-safety-checks",
-        "label": "AI Adversarial & Safety Testing",
-        "description": "Test AI integrations for prompt injection resistance, input sanitization, output filtering, and data exfiltration prevention. Include adversarial test cases that attempt to manipulate AI behavior.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "security",
-            "notes": "Run AI safety tests as part of security stage on main branch."
-          },
-          "github-actions": {
-            "job": "security",
-            "notes": "Run AI safety checks on main branch merges."
-          }
-        },
-        "stack": {
-          "exampleTools": ["proptest", "custom tests"],
-          "exampleConfigFiles": ["tests/ai_safety/"],
-          "notes": "Use proptest for property-based testing of AI input validation. Test that malicious inputs don't escape sandboxing.",
-          "verification": "Run AI safety tests with adversarial inputs."
-        }
-      },
-      {
-        "id": "ai-provenance-tracking",
-        "label": "AI Provenance & Audit Logging",
-        "description": "Log AI provider, model version, prompt template version, parameters, and tool versions for all AI operations. Enable attribution of outputs to specific model+prompt combinations for debugging and compliance.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "quality",
-            "notes": "Verify AI provenance logging is implemented in quality checks."
-          },
-          "github-actions": {
-            "job": "ci",
-            "notes": "Check AI provenance logging implementation in CI."
-          }
-        },
-        "stack": {
-          "exampleTools": ["tracing", "OpenTelemetry"],
-          "exampleConfigFiles": ["src/ai/provenance.rs"],
-          "notes": "Use tracing spans to capture AI call provenance. Include model version, prompt hash, and parameters as span attributes.",
-          "verification": "Review AI integration and confirm provenance is logged."
-        }
-      },
-      {
-        "id": "agent-invariants",
-        "label": "Autonomous Agent Invariants",
-        "description": "Maintain INVARIANTS.md defining repository-wide rules that must always hold true, with machine-readable verification commands for autonomous agents.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "quality",
-            "notes": "Run invariant verification commands in a dedicated quality stage."
-          },
-          "github-actions": {
-            "job": "ci",
-            "notes": "Add invariant checks to existing CI job or create dedicated invariants job."
-          }
-        },
-        "stack": {
-          "exampleTools": [],
-          "exampleConfigFiles": ["INVARIANTS.md"],
-          "notes": "Document invariants with verification commands like 'cargo test', 'cargo clippy', 'cargo fmt --check' for deterministic validation.",
-          "verification": "INVARIANTS.md exists with machine-readable verification commands.",
-          "requiredFiles": ["INVARIANTS.md"]
-        }
-      }
-    ],
-    "optionalEnhancements": [
-      {
-        "id": "observability",
-        "label": "Observability (Logging & Error Handling)",
-        "description": "Standardize error handling and structured logging to make debugging and production monitoring easier.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "observability"
-          },
-          "github-actions": {
-            "job": "ci"
-          }
-        },
-        "stack": {
-          "exampleTools": ["tracing", "log"],
-          "exampleConfigFiles": [],
-          "notes": "Use the tracing crate for structured logging with spans and events. Configure tracing-subscriber for output formatting.",
-          "verification": "Confirm that tracing or log crate is configured with appropriate subscriber/logger and emits structured output."
-        }
-      },
-      {
-        "id": "agent-phase-gates",
-        "label": "Agent Phase Gates",
-        "description": "Define phase transition requirements in phase-gates.md for autonomous agent workflows with clear pre-conditions and approval gates.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "governance"
-          },
-          "github-actions": {
-            "job": "ci"
-          }
-        },
-        "stack": {
-          "exampleTools": [],
-          "exampleConfigFiles": ["phase-gates.md"],
-          "notes": "Document phase gates with Rust-specific verification (cargo test, cargo check, crates.io publishing) and sign-off requirements.",
-          "verification": "phase-gates.md exists defining transition requirements.",
-          "optionalFiles": ["phase-gates.md"]
-        }
-      },
-      {
-        "id": "agent-victory-gates",
-        "label": "Agent Victory Gates",
-        "description": "Document milestone completion criteria in victory-gates.md defining 'done' for releases and major deliverables with evidence requirements.",
-        "ciHints": {
-          "azure-devops": {
-            "stage": "governance"
-          },
-          "github-actions": {
-            "job": "ci"
-          }
-        },
-        "stack": {
-          "exampleTools": [],
-          "exampleConfigFiles": ["victory-gates.md"],
-          "notes": "Define done criteria including Rust-specific conditions (crates.io publication, documentation hosting, security audits) with evidence requirements.",
-          "verification": "victory-gates.md exists with milestone criteria.",
-          "optionalFiles": ["victory-gates.md"]
-        }
-      }
-    ]
-  }
+  "stack": "rust",
+  "stackLabel": "Rust",
+  "version": 6
 }
