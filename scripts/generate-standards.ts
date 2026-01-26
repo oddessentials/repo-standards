@@ -3,6 +3,21 @@
 import fs from "node:fs";
 import path from "node:path";
 
+// Helper to sort object keys recursively for deterministic output
+function sortObject(obj: unknown): unknown {
+  if (Array.isArray(obj)) return obj.map(sortObject);
+  if (obj && typeof obj === "object") {
+    const sorted: Record<string, unknown> = {};
+    Object.keys(obj as Record<string, unknown>)
+      .sort()
+      .forEach((key) => {
+        sorted[key] = sortObject((obj as Record<string, unknown>)[key]);
+      });
+    return sorted;
+  }
+  return obj;
+}
+
 type StackId = "typescript-js" | "csharp-dotnet" | "python" | "rust" | "go";
 type CiSystem = "azure-devops" | "github-actions";
 
@@ -242,6 +257,9 @@ fs.mkdirSync(outDir, { recursive: true });
 const ciSuffix = targetCiSystem ? `.${targetCiSystem}` : "";
 const outPath = path.join(outDir, `standards.${targetStack}${ciSuffix}.json`);
 
-fs.writeFileSync(outPath, JSON.stringify(stackJson, null, 2) + "\n");
+fs.writeFileSync(
+  outPath,
+  JSON.stringify(sortObject(stackJson), null, 2) + "\n",
+);
 
 console.log(`Wrote ${outPath}`);

@@ -105,7 +105,7 @@ function generateVersionFile(rootDir: string): void {
  * ESM/CJS interop issues.
  */
 
-export const STANDARDS_VERSION = '${pkg.version}';
+export const STANDARDS_VERSION = "${pkg.version}";
 export const STANDARDS_SCHEMA_VERSION = ${standards.version};
 `;
 
