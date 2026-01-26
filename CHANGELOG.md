@@ -1,3 +1,11 @@
+## [6.0.1](https://github.com/oddessentials/repo-standards/compare/v6.0.0...v6.0.1) (2026-01-25)
+
+
+### Bug Fixes
+
+* add pre-test schema version sync to prevent CI failures ([869717b](https://github.com/oddessentials/repo-standards/commit/869717bb0374ea8f124fdaeaab6ad6bff6a87082))
+* formatting issue ([91f951c](https://github.com/oddessentials/repo-standards/commit/91f951c41c8dd342f12d20614e5d17a7b75fa8c4))
+
 # [6.0.0](https://github.com/oddessentials/repo-standards/compare/v5.3.0...v6.0.0) (2026-01-17)
 
 
