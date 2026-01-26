@@ -8,6 +8,10 @@
 [![license](https://img.shields.io/npm/l/@oddessentials/repo-standards.svg)](LICENSE)
 [![node](https://img.shields.io/node/v/@oddessentials/repo-standards.svg)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
+[![ESLint](https://img.shields.io/badge/ESLint-v9-4B32C3?logo=eslint)](https://eslint.org/)
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://prettier.io/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![Maintenance](https://img.shields.io/badge/Maintained-yes-green.svg)](https://github.com/oddessentials/repo-standards/graphs/commit-activity)
 
 # 🐝 Repository Standards & CI Checklist
 
