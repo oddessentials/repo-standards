@@ -86,6 +86,7 @@ function generateStack(stack: string, ci?: string) {
 /**
  * Generate src/version.ts with current package version
  * This runs before TypeScript compilation so the values are baked in
+ * Only writes if content has changed to avoid dirty working tree
  */
 function generateVersionFile(rootDir: string): void {
   const pkgPath = join(rootDir, "package.json");
@@ -109,8 +110,20 @@ export const STANDARDS_VERSION = "${pkg.version}";
 export const STANDARDS_SCHEMA_VERSION = ${standards.version};
 `;
 
-  writeFileSync(versionPath, content);
-  console.log(`Generated src/version.ts with version ${pkg.version}`);
+  // Only write if content has changed (prevents dirty working tree)
+  let existingContent = "";
+  try {
+    existingContent = readFileSync(versionPath, "utf8");
+  } catch {
+    // File doesn't exist, will be created
+  }
+
+  if (existingContent === content) {
+    console.log(`src/version.ts already at version ${pkg.version} (no change)`);
+  } else {
+    writeFileSync(versionPath, content);
+    console.log(`Generated src/version.ts with version ${pkg.version}`);
+  }
 }
 
 function main() {
