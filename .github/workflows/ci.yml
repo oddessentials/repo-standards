@@ -13,12 +13,35 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Version Guard (PR only)
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "Checking for manual version changes..."
+          BASE_REF="origin/${{ github.base_ref }}"
+          # Check if any version-controlled files have version line changes
+          VERSION_FILES="package.json"
+          for file in $VERSION_FILES; do
+            if git diff "$BASE_REF"...HEAD -- "$file" | grep -E '^\+.*"version"' > /dev/null 2>&1; then
+              echo "ERROR: Manual version change detected in $file"
+              echo "Version is managed by semantic-release. Do not edit manually."
+              exit 1
+            fi
+          done
+          echo "No manual version changes detected"
 
       - name: CRLF Detection
         run: |
           echo "Checking for CRLF in shell scripts and source files..."
           if git ls-files --eol | grep -E 'w/crlf.*\.(sh|ts|js|mjs|cjs)$'; then
             echo "ERROR: CRLF line endings detected in script files"
+            exit 1
+          fi
+          echo "Checking husky hooks for CRLF..."
+          if git ls-files --eol .husky/ | grep 'w/crlf'; then
+            echo "ERROR: CRLF line endings detected in husky hooks"
             exit 1
           fi
           echo "No CRLF issues found"
