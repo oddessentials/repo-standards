@@ -41,7 +41,7 @@ These patterns help autonomous agents understand constraints, validate their wor
 | INV-001 | All tests pass | `npm test`   | error    |
 ```
 
-**Template**: [`templates/INVARIANTS.md`](file:///e:/projects/repo-standards/templates/INVARIANTS.md)
+**Template**: [`templates/INVARIANTS.md`](templates/INVARIANTS.md)
 
 ---
 
@@ -71,7 +71,7 @@ Approval: Automated (CI) + Human (code review)
 Evidence: Green CI build, merged PRs
 ```
 
-**Template**: [`templates/phase-gates.md`](file:///e:/projects/repo-standards/templates/phase-gates.md)
+**Template**: [`templates/phase-gates.md`](templates/phase-gates.md)
 
 ---
 
@@ -101,7 +101,7 @@ Evidence: Green CI build, merged PRs
 | E2E tests pass | `npm run test:e2e` | ☑      |
 ```
 
-**Template**: [`templates/victory-gates.md`](file:///e:/projects/repo-standards/templates/victory-gates.md)
+**Template**: [`templates/victory-gates.md`](templates/victory-gates.md)
 
 ---
 
@@ -229,5 +229,5 @@ When setting up agent safety:
 
 ## See Also
 
-- [Repository Standards](file:///e:/projects/repo-standards/README.md) — Master checklist
-- [Templates](file:///e:/projects/repo-standards/templates/) — Starting files for invariants, phase gates, victory gates
+- [Repository Standards](README.md) — Master checklist
+- [Templates](templates/) — Starting files for invariants, phase gates, victory gates
