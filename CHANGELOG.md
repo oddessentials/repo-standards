@@ -1,3 +1,10 @@
+## [7.1.1](https://github.com/oddessentials/repo-standards/compare/v7.1.0...v7.1.1) (2026-01-27)
+
+
+### Bug Fixes
+
+* file scanner vuln ([7b4fbc3](https://github.com/oddessentials/repo-standards/commit/7b4fbc3ebdbd167fbc7e8b849ebcbfd37fa9206f))
+
 # [7.1.0](https://github.com/oddessentials/repo-standards/compare/v7.0.0...v7.1.0) (2026-01-27)
 
 
