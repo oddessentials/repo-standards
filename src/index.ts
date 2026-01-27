@@ -38,6 +38,7 @@ export function loadBaseline(
   stack: StackId,
   ci?: CiSystem,
 ): StackChecklistJson {
+  // Inline implementation to avoid circular dependencies
   const suffix = ci ? `.${ci}` : "";
   const file = `standards.${stack}${suffix}.json`;
   const filePath = join(configDir, file);

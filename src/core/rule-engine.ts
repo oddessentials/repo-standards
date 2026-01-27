@@ -14,7 +14,8 @@ import type {
 import type { InputManifest } from "../schemas/index.js";
 import type { StandardsConfig } from "./config-loader.js";
 import type { ChecklistItem, StackHints } from "../types.js";
-import { loadBaseline } from "../index.js";
+// Import from internal module to avoid circular dependency with index.ts
+import { loadBaseline } from "../internal/baseline-loader.js";
 
 /**
  * Result of rule evaluation.
