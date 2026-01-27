@@ -1,3 +1,11 @@
+# [7.1.0](https://github.com/oddessentials/repo-standards/compare/v7.0.0...v7.1.0) (2026-01-27)
+
+
+### Features
+
+* implement Flight 20260126A orchestration platform transformation ([80be94e](https://github.com/oddessentials/repo-standards/commit/80be94ea695f420254b72a8b84658b9f5f8cac81))
+* implement Flight 20260126A orchestration platform transformation ([efb54a1](https://github.com/oddessentials/repo-standards/commit/efb54a11cb6151cef36a52fabb7841a80a424b7e))
+
 # [7.0.0](https://github.com/oddessentials/repo-standards/compare/v6.0.1...v7.0.0) (2026-01-26)
 
 
