@@ -76,3 +76,143 @@ export function getStandards(
 export function getSchema(): MasterJson {
   return loadMasterSpec();
 }
+
+// ============================================================================
+// Flight 20260126A: New Schema Exports
+// ============================================================================
+
+// Schema types for compliance verification
+export type {
+  Severity,
+  RemediationClass,
+  RiskLevel,
+  EstimatedScope,
+  Finding,
+  VerifySummary,
+  VerifyResult,
+  SessionPhase,
+  SessionOutcome,
+  ExecutionResult,
+  SessionLogEntry,
+  SessionLog,
+  GateType,
+  CriterionStatus,
+  Evidence,
+  GateStatus,
+  RequirementStatus,
+  EvidenceArtifact,
+  CriterionCheck,
+  VictoryDeclaration,
+  HumanAction,
+  HumanResponse,
+  FileEntry,
+  InputManifest,
+} from "./schemas/index.js";
+
+// ============================================================================
+// Flight 20260126A: Command Exports
+// ============================================================================
+
+// Command functions for programmatic use
+export { verify, type VerifyOptions } from "./commands/verify.js";
+export {
+  apply,
+  type ApplyOptions,
+  type ApplyReport,
+} from "./commands/apply.js";
+export {
+  doctor,
+  type DoctorOptions,
+  type DoctorReport,
+} from "./commands/doctor.js";
+export {
+  migrate,
+  listVersions,
+  type MigrateOptions,
+  type MigrationPlan,
+} from "./commands/migrate.js";
+
+// ============================================================================
+// Flight 20260126A: Core Utility Exports
+// ============================================================================
+
+// Core utilities for advanced use cases
+export {
+  loadStandardsConfig,
+  type StandardsConfig,
+  type PackConfig,
+} from "./core/config-loader.js";
+
+export { scanRepository, computeFileHash } from "./core/file-scanner.js";
+export { computeInputHash } from "./core/input-hash.js";
+export {
+  evaluateRules,
+  type RuleEvaluationResult,
+} from "./core/rule-engine.js";
+
+// ============================================================================
+// Flight 20260126A: Session Management Exports
+// ============================================================================
+
+// Session management for orchestration
+export {
+  SessionStateMachine,
+  type StateTransition,
+} from "./session/state-machine.js";
+
+export {
+  AuditLogger,
+  type AuditLoggerOptions,
+} from "./session/audit-logger.js";
+
+export {
+  SessionManager,
+  type SessionManagerOptions,
+} from "./session/session-manager.js";
+
+// ============================================================================
+// Flight 20260126A: Gate Exports
+// ============================================================================
+
+// Entry gates
+export {
+  evaluateEG01,
+  evaluateEG02,
+  evaluateEG03,
+} from "./gates/entry-gates.js";
+
+// Phase gates
+export {
+  evaluatePG01,
+  evaluatePG02,
+  evaluatePG03,
+  evaluatePG04,
+  evaluatePG05,
+} from "./gates/phase-gates.js";
+
+// Exit gates
+export {
+  evaluateXG01,
+  evaluateXG02,
+  evaluateXG03,
+  evaluateXG04,
+} from "./gates/exit-gates.js";
+
+// Remediation gates
+export {
+  evaluateRSG01,
+  evaluateRSG02,
+  evaluateRSG03,
+} from "./gates/remediation-gates.js";
+
+// Victory gates
+export {
+  evaluateVG001,
+  evaluateVG002,
+  evaluateVG003,
+  evaluateVG004,
+  evaluateVG005,
+  evaluateVGR01,
+  evaluateVGR02,
+  evaluateVGR03,
+} from "./gates/victory-gates.js";
