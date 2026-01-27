@@ -23,27 +23,27 @@ function shouldExclude(
   relativePath: string,
   excludePatterns: string[],
 ): boolean {
-  // Always exclude these directories
-  const alwaysExclude = [
-    "node_modules",
-    ".git",
-    "dist",
-    "build",
-    "coverage",
-    ".nyc_output",
-    ".next",
-    ".nuxt",
-    ".cache",
-    "__pycache__",
-    ".pytest_cache",
-    "target",
-    "bin",
-    "obj",
+  // Security: Prevent directory traversal
+  // Reject paths containing '..' or starting with '/'
+  if (relativePath.includes("..") || relativePath.startsWith("/")) {
+    return true;
+  }
+
+  // Common exclude patterns
+  const defaultExcludes = [
+    "node_modules/",
+    ".git/",
+    "dist/",
+    "build/",
+    "coverage/",
+    ".next/",
+    ".nuxt/",
+    "out/",
+    "target/",
   ];
 
-  const parts = relativePath.split(/[/\\]/);
-  for (const part of parts) {
-    if (alwaysExclude.includes(part)) {
+  for (const pattern of defaultExcludes) {
+    if (relativePath.startsWith(pattern)) {
       return true;
     }
   }
