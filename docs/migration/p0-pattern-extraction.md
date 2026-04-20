@@ -235,7 +235,7 @@ P2 follows with templates (Python + TS first) under `templates/patterns/<id>/`. 
 
 ---
 
-**Document status:** approved with P1 hardening (2026-04-20). P1 may begin.
+**Document status:** P1 complete (2026-04-20). All six P1 deliverables shipped: schema foundation + tier-grouped verify output (P1.1), maturity signal wiring (P1.2), conditions mechanism (P1.3), net-new + complement items across both tiers (P1.4 + P1.4b + P1.5 — 49 items added total), and `docs/patterns/meta-principles.md` (P1.6). Next phase is P2 (template-lane — see Section 7).
 
 ---
 
