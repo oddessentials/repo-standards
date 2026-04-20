@@ -215,7 +215,14 @@ Every template under `templates/patterns/<id>/README.md` ends with a standard fo
 ```markdown
 ## Design principles this template obeys
 
-This pattern follows: `mp-adversarial-proof-required`, `mp-churn-bait-discipline`, `mp-committed-proof-artifacts` — see [Meta-Principles](../../patterns/meta-principles.md) for context.
+This pattern follows: `mp-adversarial-proof-required`, `mp-churn-bait-discipline`, `mp-committed-proof-artifacts` — see [Meta-Principles](../../../docs/patterns/meta-principles.md) for context.
 ```
 
-A P2 CI gate verifies this footer exists in every pattern-template README. Missing footers fail the gate so meta-principles can't rot into ignored prose as the template count grows.
+The relative path resolves from `templates/patterns/<id>/README.md` up three levels to the repo root, then into `docs/patterns/meta-principles.md`. The P2 CI gate (`scripts/verify-pattern-footers.ts`) runs on every `npm run test` and enforces:
+
+- the footer section is present,
+- at least one `mp-*` principle is cited,
+- every cited `mp-*` ID exists as a heading in this doc (typos fail the gate),
+- any template citing `mp-churn-bait-discipline` carries a "Scope discipline" anchor in its README.
+
+Adding a new principle here (as a new `## \`mp-xyz\`` section) makes it immediately citable — the gate parses the authoritative set from this doc.
