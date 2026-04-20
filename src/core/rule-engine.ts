@@ -7,15 +7,18 @@ import { v4 as uuidv4 } from "uuid";
 import type {
   Finding,
   Severity,
+  Tier,
   RemediationClass,
   RiskLevel,
   EstimatedScope,
+  NotApplicableEntry,
 } from "../schemas/index.js";
 import type { InputManifest } from "../schemas/index.js";
 import type { StandardsConfig } from "./config-loader.js";
 import type { ChecklistItem, StackHints } from "../types.js";
 // Import from internal module to avoid circular dependency with index.ts
 import { loadBaseline } from "../internal/baseline-loader.js";
+import { evaluateConditions, firstUnmetCondition } from "./conditions.js";
 
 /**
  * Result of rule evaluation.
@@ -32,6 +35,12 @@ export interface RuleEvaluationResult {
 
   /** Number of rules failed */
   rules_failed: number;
+
+  /**
+   * Items skipped because at least one declared condition was unmet.
+   * Always present (empty array when no items were skipped).
+   */
+  not_applicable: NotApplicableEntry[];
 }
 
 /**
@@ -169,6 +178,7 @@ function checkRequiredScripts(
  */
 function evaluateItem(
   item: ChecklistItem,
+  tier: Tier,
   repoPath: string,
   config: StandardsConfig,
   manifest: Omit<InputManifest, "input_hash">,
@@ -187,6 +197,7 @@ function evaluateItem(
         finding_id: uuidv4(),
         rule_id: item.id,
         severity,
+        tier,
         title: `Missing required file(s): ${item.label}`,
         description: `${item.description}\n\nMissing files: ${missing.join(", ")}`,
         remediation_class: "mechanical",
@@ -209,6 +220,7 @@ function evaluateItem(
         finding_id: uuidv4(),
         rule_id: item.id,
         severity,
+        tier,
         title: `Missing configuration: ${item.label}`,
         description: `${item.description}\n\nExpected one of: ${hints.anyOfFiles.join(", ")}`,
         remediation_class: determineRemediationClass(item, hints),
@@ -231,6 +243,7 @@ function evaluateItem(
         finding_id: uuidv4(),
         rule_id: item.id,
         severity,
+        tier,
         title: `Missing npm scripts: ${item.label}`,
         description: `${item.description}\n\nMissing scripts: ${missing.join(", ")}`,
         file_path: "package.json",
@@ -262,6 +275,7 @@ export function evaluateRules(
   manifest: Omit<InputManifest, "input_hash">,
 ): RuleEvaluationResult {
   const findings: Finding[] = [];
+  const not_applicable: NotApplicableEntry[] = [];
   let rules_evaluated = 0;
   let rules_passed = 0;
   let rules_failed = 0;
@@ -269,14 +283,31 @@ export function evaluateRules(
   // Load standards for the configured stack
   const standards = loadBaseline(config.stack, config.ci_system);
 
-  // Evaluate all checklist items
-  const allItems = [
-    ...standards.checklist.core,
-    ...standards.checklist.recommended,
-    ...standards.checklist.optionalEnhancements,
+  // Evaluate known conditions once for the whole run. Consumer overrides
+  // in config.conditions take precedence over auto-detection.
+  const conditionStates = evaluateConditions(
+    repoPath,
+    manifest,
+    config.conditions,
+  );
+
+  // Evaluate all checklist items, preserving tier from array placement
+  const allItems: Array<{ item: ChecklistItem; tier: Tier }> = [
+    ...standards.checklist.core.map((item) => ({
+      item,
+      tier: "core" as const,
+    })),
+    ...standards.checklist.recommended.map((item) => ({
+      item,
+      tier: "recommended" as const,
+    })),
+    ...standards.checklist.optionalEnhancements.map((item) => ({
+      item,
+      tier: "optional" as const,
+    })),
   ];
 
-  for (const item of allItems) {
+  for (const { item, tier } of allItems) {
     // Check if item applies to this stack
     // If appliesTo.stacks is defined, the stack must be in the list
     // If appliesTo.stacks is undefined, item applies to all stacks
@@ -298,9 +329,21 @@ export function evaluateRules(
       continue;
     }
 
+    // Check declared conditions. Items whose conditions are unmet are
+    // recorded as not-applicable rather than evaluated as failing.
+    const unmet = firstUnmetCondition(item.conditions, conditionStates);
+    if (unmet !== null) {
+      not_applicable.push({
+        rule_id: item.id,
+        tier,
+        unmet_condition: unmet,
+      });
+      continue;
+    }
+
     rules_evaluated++;
 
-    const finding = evaluateItem(item, repoPath, config, manifest);
+    const finding = evaluateItem(item, tier, repoPath, config, manifest);
     if (finding) {
       findings.push(finding);
       rules_failed++;
@@ -314,5 +357,6 @@ export function evaluateRules(
     rules_evaluated,
     rules_passed,
     rules_failed,
+    not_applicable,
   };
 }

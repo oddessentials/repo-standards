@@ -10,6 +10,15 @@
 export type Severity = "error" | "warn" | "info";
 
 /**
+ * Tier of the checklist item that produced this finding.
+ * Determined by which checklist array the item was placed in.
+ * - core: Must-have patterns; failing items are errors by default.
+ * - recommended: Should-have patterns; failing items are warnings by default.
+ * - optional: Nice-to-have patterns for hardened repos.
+ */
+export type Tier = "core" | "recommended" | "optional";
+
+/**
  * Classification of how a finding should be remediated.
  * - mechanical: Can be fixed automatically with deterministic rules
  * - ai: Requires AI assistance for intelligent remediation
@@ -47,6 +56,9 @@ export interface Finding {
 
   /** Severity of the violation */
   severity: Severity;
+
+  /** Tier of the checklist item that produced this finding */
+  tier: Tier;
 
   /** Short title describing the finding */
   title: string;

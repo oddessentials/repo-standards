@@ -11,6 +11,7 @@
         "description": "Enforce line endings at the Git layer using .gitattributes. Mark text files with appropriate EOL handling (eol=lf for shell scripts, eol=auto for most files) and binary files as binary to prevent corruption. This prevents 'works locally, fails in CI' issues caused by CRLF/LF mismatches.",
         "id": "gitattributes-eol",
         "label": "Git Attributes (Line Endings)",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             ".gitattributes",
@@ -44,6 +45,7 @@
         "description": "Fail CI early for Linux-executed files containing CRLF line endings. Shell scripts, Python files, and other interpreted files fail silently or with cryptic errors when they contain \\r characters. Detect this before running deeper CI steps.",
         "id": "crlf-detection",
         "label": "CRLF Detection in CI",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [],
           "exampleTools": [
@@ -68,6 +70,7 @@
         "description": "Maintain proper .gitignore and .dockerignore files to prevent committing secrets, build artifacts, or unnecessary files.",
         "id": "gitignore-and-dockerignore",
         "label": "Git and Docker Ignore Files",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             ".gitignore",
@@ -92,6 +95,7 @@
         "description": "Run static code linting to enforce consistency and catch common issues early.",
         "id": "linting",
         "label": "Linting",
+        "maturity": "documented",
         "stack": {
           "bazelHints": {
             "commands": [
@@ -126,6 +130,7 @@
         "description": "Provide a deterministic unit test framework with a single command to run all tests.",
         "id": "unit-test-runner",
         "label": "Unit Test Runner",
+        "maturity": "documented",
         "stack": {
           "bazelHints": {
             "commands": [
@@ -157,6 +162,7 @@
         "description": "Provide a Dockerfile and, if applicable, a docker-compose file for local dev and CI parity.",
         "id": "containerization",
         "label": "Containerization (Docker / Docker Compose)",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             "Dockerfile",
@@ -182,6 +188,7 @@
         "description": "Use MAJOR.MINOR.PATCH versioning with clear rules and automated changelog generation based on commit history. Maintain a single canonical version source (for example, package.json or VERSION) that all release artifacts use.",
         "id": "semantic-versioning",
         "label": "Semantic Versioning",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             "GitVersion.yml",
@@ -216,6 +223,7 @@
         "description": "If semantic-release or automated versioning is enabled, block manual edits to canonical version fields in pull requests. Enforce a CI guard (and optional pre-push hook) that fails when version lines change outside the release workflow.",
         "id": "version-guard",
         "label": "Version Guard (Automated Releases)",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             "scripts/check-version-unchanged.sh",
@@ -245,6 +253,7 @@
         "description": "Exclude auto-generated release artifacts (CHANGELOG.md, package-lock.json, etc.) from code formatters to prevent CI failures. Release automation tools generate files that may not conform to your formatter's style, causing format checks to fail on subsequent CI runs.",
         "id": "release-artifact-exclusion",
         "label": "Release Artifact Formatter Exclusion",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             ".editorconfig"
@@ -266,6 +275,7 @@
         "description": "Use a single CI release pipeline that publishes all artifacts (GitHub releases, packages, containers) from the same canonical version source.",
         "id": "unified-release-workflow",
         "label": "Unified Release Workflow",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             "azure-pipelines.yml",
@@ -297,6 +307,7 @@
         "description": "Release automation must bypass local developer hooks (HUSKY=0, --no-verify) and rely solely on CI gates for validation. This ensures idempotent, reproducible releases that don't fail due to hook environment differences.",
         "id": "release-hook-bypass",
         "label": "Release Hook Bypass",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             "azure-pipelines.yml",
@@ -318,6 +329,7 @@
         "description": "Enforce structured commit messages such as Conventional Commits via commit-msg hooks and CI. This is required for deterministic versioning and changelog generation.",
         "id": "commit-linting",
         "label": "Commit Linting",
+        "maturity": "documented",
         "stack": {
           "anyOfFiles": [
             "commitlint.config.js",
@@ -350,6 +362,7 @@
         "description": "Generate readable unit test and coverage reports and enforce a minimum coverage threshold (around 80%) for new or changed code.",
         "id": "unit-test-reporter",
         "label": "Unit Test Reporter / Coverage",
+        "maturity": "documented",
         "stack": {
           "bazelHints": {
             "commands": [
@@ -377,6 +390,7 @@
         "description": "Single CI pipeline that runs linting, formatting, type checking, tests, coverage, build, and containerization.",
         "id": "ci-quality-gates",
         "label": "CI Quality Gates",
+        "maturity": "documented",
         "stack": {
           "bazelHints": {
             "commands": [
@@ -403,6 +417,7 @@
         "description": "Automatic code formatting to maintain a consistent style across all contributors.",
         "id": "code-formatter",
         "label": "Code Formatter",
+        "maturity": "documented",
         "stack": {
           "bazelHints": {
             "commands": [
@@ -430,6 +445,7 @@
         "description": "Use git hooks to run linting, formatting, and commit linting before changes are committed. Hooks should CHECK by default (not auto-fix), be fast, and scope to changed files only. Use a single entry hook mechanism (e.g., Husky as entry point calling pre-commit or lint-staged).",
         "id": "pre-commit-hooks",
         "label": "Pre-Commit Hooks",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             "lefthook.yml",
@@ -453,6 +469,7 @@
         "description": "Local hooks and CI must invoke identical verification commands to prevent 'works locally, fails in CI' issues. Use a single canonical verify entrypoint (e.g., npm run verify) that both hooks and CI call.",
         "id": "hook-ci-parity",
         "label": "Hook/CI Parity",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             "Makefile",
@@ -476,6 +493,7 @@
         "description": "Scan staged diffs for credentials, API keys, and secrets before they reach the remote repository. Catch secrets at commit time rather than after they're pushed.",
         "id": "secret-scanning-precommit",
         "label": "Pre-commit Secret Scanning",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             ".gitleaks.toml"
@@ -497,6 +515,7 @@
         "description": "Use static type checking to catch errors before runtime and enforce strictness on new code. For JS/TS stacks, require a TypeScript-first policy with strict mode and a CI typecheck step; allow JSDoc/checkJs migration for legacy JS.",
         "id": "type-checking",
         "label": "Type Checking",
+        "maturity": "documented",
         "stack": {
           "bazelHints": {
             "commands": [
@@ -531,6 +550,7 @@
         "description": "Lock dependencies and scan regularly for known vulnerabilities; fail CI on newly introduced high-severity issues.",
         "id": "dependency-security",
         "label": "Dependency Management & Vulnerability Scanning",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             "packages.lock.json",
@@ -555,6 +575,7 @@
         "description": "Ensure builds are reproducible by pinning dependencies, base images, and tool/runtime versions. Avoid network/time variance and fail when lockfiles drift.",
         "id": "deterministic-builds",
         "label": "Deterministic & Hermetic Builds",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             "packages.lock.json",
@@ -580,6 +601,7 @@
         "description": "Produce SBOMs or provenance metadata, enable secret/code scanning, and sign tags or commits for critical repos.",
         "id": "provenance-security",
         "label": "Provenance & Security Metadata",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             ".github/workflows/codeql.yml",
@@ -608,6 +630,7 @@
         "description": "Adopt standard CI templates and config samples to scale across repositories, minimizing bespoke pipeline logic.",
         "id": "ci-templates-automation",
         "label": "CI Templates & Automation",
+        "maturity": "documented",
         "stack": {
           "anyOfFiles": [
             ".github/workflows/ci.yml",
@@ -637,6 +660,7 @@
         "description": "Specify required runtime/engine versions in package manifests appropriate for your application. Use minimum version constraints (>=) rather than strict ranges to avoid blocking consumers from upgrading.",
         "id": "runtime-version",
         "label": "Runtime Version Specification",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             "*.csproj",
@@ -659,6 +683,7 @@
         "description": "Maintain a comprehensive README and, where applicable, auto-generated API docs to support onboarding and maintainability.",
         "id": "documentation",
         "label": "Documentation Standards",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             "README.md",
@@ -687,6 +712,7 @@
         "description": "Include standard governance files (LICENSE, CODE_OF_CONDUCT.md, CONTRIBUTING.md), branch protection rules, and review standards to define legal, ethical, and workflow expectations.",
         "id": "repository-governance",
         "label": "Repository Governance",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             "LICENSE",
@@ -715,6 +741,7 @@
         "description": "Provide one canonical 'verify' command per repository/stack that all stages call with appropriate flags. This prevents duplication, drift, and ensures consistency between local development and CI.",
         "id": "canonical-verify",
         "label": "Canonical Verify Entrypoint",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             "Makefile",
@@ -739,6 +766,7 @@
         "description": "Each configuration rule must live in exactly one authoritative config file. Avoid duplication across .editorconfig, linter configs, and CI definitions. Document which file is authoritative for each concern.",
         "id": "config-authority",
         "label": "Config File Authority Rules",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             ".gitattributes",
@@ -760,6 +788,7 @@
         "description": "Encode path exclusions and skip rules deterministically in config files, not through ad-hoc human judgment. Make it clear which paths are excluded from checks and why.",
         "id": "explicit-skip-paths",
         "label": "Explicit Skip Paths",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             ".editorconfig"
@@ -771,6 +800,12 @@
           "notes": "Use .editorconfig file globs to exclude generated code from analysis. Document exclusions with comments.",
           "verification": "Review .editorconfig and confirm exclusions are explicit and documented."
         }
+      },
+      {
+        "description": "Three-value exit-code contract shared across all hook scripts and CI preflight runners: 1 = quality regression (fatal), 2 = missing tool (fatal, setup issue), 3 = network or infra degraded (skippable with --allow-local-degraded). Inconsistent exit semantics across hooks mask real failures and undermine local/CI parity.",
+        "id": "hook-exit-code-contract",
+        "label": "Hook Exit-Code Contract",
+        "maturity": "documented"
       }
     ],
     "optionalEnhancements": [
@@ -783,6 +818,7 @@
         "description": "Standardize error handling and structured logging to make debugging and production monitoring easier.",
         "id": "observability",
         "label": "Observability (Logging & Error Handling)",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             "appsettings.json"
@@ -804,6 +840,7 @@
         "description": "Define phase transition requirements in phase-gates.md for autonomous agent workflows with clear pre-conditions and approval gates.",
         "id": "agent-phase-gates",
         "label": "Agent Phase Gates",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             "phase-gates.md"
@@ -825,6 +862,7 @@
         "description": "Document milestone completion criteria in victory-gates.md defining 'done' for releases and major deliverables with evidence requirements.",
         "id": "agent-victory-gates",
         "label": "Agent Victory Gates",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             "victory-gates.md"
@@ -849,6 +887,7 @@
         "description": "Automate dependency updates using Renovate or Dependabot to keep dependencies current and reduce security exposure window.",
         "id": "dependency-update-automation",
         "label": "Dependency Update Automation",
+        "maturity": "documented",
         "stack": {
           "anyOfFiles": [
             "renovate.json",
@@ -878,6 +917,7 @@
         "description": "Enforce module boundaries and import constraints to prevent architectural drift and unwanted coupling.",
         "id": "dependency-architecture-rules",
         "label": "Dependency Architecture Rules",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             "NsDepCop.config.nsdepcop",
@@ -903,6 +943,7 @@
         "description": "Test how components interact with each other and external systems, running after unit tests with more relaxed coverage thresholds.",
         "id": "integration-testing",
         "label": "Integration Testing",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             "*.IntegrationTests.csproj"
@@ -925,6 +966,7 @@
         "description": "Establish performance baselines and monitor for regressions using lightweight benchmarks or audits in CI.",
         "id": "performance-baselining",
         "label": "Performance Baselines",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             "*.csproj"
@@ -945,6 +987,7 @@
         "description": "Measure cyclomatic complexity or similar metrics to keep code maintainable, starting as a warning-only check.",
         "id": "complexity-analysis",
         "label": "Complexity Analysis",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             "sonar-project.properties"
@@ -966,6 +1009,7 @@
         "description": "Run accessibility checks on web-facing components to detect critical issues and improve inclusive UX.",
         "id": "accessibility-auditing",
         "label": "Accessibility Auditing",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [],
           "exampleTools": [
@@ -986,6 +1030,7 @@
         "description": "Run nightly or scheduled checks comparing AI-generated outputs against pinned baselines to detect model drift, prompt drift, or code changes affecting AI behavior. Attribute regressions to code changes vs model updates vs prompt changes.",
         "id": "ai-drift-detection",
         "label": "AI Drift Detection",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             "*.verified.txt",
@@ -1009,6 +1054,7 @@
         "description": "Validate all AI-generated outputs against strict JSON schemas or type definitions at system boundaries. Reject invalid outputs early rather than letting malformed data propagate through the system.",
         "id": "ai-schema-enforcement",
         "label": "AI Output Schema Enforcement",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             "*.schema.json",
@@ -1033,6 +1079,7 @@
         "description": "Validate AI tool-generated patches, configs, and code against exact expected formats. Test that AI outputs respect forbidden paths, file patterns, and format constraints through golden contract tests.",
         "id": "ai-golden-tests",
         "label": "AI Golden Contract Tests",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             "TestData/",
@@ -1056,6 +1103,7 @@
         "description": "Test AI integrations for prompt injection resistance, input sanitization, output filtering, and data exfiltration prevention. Include adversarial test cases that attempt to manipulate AI behavior.",
         "id": "ai-safety-checks",
         "label": "AI Adversarial & Safety Testing",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             "Tests/AiSafety/"
@@ -1078,6 +1126,7 @@
         "description": "Log AI provider, model version, prompt template version, parameters, and tool versions for all AI operations. Enable attribution of outputs to specific model+prompt combinations for debugging and compliance.",
         "id": "ai-provenance-tracking",
         "label": "AI Provenance & Audit Logging",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             "AiProvenance.cs"
@@ -1100,6 +1149,7 @@
         "description": "Maintain INVARIANTS.md defining repository-wide rules that must always hold true, with machine-readable verification commands for autonomous agents.",
         "id": "agent-invariants",
         "label": "Autonomous Agent Invariants",
+        "maturity": "documented",
         "stack": {
           "exampleConfigFiles": [
             "INVARIANTS.md"
@@ -1111,6 +1161,87 @@
           ],
           "verification": "INVARIANTS.md exists with machine-readable verification commands."
         }
+      },
+      {
+        "description": "A row-per-gate matrix — typically LOCAL_CI_PARITY_INVARIANTS.md — that maps every local gate to its CI equivalent with a status column (Match / Weaker / Partial). Makes parity gaps concretely auditable and prevents 'works locally' drift.",
+        "id": "lcp-parity-doc",
+        "label": "Local/CI Parity Invariants Document",
+        "maturity": "documented"
+      },
+      {
+        "description": "Static test that AST-walks the local preflight runner, collects every gate's canonical identifier, and asserts each appears in the parity doc. Lock scope to identifier presence only — never prose, row counts, or link shapes — or the test devolves into churn-bait. Must include adversarial negative tests proving it catches fabricated and removed gates.",
+        "id": "lcp-parity-doc-coverage-test",
+        "label": "Parity Doc Coverage Test",
+        "maturity": "documented"
+      },
+      {
+        "description": "Hook checks organize into three tiers: pre-commit (staged-only, fast), pre-push (CI-identical preflight superset), CI (remote-only jobs). Makes the local/CI boundary explicit and keeps fast-feedback checks from drifting toward either extreme.",
+        "id": "hook-tiered-model",
+        "label": "Tiered Hook Model",
+        "maturity": "documented"
+      },
+      {
+        "description": "Single entrypoint script that husky hooks delegate to. Routes pre-commit / pre-push / commit-msg based on argv, centralizes exit-code handling, tool detection, and network-degraded behavior so individual hook files stay thin and consistent.",
+        "id": "hook-dispatcher-script",
+        "label": "Hook Dispatcher Script",
+        "maturity": "documented"
+      },
+      {
+        "description": "Dedicated script that runs the CI-identical superset of gates. Pre-push hook invokes it; CI can also invoke it. Keeps local and CI verification paths mechanically equivalent rather than merely 'similar.'",
+        "id": "hook-preflight-script",
+        "label": "Pre-Push Preflight Script",
+        "maturity": "documented"
+      },
+      {
+        "description": "Hook scripts verify prerequisites upfront — .husky/ present, required tools on PATH, harness wired — and fail with a setup-specific exit code when any are missing. Prevents silent hook bypass after bad installs, branch switches, or dependency drift.",
+        "id": "hook-fail-fast-setup-check",
+        "label": "Fail-Fast Hook Setup Check",
+        "maturity": "documented"
+      },
+      {
+        "conditions": [
+          "has-database"
+        ],
+        "description": "Static test asserting every table declared in the canonical schema source is either in a 'fundamental' set (present since inception) or created by at least one registered migration. Shifts detection of 'added table to schema, forgot the migration' from production runtime to PR CI.",
+        "id": "p-schema-migration-parity",
+        "label": "Schema/Migration Parity Test",
+        "maturity": "documented"
+      },
+      {
+        "conditions": [
+          "has-database"
+        ],
+        "description": "PRAGMA/DDL byte-equivalence test between (a) the canonical schema source and (b) a DB built by running every registered migration against a blank start. Catches semantic drift between inline schema and incremental migrations.",
+        "id": "p-migration-ddl-parity",
+        "label": "Migration DDL Byte-Parity",
+        "maturity": "documented"
+      },
+      {
+        "conditions": [
+          "has-database"
+        ],
+        "description": "At DB connect time, validate table presence in two phases — 'fundamental' tables before any migrations run, 'required' tables after all migrations apply. Defense-in-depth alongside the parity test; catches the same defect class at runtime if it escapes PR gating.",
+        "id": "p-required-tables-runtime-check",
+        "label": "Required-Tables Runtime Check",
+        "maturity": "documented"
+      },
+      {
+        "conditions": [
+          "has-database"
+        ],
+        "description": "CI gate asserting the schema_version seed in the canonical schema source equals max(target_version) across all registered migrations. Catches 'added migration, forgot to bump seed' — where the DB migrates to v7 but schema source still claims v6.",
+        "id": "p-schema-version-monotonic",
+        "label": "Schema Version Seed Monotonic",
+        "maturity": "documented"
+      },
+      {
+        "conditions": [
+          "has-database"
+        ],
+        "description": "Every registered migration has at least one test exercising it on a blank DB AND on the prior schema version. Enforced by a coverage check over the migration registry. Blocks untested migrations from shipping.",
+        "id": "p-migration-test-coverage",
+        "label": "Per-Migration Test Coverage",
+        "maturity": "documented"
       }
     ]
   },

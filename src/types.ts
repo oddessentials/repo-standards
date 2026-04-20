@@ -38,6 +38,15 @@ export type Enforcement = "required" | "recommended" | "optional";
  */
 export type Severity = "error" | "warn" | "info";
 
+/**
+ * Implementation maturity of a checklist item.
+ * Signals to consumers whether the pattern is ready-to-copy or still documented-only.
+ * - documented: Described in instructions/docs; no template shipped yet.
+ * - template-planned: Template scheduled for a named milestone, not yet written.
+ * - template-available: Template exists under templates/patterns/<id>/; consumers can copy-and-adapt.
+ */
+export type Maturity = "documented" | "template-planned" | "template-available";
+
 /** Migration guide step for onboarding repositories */
 export interface MigrationStep {
   step: number;
@@ -123,6 +132,17 @@ export interface ChecklistItem {
   id: string;
   label: string;
   description: string;
+  /**
+   * Implementation maturity — lets consumers tell documented-only patterns
+   * from ready-to-copy ones. Required on every item.
+   */
+  maturity: Maturity;
+  /**
+   * Optional condition predicates (e.g., "has-database", "has-cli") that
+   * gate applicability. If any condition is unmet, the item evaluates as
+   * N/A in verify output. Detection is handled by the rule engine.
+   */
+  conditions?: string[];
   enforcement?: Enforcement;
   severity?: Severity;
   appliesTo: {

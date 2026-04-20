@@ -6,6 +6,7 @@ import type {
   VerifyResult,
   VerifySummary,
   Severity,
+  Tier,
   RemediationClass,
 } from "../schemas/index.js";
 import { loadStandardsConfig } from "../core/config-loader.js";
@@ -67,6 +68,11 @@ export async function verify(
       ai: 0,
       human: 0,
     },
+    by_tier: {
+      core: 0,
+      recommended: 0,
+      optional: 0,
+    },
   };
 
   for (const finding of evaluation.findings) {
@@ -74,6 +80,7 @@ export async function verify(
     summary.by_remediation_class[
       finding.remediation_class as RemediationClass
     ]++;
+    summary.by_tier[finding.tier as Tier]++;
   }
 
   // Determine compliance (no error-severity findings)
@@ -88,6 +95,7 @@ export async function verify(
     standards_version: config.version || STANDARDS_VERSION,
     stack_id: config.stack,
     findings: evaluation.findings,
+    not_applicable: evaluation.not_applicable,
     summary,
     repository_path: repoPath,
     execution_time_ms: Date.now() - startTime,

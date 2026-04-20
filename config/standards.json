@@ -232,7 +232,8 @@
               "description": "Verify no CRLF in shell scripts"
             }
           }
-        }
+        },
+        "maturity": "documented"
       },
       {
         "id": "crlf-detection",
@@ -310,7 +311,8 @@
               "description": "Detect CRLF in shell scripts"
             }
           }
-        }
+        },
+        "maturity": "documented"
       },
       {
         "id": "gitignore-and-dockerignore",
@@ -366,7 +368,8 @@
             "requiredFiles": [".gitignore"],
             "optionalFiles": [".dockerignore"]
           }
-        }
+        },
+        "maturity": "documented"
       },
       {
         "id": "linting",
@@ -481,7 +484,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "unit-test-runner",
@@ -565,7 +569,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "containerization",
@@ -626,7 +631,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "semantic-versioning",
@@ -707,7 +713,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "version-guard",
@@ -787,7 +794,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "release-artifact-exclusion",
@@ -841,7 +849,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "unified-release-workflow",
@@ -927,7 +936,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "release-hook-bypass",
@@ -991,7 +1001,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "commit-linting",
@@ -1084,7 +1095,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "unit-test-reporter",
@@ -1155,7 +1167,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "ci-quality-gates",
@@ -1241,7 +1254,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "code-formatter",
@@ -1320,7 +1334,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "pre-commit-hooks",
@@ -1378,7 +1393,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "hook-ci-parity",
@@ -1432,7 +1448,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "secret-scanning-precommit",
@@ -1489,7 +1506,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "type-checking",
@@ -1576,7 +1594,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "dependency-security",
@@ -1646,7 +1665,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "deterministic-builds",
@@ -1718,7 +1738,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "provenance-security",
@@ -1813,7 +1834,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "ci-templates-automation",
@@ -1904,7 +1926,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "runtime-version",
@@ -1966,7 +1989,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "documentation",
@@ -2027,7 +2051,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "repository-governance",
@@ -2108,7 +2133,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "canonical-verify",
@@ -2162,7 +2188,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "config-authority",
@@ -2233,7 +2260,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "explicit-skip-paths",
@@ -2288,6 +2316,19 @@
             "notes": "Define skip-dirs and skip-files in .golangci.yml. Use //nolint comments sparingly and always include justification (//nolint:errcheck // reason).",
             "verification": "Review .golangci.yml and confirm skip paths are explicit and documented."
           }
+        },
+        "enforcement": "required",
+        "severity": "error",
+        "maturity": "documented"
+      },
+      {
+        "id": "hook-exit-code-contract",
+        "label": "Hook Exit-Code Contract",
+        "description": "Three-value exit-code contract shared across all hook scripts and CI preflight runners: 1 = quality regression (fatal), 2 = missing tool (fatal, setup issue), 3 = network or infra degraded (skippable with --allow-local-degraded). Inconsistent exit semantics across hooks mask real failures and undermine local/CI parity.",
+        "maturity": "documented",
+        "executionStage": "pre-push",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
         },
         "enforcement": "required",
         "severity": "error"
@@ -2375,7 +2416,8 @@
           }
         },
         "enforcement": "recommended",
-        "severity": "warn"
+        "severity": "warn",
+        "maturity": "documented"
       },
       {
         "id": "dependency-architecture-rules",
@@ -2445,7 +2487,8 @@
           }
         },
         "enforcement": "recommended",
-        "severity": "warn"
+        "severity": "warn",
+        "maturity": "documented"
       },
       {
         "id": "integration-testing",
@@ -2496,7 +2539,8 @@
           }
         },
         "enforcement": "recommended",
-        "severity": "warn"
+        "severity": "warn",
+        "maturity": "documented"
       },
       {
         "id": "performance-baselining",
@@ -2547,7 +2591,8 @@
           }
         },
         "enforcement": "recommended",
-        "severity": "warn"
+        "severity": "warn",
+        "maturity": "documented"
       },
       {
         "id": "complexity-analysis",
@@ -2598,7 +2643,8 @@
           }
         },
         "enforcement": "recommended",
-        "severity": "warn"
+        "severity": "warn",
+        "maturity": "documented"
       },
       {
         "id": "accessibility-auditing",
@@ -2649,7 +2695,8 @@
           }
         },
         "enforcement": "recommended",
-        "severity": "warn"
+        "severity": "warn",
+        "maturity": "documented"
       },
       {
         "id": "ai-drift-detection",
@@ -2702,7 +2749,8 @@
           }
         },
         "enforcement": "recommended",
-        "severity": "warn"
+        "severity": "warn",
+        "maturity": "documented"
       },
       {
         "id": "ai-schema-enforcement",
@@ -2759,7 +2807,8 @@
           }
         },
         "enforcement": "recommended",
-        "severity": "warn"
+        "severity": "warn",
+        "maturity": "documented"
       },
       {
         "id": "ai-golden-tests",
@@ -2812,7 +2861,8 @@
           }
         },
         "enforcement": "recommended",
-        "severity": "warn"
+        "severity": "warn",
+        "maturity": "documented"
       },
       {
         "id": "ai-safety-checks",
@@ -2865,7 +2915,8 @@
           }
         },
         "enforcement": "recommended",
-        "severity": "warn"
+        "severity": "warn",
+        "maturity": "documented"
       },
       {
         "id": "ai-provenance-tracking",
@@ -2918,7 +2969,8 @@
           }
         },
         "enforcement": "recommended",
-        "severity": "warn"
+        "severity": "warn",
+        "maturity": "documented"
       },
       {
         "id": "agent-invariants",
@@ -2974,6 +3026,144 @@
             "verification": "INVARIANTS.md exists with machine-readable verification commands.",
             "requiredFiles": ["INVARIANTS.md"]
           }
+        },
+        "enforcement": "recommended",
+        "severity": "warn",
+        "maturity": "documented"
+      },
+      {
+        "id": "lcp-parity-doc",
+        "label": "Local/CI Parity Invariants Document",
+        "description": "A row-per-gate matrix — typically LOCAL_CI_PARITY_INVARIANTS.md — that maps every local gate to its CI equivalent with a status column (Match / Weaker / Partial). Makes parity gaps concretely auditable and prevents 'works locally' drift.",
+        "maturity": "documented",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
+      },
+      {
+        "id": "lcp-parity-doc-coverage-test",
+        "label": "Parity Doc Coverage Test",
+        "description": "Static test that AST-walks the local preflight runner, collects every gate's canonical identifier, and asserts each appears in the parity doc. Lock scope to identifier presence only — never prose, row counts, or link shapes — or the test devolves into churn-bait. Must include adversarial negative tests proving it catches fabricated and removed gates.",
+        "maturity": "documented",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
+      },
+      {
+        "id": "hook-tiered-model",
+        "label": "Tiered Hook Model",
+        "description": "Hook checks organize into three tiers: pre-commit (staged-only, fast), pre-push (CI-identical preflight superset), CI (remote-only jobs). Makes the local/CI boundary explicit and keeps fast-feedback checks from drifting toward either extreme.",
+        "maturity": "documented",
+        "executionStage": "pre-push",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
+      },
+      {
+        "id": "hook-dispatcher-script",
+        "label": "Hook Dispatcher Script",
+        "description": "Single entrypoint script that husky hooks delegate to. Routes pre-commit / pre-push / commit-msg based on argv, centralizes exit-code handling, tool detection, and network-degraded behavior so individual hook files stay thin and consistent.",
+        "maturity": "documented",
+        "executionStage": "pre-push",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
+      },
+      {
+        "id": "hook-preflight-script",
+        "label": "Pre-Push Preflight Script",
+        "description": "Dedicated script that runs the CI-identical superset of gates. Pre-push hook invokes it; CI can also invoke it. Keeps local and CI verification paths mechanically equivalent rather than merely 'similar.'",
+        "maturity": "documented",
+        "executionStage": "pre-push",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
+      },
+      {
+        "id": "hook-fail-fast-setup-check",
+        "label": "Fail-Fast Hook Setup Check",
+        "description": "Hook scripts verify prerequisites upfront — .husky/ present, required tools on PATH, harness wired — and fail with a setup-specific exit code when any are missing. Prevents silent hook bypass after bad installs, branch switches, or dependency drift.",
+        "maturity": "documented",
+        "executionStage": "pre-commit",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
+      },
+      {
+        "id": "p-schema-migration-parity",
+        "label": "Schema/Migration Parity Test",
+        "description": "Static test asserting every table declared in the canonical schema source is either in a 'fundamental' set (present since inception) or created by at least one registered migration. Shifts detection of 'added table to schema, forgot the migration' from production runtime to PR CI.",
+        "maturity": "documented",
+        "conditions": ["has-database"],
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
+      },
+      {
+        "id": "p-migration-ddl-parity",
+        "label": "Migration DDL Byte-Parity",
+        "description": "PRAGMA/DDL byte-equivalence test between (a) the canonical schema source and (b) a DB built by running every registered migration against a blank start. Catches semantic drift between inline schema and incremental migrations.",
+        "maturity": "documented",
+        "conditions": ["has-database"],
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
+      },
+      {
+        "id": "p-required-tables-runtime-check",
+        "label": "Required-Tables Runtime Check",
+        "description": "At DB connect time, validate table presence in two phases — 'fundamental' tables before any migrations run, 'required' tables after all migrations apply. Defense-in-depth alongside the parity test; catches the same defect class at runtime if it escapes PR gating.",
+        "maturity": "documented",
+        "conditions": ["has-database"],
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
+      },
+      {
+        "id": "p-schema-version-monotonic",
+        "label": "Schema Version Seed Monotonic",
+        "description": "CI gate asserting the schema_version seed in the canonical schema source equals max(target_version) across all registered migrations. Catches 'added migration, forgot to bump seed' — where the DB migrates to v7 but schema source still claims v6.",
+        "maturity": "documented",
+        "conditions": ["has-database"],
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
+      },
+      {
+        "id": "p-migration-test-coverage",
+        "label": "Per-Migration Test Coverage",
+        "description": "Every registered migration has at least one test exercising it on a blank DB AND on the prior schema version. Enforced by a coverage check over the migration registry. Blocks untested migrations from shipping.",
+        "maturity": "documented",
+        "conditions": ["has-database"],
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
         },
         "enforcement": "recommended",
         "severity": "warn"
@@ -3032,7 +3222,8 @@
           }
         },
         "enforcement": "optional",
-        "severity": "info"
+        "severity": "info",
+        "maturity": "documented"
       },
       {
         "id": "agent-phase-gates",
@@ -3088,7 +3279,8 @@
           }
         },
         "enforcement": "optional",
-        "severity": "info"
+        "severity": "info",
+        "maturity": "documented"
       },
       {
         "id": "agent-victory-gates",
@@ -3144,7 +3336,8 @@
           }
         },
         "enforcement": "optional",
-        "severity": "info"
+        "severity": "info",
+        "maturity": "documented"
       }
     ]
   }

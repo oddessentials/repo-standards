@@ -3,13 +3,18 @@
 
 export type {
   Severity,
+  Tier,
   RemediationClass,
   RiskLevel,
   EstimatedScope,
   Finding,
 } from "./finding.js";
 
-export type { VerifySummary, VerifyResult } from "./verify-result.js";
+export type {
+  NotApplicableEntry,
+  VerifySummary,
+  VerifyResult,
+} from "./verify-result.js";
 
 export type {
   SessionPhase,
