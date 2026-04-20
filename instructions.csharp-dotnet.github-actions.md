@@ -492,3 +492,87 @@ This document provides high-level guidance for an autonomous coding agent to bri
 
 - Document milestone completion criteria in victory-gates.md defining 'done' for releases and major deliverables with evidence requirements.
 - Consider adding victory-gates.md if applicable.
+
+### Patch Coverage Gate
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- Gate on patch coverage (e.g., via Codecov project status or equivalent) asserting newly-added lines meet a minimum bar, separate from the global coverage ratchet. Keeps new code honest even when overall coverage sits safely above threshold.
+
+### Zero-Skips Test Collection
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- Test collection runs with zero-tolerance for skipped tests — e.g., pytest --max-skips=0. Skips become failures; prefer collection-time exclusion patterns (platform filters, custom markers) over per-test skip decorators so skips remain visible.
+
+### Platform-Conditional Test Collection Parity
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- Shared glob constants imported by both the test runner's conftest (or equivalent) and the ratchet-bump gate so platform-conditional collection stays identical across both sites. AST-level parity test asserts both sites import the same canonical constant name rather than drifting into divergent literal lists.
+
+### Canonical Runtime Baseline
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- Pin one canonical OS + runtime version as the baseline for coverage, test counts, and any threshold comparison — e.g., ubuntu-latest + Python 3.12. Other matrix legs run tests but do not gate thresholds, so argparse rendering or stdlib diffs cannot destabilize CI.
+
+### Subprocess-Isolated Test Collection
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- Ratchet-bump and count-check scripts invoke the test runner in a clean subprocess with plugin autoload disabled and addopts cleared, writing the count to a tempfile instead of parsing stdout. Guarantees local ratchet measurement matches CI byte-for-byte regardless of dev-machine plugin state.
+
+### Shallow-Clone Marker-Scan Determinism
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- When scanning commit history for markers (bypass, version-override, etc.), fetch without --depth=N. Cross-check the count from git log {base}..HEAD against git rev-list --count and fail the gate if they disagree. Prevents shallow-clone-related silent marker misses on CI runners.
+
+### Generated-Artifact Byte-Parity
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- CI verifies that any checked-in generated artifact — compiled UI bundle, golden docs, mirrored schema, etc. — is byte-identical to what a fresh regeneration would produce. Applies only to repos that check in generated files. Catches manual edits that would be silently overwritten on the next regeneration.
+
+### Breaking-Change Marker Gate
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- CI gate blocks major-version bumps of contract files (schemas, task definitions, API specs) unless the commit message contains a project-defined marker such as 'BREAKING <CONTRACT>:'. Applies only to repos that ship versioned contracts. Forces breaking changes through an explicit review checkpoint.
+
+### Cross-Platform Test-Count Parity
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- Compare test counts between OS matrix legs (ubuntu vs windows vs macos, etc.) and fail the gate on unexpected disagreement. Catches platform-filter bugs where a test silently collects on only one OS due to an accidental glob or marker.
+
+### Rule-Disable Compensating Guardrail
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- For every globally disabled lint rule, ship a custom validator that enforces the compensating control — e.g., if S603 (subprocess) is disabled, a guardrail verifies every subprocess call is either a string literal or appears in an allowlist. Uses tokenizer-based parsing (not regex) to avoid false positives inside string literals. Runs alongside the proof artifact as defense-in-depth.
+
+### Helper-Over-Primitive Enforcement
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- CI gate blocks direct use of primitives where a safer helper exists — for example, pagination tokens must route through a helper function rather than being string-concatenated, or crypto primitives must go through a project wrapper. The helper's existence alone is not enough; the underlying primitive must be blocked.
+
+### CLI Reference Drift Guard
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- Auto-generate the CLI reference doc (e.g., docs/reference/cli-reference.md) and commit a golden SHA of the expected output. CI regenerates and compares. Use a canonical runtime only (argparse and equivalent CLI formatters render differently across language/runtime versions); --check mode returns [SKIP] on non-canonical runtimes; fail-close in write mode.
+
+### Per-Subcommand Help Snapshots
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- Commit per-subcommand help-output snapshots so any accidental change to --help text is visible in PR diff. Paired with the CLI reference drift guard to give full CLI documentation coverage — drift guard catches added/removed commands; snapshots catch wording changes on existing commands.
+
+### Claude Code Hook Dispatch
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- .claude/settings.json wires pre/post/session hooks to a single orchestrator binary or stack-native dispatcher. Centralizes agent-invoked checks so they don't drift from human-invoked pre-commit / pre-push hooks or CI. Keeps the agent, the developer, and CI on the same verification path.

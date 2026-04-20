@@ -3566,6 +3566,224 @@
         "enforcement": "optional",
         "severity": "info",
         "maturity": "documented"
+      },
+      {
+        "id": "qg-split-ts-configs",
+        "label": "Split TypeScript Configs",
+        "description": "Separate tsconfig files for typecheck (strict, bundler resolution), build (emit, CommonJS or ESM as appropriate), tests, and type-tests. A guard test locks module/moduleResolution per config so tsc cannot silently overwrite an IIFE bundle with a CommonJS one, or vice versa.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js"]
+        }
+      },
+      {
+        "id": "qg-no-any-types",
+        "label": "No any / Any Types",
+        "description": "CI gate forbidding 'any' (TypeScript) or 'typing.Any' (Python) in src/, tests/, and scripts/ except for a small allowlist with inline justifications. Prevents silently-typed escape hatches from accumulating undetected over time.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "python"]
+        }
+      },
+      {
+        "id": "td-patch-coverage",
+        "label": "Patch Coverage Gate",
+        "description": "Gate on patch coverage (e.g., via Codecov project status or equivalent) asserting newly-added lines meet a minimum bar, separate from the global coverage ratchet. Keeps new code honest even when overall coverage sits safely above threshold.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "td-zero-skips",
+        "label": "Zero-Skips Test Collection",
+        "description": "Test collection runs with zero-tolerance for skipped tests — e.g., pytest --max-skips=0. Skips become failures; prefer collection-time exclusion patterns (platform filters, custom markers) over per-test skip decorators so skips remain visible.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "td-platform-conditional-collection",
+        "label": "Platform-Conditional Test Collection Parity",
+        "description": "Shared glob constants imported by both the test runner's conftest (or equivalent) and the ratchet-bump gate so platform-conditional collection stays identical across both sites. AST-level parity test asserts both sites import the same canonical constant name rather than drifting into divergent literal lists.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "td-canonical-runtime",
+        "label": "Canonical Runtime Baseline",
+        "description": "Pin one canonical OS + runtime version as the baseline for coverage, test counts, and any threshold comparison — e.g., ubuntu-latest + Python 3.12. Other matrix legs run tests but do not gate thresholds, so argparse rendering or stdlib diffs cannot destabilize CI.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "td-subprocess-isolated-collection",
+        "label": "Subprocess-Isolated Test Collection",
+        "description": "Ratchet-bump and count-check scripts invoke the test runner in a clean subprocess with plugin autoload disabled and addopts cleared, writing the count to a tempfile instead of parsing stdout. Guarantees local ratchet measurement matches CI byte-for-byte regardless of dev-machine plugin state.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "td-partial-branch-ratchet",
+        "label": "LCOV Partial-Branch Ratchet",
+        "description": "LCOV partial-branches baseline with a locked-zero files list. CI fails if a file on the locked-zero list develops any partial branches. Catches a class of untested conditional branches that line and statement coverage alone do not detect.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js"]
+        }
+      },
+      {
+        "id": "cr-shallow-clone-determinism",
+        "label": "Shallow-Clone Marker-Scan Determinism",
+        "description": "When scanning commit history for markers (bypass, version-override, etc.), fetch without --depth=N. Cross-check the count from git log {base}..HEAD against git rev-list --count and fail the gate if they disagree. Prevents shallow-clone-related silent marker misses on CI runners.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "ci-generated-artifact-byte-parity",
+        "label": "Generated-Artifact Byte-Parity",
+        "description": "CI verifies that any checked-in generated artifact — compiled UI bundle, golden docs, mirrored schema, etc. — is byte-identical to what a fresh regeneration would produce. Applies only to repos that check in generated files. Catches manual edits that would be silently overwritten on the next regeneration.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "ci-breaking-change-marker",
+        "label": "Breaking-Change Marker Gate",
+        "description": "CI gate blocks major-version bumps of contract files (schemas, task definitions, API specs) unless the commit message contains a project-defined marker such as 'BREAKING <CONTRACT>:'. Applies only to repos that ship versioned contracts. Forces breaking changes through an explicit review checkpoint.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "ci-cross-platform-test-count-parity",
+        "label": "Cross-Platform Test-Count Parity",
+        "description": "Compare test counts between OS matrix legs (ubuntu vs windows vs macos, etc.) and fail the gate on unexpected disagreement. Catches platform-filter bugs where a test silently collects on only one OS due to an accidental glob or marker.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "sec-rule-disable-guardrail",
+        "label": "Rule-Disable Compensating Guardrail",
+        "description": "For every globally disabled lint rule, ship a custom validator that enforces the compensating control — e.g., if S603 (subprocess) is disabled, a guardrail verifies every subprocess call is either a string literal or appears in an allowlist. Uses tokenizer-based parsing (not regex) to avoid false positives inside string literals. Runs alongside the proof artifact as defense-in-depth.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "sec-subprocess-allowlist",
+        "label": "Subprocess Command Allowlist",
+        "description": "Commit an allowlist file (e.g., .subprocess-allowlist.json) enumerating repo-owned non-literal subprocess commands. A guardrail script verifies every subprocess call is either a string literal or appears in the allowlist. Compensates for globally-disabled subprocess-safety lint rules.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["python"]
+        }
+      },
+      {
+        "id": "sec-helper-enforcement",
+        "label": "Helper-Over-Primitive Enforcement",
+        "description": "CI gate blocks direct use of primitives where a safer helper exists — for example, pagination tokens must route through a helper function rather than being string-concatenated, or crypto primitives must go through a project wrapper. The helper's existence alone is not enough; the underlying primitive must be blocked.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "doc-cli-reference-drift",
+        "label": "CLI Reference Drift Guard",
+        "description": "Auto-generate the CLI reference doc (e.g., docs/reference/cli-reference.md) and commit a golden SHA of the expected output. CI regenerates and compares. Use a canonical runtime only (argparse and equivalent CLI formatters render differently across language/runtime versions); --check mode returns [SKIP] on non-canonical runtimes; fail-close in write mode.",
+        "maturity": "documented",
+        "conditions": ["has-cli"],
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "doc-help-snapshots",
+        "label": "Per-Subcommand Help Snapshots",
+        "description": "Commit per-subcommand help-output snapshots so any accidental change to --help text is visible in PR diff. Paired with the CLI reference drift guard to give full CLI documentation coverage — drift guard catches added/removed commands; snapshots catch wording changes on existing commands.",
+        "maturity": "documented",
+        "conditions": ["has-cli"],
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "ai-claude-hook-dispatch",
+        "label": "Claude Code Hook Dispatch",
+        "description": ".claude/settings.json wires pre/post/session hooks to a single orchestrator binary or stack-native dispatcher. Centralizes agent-invoked checks so they don't drift from human-invoked pre-commit / pre-push hooks or CI. Keeps the agent, the developer, and CI on the same verification path.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "pre-commit",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
       }
     ]
   }

@@ -273,7 +273,18 @@ Classified as fully covered by the listed existing item. Not added in P1.4/P1.4b
 | `cr-version-guard`           | `version-guard`                                                   | Existing item is essentially the same pattern.                                                         |
 | `ai-agent-safety-invariants` | `agent-invariants` (+ `agent-phase-gates`, `agent-victory-gates`) | Existing trio already covers INVARIANTS.md + phase/victory gates.                                      |
 
-### Not yet processed — deferred to P1.5 (Optional tier)
+### P1.5 — 18 Optional items
 
-18 Optional-tier catalog items remain untouched. Scheduled for P1.5 in one batch:
-`qg-split-ts-configs`, `qg-no-any-types`, `td-patch-coverage`, `td-zero-skips`, `td-platform-conditional-collection`, `td-canonical-runtime`, `td-subprocess-isolated-collection`, `td-partial-branch-ratchet`, `cr-shallow-clone-determinism`, `ci-generated-artifact-byte-parity`, `ci-breaking-change-marker`, `ci-cross-platform-test-count-parity`, `sec-rule-disable-guardrail`, `sec-subprocess-allowlist`, `sec-helper-enforcement`, `doc-cli-reference-drift` (conditional on has-cli), `doc-help-snapshots` (conditional on has-cli), `ai-claude-hook-dispatch`.
+All Optional-tier catalog items added in a single batch. Per-item stack applicability:
+
+- **TypeScript-only:** `qg-split-ts-configs`, `td-partial-branch-ratchet`
+- **TypeScript + Python:** `qg-no-any-types`
+- **Python-only:** `sec-subprocess-allowlist`
+- **All stacks:** `td-patch-coverage`, `td-zero-skips`, `td-platform-conditional-collection`, `td-canonical-runtime`, `td-subprocess-isolated-collection`, `cr-shallow-clone-determinism`, `ci-generated-artifact-byte-parity`, `ci-breaking-change-marker`, `ci-cross-platform-test-count-parity`, `sec-rule-disable-guardrail`, `sec-helper-enforcement`, `ai-claude-hook-dispatch`
+- **All stacks, `conditions: ["has-cli"]`:** `doc-cli-reference-drift`, `doc-help-snapshots`
+
+All ship at `maturity: "documented"` with `enforcement: "optional"` and `severity: "info"`. Descriptions lift the pattern's intent and defect-class prevention from the Section 4 catalog entries.
+
+### Closing state (post-P1.5)
+
+Catalog totals: **38 Core + 34 Recommended + 21 Optional = 93 items** (up from 44 pre-P1). Every item carries `maturity`; persistence items carry `conditions: ["has-database"]`; CLI-documentation items carry `conditions: ["has-cli"]`. The 8 DUPLICATE-classified catalog items remain deferred per the table above; revisit if template work in P2 surfaces a concrete distinction.
