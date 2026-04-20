@@ -71,6 +71,16 @@ out/
 *.tsbuildinfo.*
 
 # -----------------------------------------------------
+# Python (pattern templates ship Python reference impls)
+# -----------------------------------------------------
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# -----------------------------------------------------
 # Docker / Containers
 # -----------------------------------------------------
 # Local docker layers, build artifacts
