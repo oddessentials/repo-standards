@@ -1302,7 +1302,7 @@
         "description": "Static test asserting every table declared in the canonical schema source is either in a 'fundamental' set (present since inception) or created by at least one registered migration. Shifts detection of 'added table to schema, forgot the migration' from production runtime to PR CI.",
         "id": "p-schema-migration-parity",
         "label": "Schema/Migration Parity Test",
-        "maturity": "documented"
+        "maturity": "template-available"
       },
       {
         "conditions": [
@@ -1311,7 +1311,7 @@
         "description": "PRAGMA/DDL byte-equivalence test between (a) the canonical schema source and (b) a DB built by running every registered migration against a blank start. Catches semantic drift between inline schema and incremental migrations.",
         "id": "p-migration-ddl-parity",
         "label": "Migration DDL Byte-Parity",
-        "maturity": "documented"
+        "maturity": "template-available"
       },
       {
         "conditions": [
@@ -1320,7 +1320,7 @@
         "description": "At DB connect time, validate table presence in two phases — 'fundamental' tables before any migrations run, 'required' tables after all migrations apply. Defense-in-depth alongside the parity test; catches the same defect class at runtime if it escapes PR gating.",
         "id": "p-required-tables-runtime-check",
         "label": "Required-Tables Runtime Check",
-        "maturity": "documented"
+        "maturity": "template-available"
       },
       {
         "conditions": [
@@ -1329,7 +1329,7 @@
         "description": "CI gate asserting the schema_version seed in the canonical schema source equals max(target_version) across all registered migrations. Catches 'added migration, forgot to bump seed' — where the DB migrates to v7 but schema source still claims v6.",
         "id": "p-schema-version-monotonic",
         "label": "Schema Version Seed Monotonic",
-        "maturity": "documented"
+        "maturity": "template-available"
       },
       {
         "conditions": [
@@ -1338,7 +1338,7 @@
         "description": "Every registered migration has at least one test exercising it on a blank DB AND on the prior schema version. Enforced by a coverage check over the migration registry. Blocks untested migrations from shipping.",
         "id": "p-migration-test-coverage",
         "label": "Per-Migration Test Coverage",
-        "maturity": "documented"
+        "maturity": "template-available"
       },
       {
         "description": "Every linter ignore or suppression comment includes an inline justification explaining why the rule doesn't apply in that specific case. Zero silent suppressions; reviewers can audit the trade-off directly at the call site.",

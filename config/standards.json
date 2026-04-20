@@ -3203,7 +3203,7 @@
         "id": "p-schema-migration-parity",
         "label": "Schema/Migration Parity Test",
         "description": "Static test asserting every table declared in the canonical schema source is either in a 'fundamental' set (present since inception) or created by at least one registered migration. Shifts detection of 'added table to schema, forgot the migration' from production runtime to PR CI.",
-        "maturity": "documented",
+        "maturity": "template-available",
         "conditions": ["has-database"],
         "executionStage": "ci-pr",
         "appliesTo": {
@@ -3216,7 +3216,7 @@
         "id": "p-migration-ddl-parity",
         "label": "Migration DDL Byte-Parity",
         "description": "PRAGMA/DDL byte-equivalence test between (a) the canonical schema source and (b) a DB built by running every registered migration against a blank start. Catches semantic drift between inline schema and incremental migrations.",
-        "maturity": "documented",
+        "maturity": "template-available",
         "conditions": ["has-database"],
         "executionStage": "ci-pr",
         "appliesTo": {
@@ -3229,7 +3229,7 @@
         "id": "p-required-tables-runtime-check",
         "label": "Required-Tables Runtime Check",
         "description": "At DB connect time, validate table presence in two phases — 'fundamental' tables before any migrations run, 'required' tables after all migrations apply. Defense-in-depth alongside the parity test; catches the same defect class at runtime if it escapes PR gating.",
-        "maturity": "documented",
+        "maturity": "template-available",
         "conditions": ["has-database"],
         "executionStage": "ci-pr",
         "appliesTo": {
@@ -3242,7 +3242,7 @@
         "id": "p-schema-version-monotonic",
         "label": "Schema Version Seed Monotonic",
         "description": "CI gate asserting the schema_version seed in the canonical schema source equals max(target_version) across all registered migrations. Catches 'added migration, forgot to bump seed' — where the DB migrates to v7 but schema source still claims v6.",
-        "maturity": "documented",
+        "maturity": "template-available",
         "conditions": ["has-database"],
         "executionStage": "ci-pr",
         "appliesTo": {
@@ -3255,7 +3255,7 @@
         "id": "p-migration-test-coverage",
         "label": "Per-Migration Test Coverage",
         "description": "Every registered migration has at least one test exercising it on a blank DB AND on the prior schema version. Enforced by a coverage check over the migration registry. Blocks untested migrations from shipping.",
-        "maturity": "documented",
+        "maturity": "template-available",
         "conditions": ["has-database"],
         "executionStage": "ci-pr",
         "appliesTo": {

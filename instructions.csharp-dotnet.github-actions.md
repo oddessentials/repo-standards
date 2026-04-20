@@ -381,31 +381,31 @@ This document provides high-level guidance for an autonomous coding agent to bri
 
 ### Schema/Migration Parity Test
 
-> **Maturity:** `documented` — described here; no ready-to-copy template yet
+> **Maturity:** `template-available` — template at `templates/patterns/<id>/` — ready to copy-and-adapt
 
 - Static test asserting every table declared in the canonical schema source is either in a 'fundamental' set (present since inception) or created by at least one registered migration. Shifts detection of 'added table to schema, forgot the migration' from production runtime to PR CI.
 
 ### Migration DDL Byte-Parity
 
-> **Maturity:** `documented` — described here; no ready-to-copy template yet
+> **Maturity:** `template-available` — template at `templates/patterns/<id>/` — ready to copy-and-adapt
 
 - PRAGMA/DDL byte-equivalence test between (a) the canonical schema source and (b) a DB built by running every registered migration against a blank start. Catches semantic drift between inline schema and incremental migrations.
 
 ### Required-Tables Runtime Check
 
-> **Maturity:** `documented` — described here; no ready-to-copy template yet
+> **Maturity:** `template-available` — template at `templates/patterns/<id>/` — ready to copy-and-adapt
 
 - At DB connect time, validate table presence in two phases — 'fundamental' tables before any migrations run, 'required' tables after all migrations apply. Defense-in-depth alongside the parity test; catches the same defect class at runtime if it escapes PR gating.
 
 ### Schema Version Seed Monotonic
 
-> **Maturity:** `documented` — described here; no ready-to-copy template yet
+> **Maturity:** `template-available` — template at `templates/patterns/<id>/` — ready to copy-and-adapt
 
 - CI gate asserting the schema_version seed in the canonical schema source equals max(target_version) across all registered migrations. Catches 'added migration, forgot to bump seed' — where the DB migrates to v7 but schema source still claims v6.
 
 ### Per-Migration Test Coverage
 
-> **Maturity:** `documented` — described here; no ready-to-copy template yet
+> **Maturity:** `template-available` — template at `templates/patterns/<id>/` — ready to copy-and-adapt
 
 - Every registered migration has at least one test exercising it on a blank DB AND on the prior schema version. Enforced by a coverage check over the migration registry. Blocks untested migrations from shipping.
 
