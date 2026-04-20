@@ -52,6 +52,9 @@ Desktop.ini
 *.swp
 *.swo
 
+# Claude Code local state
+.claude/
+
 # JetBrains IDEs (WebStorm, IntelliJ)
 *.iml
 *.ipr
