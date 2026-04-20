@@ -232,7 +232,8 @@
               "description": "Verify no CRLF in shell scripts"
             }
           }
-        }
+        },
+        "maturity": "documented"
       },
       {
         "id": "crlf-detection",
@@ -310,7 +311,8 @@
               "description": "Detect CRLF in shell scripts"
             }
           }
-        }
+        },
+        "maturity": "documented"
       },
       {
         "id": "gitignore-and-dockerignore",
@@ -366,7 +368,8 @@
             "requiredFiles": [".gitignore"],
             "optionalFiles": [".dockerignore"]
           }
-        }
+        },
+        "maturity": "documented"
       },
       {
         "id": "linting",
@@ -481,7 +484,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "unit-test-runner",
@@ -565,7 +569,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "containerization",
@@ -626,7 +631,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "semantic-versioning",
@@ -707,7 +713,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "version-guard",
@@ -787,7 +794,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "release-artifact-exclusion",
@@ -841,7 +849,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "unified-release-workflow",
@@ -927,7 +936,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "release-hook-bypass",
@@ -991,7 +1001,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "commit-linting",
@@ -1084,7 +1095,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "unit-test-reporter",
@@ -1155,7 +1167,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "ci-quality-gates",
@@ -1241,7 +1254,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "code-formatter",
@@ -1320,7 +1334,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "pre-commit-hooks",
@@ -1378,7 +1393,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "hook-ci-parity",
@@ -1432,7 +1448,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "secret-scanning-precommit",
@@ -1489,7 +1506,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "type-checking",
@@ -1576,7 +1594,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "dependency-security",
@@ -1646,7 +1665,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "deterministic-builds",
@@ -1718,7 +1738,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "provenance-security",
@@ -1813,7 +1834,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "ci-templates-automation",
@@ -1904,7 +1926,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "runtime-version",
@@ -1966,7 +1989,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "documentation",
@@ -2027,7 +2051,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "repository-governance",
@@ -2108,7 +2133,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "canonical-verify",
@@ -2162,7 +2188,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "config-authority",
@@ -2233,7 +2260,8 @@
           }
         },
         "enforcement": "required",
-        "severity": "error"
+        "severity": "error",
+        "maturity": "documented"
       },
       {
         "id": "explicit-skip-paths",
@@ -2290,7 +2318,116 @@
           }
         },
         "enforcement": "required",
+        "severity": "error",
+        "maturity": "documented"
+      },
+      {
+        "id": "hook-exit-code-contract",
+        "label": "Hook Exit-Code Contract",
+        "description": "Three-value exit-code contract shared across all hook scripts and CI preflight runners: 1 = quality regression (fatal), 2 = missing tool (fatal, setup issue), 3 = network or infra degraded (skippable with --allow-local-degraded). Inconsistent exit semantics across hooks mask real failures and undermine local/CI parity.",
+        "maturity": "documented",
+        "executionStage": "pre-push",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "enforcement": "required",
         "severity": "error"
+      },
+      {
+        "id": "ci-package-manager-exclusivity",
+        "label": "Package Manager Exclusivity",
+        "description": "Enforce a single package manager per repo via a preinstall script that exits non-zero if the wrong one is invoked. Combined with engine-strict, prevents lockfile drift and npm/pnpm mixed installs that break reproducibility.",
+        "maturity": "documented",
+        "enforcement": "required",
+        "severity": "error",
+        "executionStage": "pre-commit",
+        "appliesTo": {
+          "stacks": ["typescript-js"]
+        }
+      },
+      {
+        "id": "ci-lockfile-discipline",
+        "label": "Lockfile Discipline",
+        "description": "CI gate fails on the presence of any unauthorized lockfile — e.g., a package-lock.json in a pnpm repo, or a yarn.lock in an npm repo. Companion to package-manager exclusivity; catches wrong-tool installs that slip past the preinstall guard.",
+        "maturity": "documented",
+        "enforcement": "required",
+        "severity": "error",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js"]
+        }
+      },
+      {
+        "id": "de-packagemanager-field",
+        "label": "packageManager Field",
+        "description": "package.json declares a pinned `packageManager` field (e.g., \"pnpm@9.15.0\") that Corepack and CI can use to auto-select the correct tool + version. Keeps the package-manager exclusivity guard and engine pins aligned with one authoritative source.",
+        "maturity": "documented",
+        "enforcement": "required",
+        "severity": "error",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js"]
+        }
+      },
+      {
+        "id": "de-editorconfig",
+        "label": "EditorConfig",
+        "description": "Ship an .editorconfig at the repo root pinning UTF-8 charset, LF line endings, trimmed trailing whitespace, and inserted final newline. Overrides by extension for language-specific indent widths and any Windows-only exceptions (e.g., CRLF for .bat). Eliminates an entire class of cross-platform whitespace drift before linters run.",
+        "maturity": "documented",
+        "enforcement": "required",
+        "severity": "error",
+        "executionStage": "pre-commit",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "de-engine-strict",
+        "label": "engine-strict Enforcement",
+        "description": "Set engine-strict=true in .npmrc (or equivalent) so the engines field in package.json becomes a hard install-time constraint, not advisory. Prevents 'works on my machine' drift from mismatched Node or package-manager versions.",
+        "maturity": "documented",
+        "enforcement": "required",
+        "severity": "error",
+        "executionStage": "pre-commit",
+        "appliesTo": {
+          "stacks": ["typescript-js"]
+        }
+      },
+      {
+        "id": "qg-zero-warnings",
+        "label": "Zero-Warnings Lint Discipline",
+        "description": "Run the linter with --max-warnings=0 (or equivalent) so any warning becomes a failure. Complements the generic linting requirement by forcing warnings to be resolved at authorship time rather than accumulating as background noise.",
+        "maturity": "documented",
+        "enforcement": "required",
+        "severity": "error",
+        "executionStage": "pre-push",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "sec-secret-scan-ci",
+        "label": "Full-History Secret Scan in CI",
+        "description": "Run a secret scanner (e.g., gitleaks) in CI against the full git history on every PR — fetch-depth: 0. Complements pre-commit secret scanning by catching anything that slipped in via force-push, rebase, or a developer without hooks installed.",
+        "maturity": "documented",
+        "enforcement": "required",
+        "severity": "error",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "cr-semantic-release",
+        "label": "semantic-release Integration",
+        "description": "Use semantic-release (or equivalent) on the main branch only, with a git plugin that commits version and changelog files and a [skip ci] convention on the release commit. Complements the unified release workflow with a specific, deterministic tool stack that enforces conventional-commit-driven versioning.",
+        "maturity": "documented",
+        "enforcement": "required",
+        "severity": "error",
+        "executionStage": "release",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
       }
     ],
     "recommended": [
@@ -2375,7 +2512,8 @@
           }
         },
         "enforcement": "recommended",
-        "severity": "warn"
+        "severity": "warn",
+        "maturity": "documented"
       },
       {
         "id": "dependency-architecture-rules",
@@ -2445,7 +2583,8 @@
           }
         },
         "enforcement": "recommended",
-        "severity": "warn"
+        "severity": "warn",
+        "maturity": "documented"
       },
       {
         "id": "integration-testing",
@@ -2496,7 +2635,8 @@
           }
         },
         "enforcement": "recommended",
-        "severity": "warn"
+        "severity": "warn",
+        "maturity": "documented"
       },
       {
         "id": "performance-baselining",
@@ -2547,7 +2687,8 @@
           }
         },
         "enforcement": "recommended",
-        "severity": "warn"
+        "severity": "warn",
+        "maturity": "documented"
       },
       {
         "id": "complexity-analysis",
@@ -2598,7 +2739,8 @@
           }
         },
         "enforcement": "recommended",
-        "severity": "warn"
+        "severity": "warn",
+        "maturity": "documented"
       },
       {
         "id": "accessibility-auditing",
@@ -2649,7 +2791,8 @@
           }
         },
         "enforcement": "recommended",
-        "severity": "warn"
+        "severity": "warn",
+        "maturity": "documented"
       },
       {
         "id": "ai-drift-detection",
@@ -2702,7 +2845,8 @@
           }
         },
         "enforcement": "recommended",
-        "severity": "warn"
+        "severity": "warn",
+        "maturity": "documented"
       },
       {
         "id": "ai-schema-enforcement",
@@ -2759,7 +2903,8 @@
           }
         },
         "enforcement": "recommended",
-        "severity": "warn"
+        "severity": "warn",
+        "maturity": "documented"
       },
       {
         "id": "ai-golden-tests",
@@ -2812,7 +2957,8 @@
           }
         },
         "enforcement": "recommended",
-        "severity": "warn"
+        "severity": "warn",
+        "maturity": "documented"
       },
       {
         "id": "ai-safety-checks",
@@ -2865,7 +3011,8 @@
           }
         },
         "enforcement": "recommended",
-        "severity": "warn"
+        "severity": "warn",
+        "maturity": "documented"
       },
       {
         "id": "ai-provenance-tracking",
@@ -2918,7 +3065,8 @@
           }
         },
         "enforcement": "recommended",
-        "severity": "warn"
+        "severity": "warn",
+        "maturity": "documented"
       },
       {
         "id": "agent-invariants",
@@ -2976,7 +3124,277 @@
           }
         },
         "enforcement": "recommended",
+        "severity": "warn",
+        "maturity": "documented"
+      },
+      {
+        "id": "lcp-parity-doc",
+        "label": "Local/CI Parity Invariants Document",
+        "description": "A row-per-gate matrix — typically LOCAL_CI_PARITY_INVARIANTS.md — that maps every local gate to its CI equivalent with a status column (Match / Weaker / Partial). Makes parity gaps concretely auditable and prevents 'works locally' drift.",
+        "maturity": "documented",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "enforcement": "recommended",
         "severity": "warn"
+      },
+      {
+        "id": "lcp-parity-doc-coverage-test",
+        "label": "Parity Doc Coverage Test",
+        "description": "Static test that AST-walks the local preflight runner, collects every gate's canonical identifier, and asserts each appears in the parity doc. Lock scope to identifier presence only — never prose, row counts, or link shapes — or the test devolves into churn-bait. Must include adversarial negative tests proving it catches fabricated and removed gates.",
+        "maturity": "documented",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
+      },
+      {
+        "id": "hook-tiered-model",
+        "label": "Tiered Hook Model",
+        "description": "Hook checks organize into three tiers: pre-commit (staged-only, fast), pre-push (CI-identical preflight superset), CI (remote-only jobs). Makes the local/CI boundary explicit and keeps fast-feedback checks from drifting toward either extreme.",
+        "maturity": "documented",
+        "executionStage": "pre-push",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
+      },
+      {
+        "id": "hook-dispatcher-script",
+        "label": "Hook Dispatcher Script",
+        "description": "Single entrypoint script that husky hooks delegate to. Routes pre-commit / pre-push / commit-msg based on argv, centralizes exit-code handling, tool detection, and network-degraded behavior so individual hook files stay thin and consistent.",
+        "maturity": "documented",
+        "executionStage": "pre-push",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
+      },
+      {
+        "id": "hook-preflight-script",
+        "label": "Pre-Push Preflight Script",
+        "description": "Dedicated script that runs the CI-identical superset of gates. Pre-push hook invokes it; CI can also invoke it. Keeps local and CI verification paths mechanically equivalent rather than merely 'similar.'",
+        "maturity": "documented",
+        "executionStage": "pre-push",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
+      },
+      {
+        "id": "hook-fail-fast-setup-check",
+        "label": "Fail-Fast Hook Setup Check",
+        "description": "Hook scripts verify prerequisites upfront — .husky/ present, required tools on PATH, harness wired — and fail with a setup-specific exit code when any are missing. Prevents silent hook bypass after bad installs, branch switches, or dependency drift.",
+        "maturity": "documented",
+        "executionStage": "pre-commit",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
+      },
+      {
+        "id": "p-schema-migration-parity",
+        "label": "Schema/Migration Parity Test",
+        "description": "Static test asserting every table declared in the canonical schema source is either in a 'fundamental' set (present since inception) or created by at least one registered migration. Shifts detection of 'added table to schema, forgot the migration' from production runtime to PR CI.",
+        "maturity": "template-available",
+        "conditions": ["has-database"],
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
+      },
+      {
+        "id": "p-migration-ddl-parity",
+        "label": "Migration DDL Byte-Parity",
+        "description": "PRAGMA/DDL byte-equivalence test between (a) the canonical schema source and (b) a DB built by running every registered migration against a blank start. Catches semantic drift between inline schema and incremental migrations.",
+        "maturity": "template-available",
+        "conditions": ["has-database"],
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
+      },
+      {
+        "id": "p-required-tables-runtime-check",
+        "label": "Required-Tables Runtime Check",
+        "description": "At DB connect time, validate table presence in two phases — 'fundamental' tables before any migrations run, 'required' tables after all migrations apply. Defense-in-depth alongside the parity test; catches the same defect class at runtime if it escapes PR gating.",
+        "maturity": "template-available",
+        "conditions": ["has-database"],
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
+      },
+      {
+        "id": "p-schema-version-monotonic",
+        "label": "Schema Version Seed Monotonic",
+        "description": "CI gate asserting the schema_version seed in the canonical schema source equals max(target_version) across all registered migrations. Catches 'added migration, forgot to bump seed' — where the DB migrates to v7 but schema source still claims v6.",
+        "maturity": "template-available",
+        "conditions": ["has-database"],
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
+      },
+      {
+        "id": "p-migration-test-coverage",
+        "label": "Per-Migration Test Coverage",
+        "description": "Every registered migration has at least one test exercising it on a blank DB AND on the prior schema version. Enforced by a coverage check over the migration registry. Blocks untested migrations from shipping.",
+        "maturity": "template-available",
+        "conditions": ["has-database"],
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        },
+        "enforcement": "recommended",
+        "severity": "warn"
+      },
+      {
+        "id": "qg-justified-ignores",
+        "label": "Justified Lint Ignores",
+        "description": "Every linter ignore or suppression comment includes an inline justification explaining why the rule doesn't apply in that specific case. Zero silent suppressions; reviewers can audit the trade-off directly at the call site.",
+        "maturity": "documented",
+        "enforcement": "recommended",
+        "severity": "warn",
+        "executionStage": "pre-push",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "td-coverage-ratchet",
+        "label": "Coverage Ratchet (Raise-Only)",
+        "description": "Coverage threshold computed as floor(actual - 2.0); CI fails on regression below the ratchet but allows raises. Makes coverage monotonically improve over time without requiring human-maintained magic numbers.",
+        "maturity": "documented",
+        "enforcement": "recommended",
+        "severity": "warn",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "td-coverage-tiered",
+        "label": "Tiered Coverage Thresholds",
+        "description": "Global coverage baseline supplemented by per-file Tier 2 thresholds for critical paths — schemas, parsers, auth boundaries, security-sensitive surfaces. Keeps high-risk code at a higher bar without demanding the same bar of every file.",
+        "maturity": "documented",
+        "enforcement": "recommended",
+        "severity": "warn",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "td-coverage-delta-guard",
+        "label": "Coverage Delta Guard",
+        "description": "CI gate fails when the PR's coverage drops by more than a small delta (e.g., 2%) vs. main, even if the absolute number still sits above the ratchet. Catches silent coverage erosion that ratchets alone miss.",
+        "maturity": "documented",
+        "enforcement": "recommended",
+        "severity": "warn",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "td-test-floor-contract",
+        "label": "Test Floor Contract",
+        "description": "Commit a machine-readable contract file (e.g., .test-floor-contract.json) that pins the minimum collected test count. CI reads this authoritatively — no hardcoded integers in workflow files. Catches silent test removal that coverage alone wouldn't flag.",
+        "maturity": "documented",
+        "enforcement": "recommended",
+        "severity": "warn",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "td-ratchet-bump-guard",
+        "label": "Ratchet Bump Equality Guard",
+        "description": "Per-commit gate asserting collected test count equals the floor exactly after any floor bump. Walks the first-parent commit range in subprocess-isolated pytest (or equivalent) so the check matches CI's collection exactly. Prevents 'bumped the floor but tests changed' drift.",
+        "maturity": "documented",
+        "enforcement": "recommended",
+        "severity": "warn",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "cr-threshold-change-guard",
+        "label": "Threshold Change Marker Guard",
+        "description": "CI gate blocks coverage-threshold changes unless the commit subject contains a [threshold-update] marker. Keeps accidental threshold drift from slipping through reviews while still allowing intentional adjustments with a clear audit trail.",
+        "maturity": "documented",
+        "enforcement": "recommended",
+        "severity": "warn",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "cr-marker-bypass-convention",
+        "label": "Commit-Subject Marker Bypass Convention",
+        "description": "Subject-line-only markers (e.g., [threshold-update], [ratchet-realignment], [version-override-acknowledged]) document cases where a strict gate is intentionally bypassed. Scanned via git log --oneline with shallow-clone determinism checks. Only meaningful once ratchet/threshold/version guards exist; adopt alongside them.",
+        "maturity": "documented",
+        "enforcement": "recommended",
+        "severity": "warn",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "ci-package-manager-command-guard",
+        "label": "Package-Manager Command Guard",
+        "description": "CI gate scans workflows, scripts, and configs for forbidden package-manager commands — e.g., 'npm install' or 'npm ci' in a pnpm-exclusive repo. Catches drift that the preinstall guard alone won't: workflow-file edits that bypass installs entirely.",
+        "maturity": "documented",
+        "enforcement": "recommended",
+        "severity": "warn",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js"]
+        }
+      },
+      {
+        "id": "sec-rule-disable-proof-artifact",
+        "label": "Rule-Disable Proof Artifact",
+        "description": "For every globally disabled lint rule, ship a committed proof artifact (e.g., .rule-disable-audit-<rule>.json) listing every affected call-site and the compensating control. Verified by an exact-match check on every run so new call-sites can't silently inherit the disable.",
+        "maturity": "documented",
+        "enforcement": "recommended",
+        "severity": "warn",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "sec-suppression-audit",
+        "label": "Suppression Audit with Baseline",
+        "description": "Scope-based suppression baseline (e.g., .suppression-baseline.json) with zero-tolerance scope policy: any new suppression outside the baseline blocks the commit. Baseline is regenerated and staleness-checked on every run so it can't silently grow stale.",
+        "maturity": "documented",
+        "enforcement": "recommended",
+        "severity": "warn",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
       }
     ],
     "optionalEnhancements": [
@@ -3032,7 +3450,8 @@
           }
         },
         "enforcement": "optional",
-        "severity": "info"
+        "severity": "info",
+        "maturity": "documented"
       },
       {
         "id": "agent-phase-gates",
@@ -3088,7 +3507,8 @@
           }
         },
         "enforcement": "optional",
-        "severity": "info"
+        "severity": "info",
+        "maturity": "documented"
       },
       {
         "id": "agent-victory-gates",
@@ -3144,7 +3564,226 @@
           }
         },
         "enforcement": "optional",
-        "severity": "info"
+        "severity": "info",
+        "maturity": "documented"
+      },
+      {
+        "id": "qg-split-ts-configs",
+        "label": "Split TypeScript Configs",
+        "description": "Separate tsconfig files for typecheck (strict, bundler resolution), build (emit, CommonJS or ESM as appropriate), tests, and type-tests. A guard test locks module/moduleResolution per config so tsc cannot silently overwrite an IIFE bundle with a CommonJS one, or vice versa.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js"]
+        }
+      },
+      {
+        "id": "qg-no-any-types",
+        "label": "No any / Any Types",
+        "description": "CI gate forbidding 'any' (TypeScript) or 'typing.Any' (Python) in src/, tests/, and scripts/ except for a small allowlist with inline justifications. Prevents silently-typed escape hatches from accumulating undetected over time.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "python"]
+        }
+      },
+      {
+        "id": "td-patch-coverage",
+        "label": "Patch Coverage Gate",
+        "description": "Gate on patch coverage (e.g., via Codecov project status or equivalent) asserting newly-added lines meet a minimum bar, separate from the global coverage ratchet. Keeps new code honest even when overall coverage sits safely above threshold.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "td-zero-skips",
+        "label": "Zero-Skips Test Collection",
+        "description": "Test collection runs with zero-tolerance for skipped tests — e.g., pytest --max-skips=0. Skips become failures; prefer collection-time exclusion patterns (platform filters, custom markers) over per-test skip decorators so skips remain visible.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "td-platform-conditional-collection",
+        "label": "Platform-Conditional Test Collection Parity",
+        "description": "Shared glob constants imported by both the test runner's conftest (or equivalent) and the ratchet-bump gate so platform-conditional collection stays identical across both sites. AST-level parity test asserts both sites import the same canonical constant name rather than drifting into divergent literal lists.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "td-canonical-runtime",
+        "label": "Canonical Runtime Baseline",
+        "description": "Pin one canonical OS + runtime version as the baseline for coverage, test counts, and any threshold comparison — e.g., ubuntu-latest + Python 3.12. Other matrix legs run tests but do not gate thresholds, so argparse rendering or stdlib diffs cannot destabilize CI.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "td-subprocess-isolated-collection",
+        "label": "Subprocess-Isolated Test Collection",
+        "description": "Ratchet-bump and count-check scripts invoke the test runner in a clean subprocess with plugin autoload disabled and addopts cleared, writing the count to a tempfile instead of parsing stdout. Guarantees local ratchet measurement matches CI byte-for-byte regardless of dev-machine plugin state.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "td-partial-branch-ratchet",
+        "label": "LCOV Partial-Branch Ratchet",
+        "description": "LCOV partial-branches baseline with a locked-zero files list. CI fails if a file on the locked-zero list develops any partial branches. Catches a class of untested conditional branches that line and statement coverage alone do not detect.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js"]
+        }
+      },
+      {
+        "id": "cr-shallow-clone-determinism",
+        "label": "Shallow-Clone Marker-Scan Determinism",
+        "description": "When scanning commit history for markers (bypass, version-override, etc.), fetch without --depth=N. Cross-check the count from git log {base}..HEAD against git rev-list --count and fail the gate if they disagree. Prevents shallow-clone-related silent marker misses on CI runners.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "ci-generated-artifact-byte-parity",
+        "label": "Generated-Artifact Byte-Parity",
+        "description": "CI verifies that any checked-in generated artifact — compiled UI bundle, golden docs, mirrored schema, etc. — is byte-identical to what a fresh regeneration would produce. Applies only to repos that check in generated files. Catches manual edits that would be silently overwritten on the next regeneration.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "ci-breaking-change-marker",
+        "label": "Breaking-Change Marker Gate",
+        "description": "CI gate blocks major-version bumps of contract files (schemas, task definitions, API specs) unless the commit message contains a project-defined marker such as 'BREAKING <CONTRACT>:'. Applies only to repos that ship versioned contracts. Forces breaking changes through an explicit review checkpoint.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "ci-cross-platform-test-count-parity",
+        "label": "Cross-Platform Test-Count Parity",
+        "description": "Compare test counts between OS matrix legs (ubuntu vs windows vs macos, etc.) and fail the gate on unexpected disagreement. Catches platform-filter bugs where a test silently collects on only one OS due to an accidental glob or marker.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "sec-rule-disable-guardrail",
+        "label": "Rule-Disable Compensating Guardrail",
+        "description": "For every globally disabled lint rule, ship a custom validator that enforces the compensating control — e.g., if S603 (subprocess) is disabled, a guardrail verifies every subprocess call is either a string literal or appears in an allowlist. Uses tokenizer-based parsing (not regex) to avoid false positives inside string literals. Runs alongside the proof artifact as defense-in-depth.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "sec-subprocess-allowlist",
+        "label": "Subprocess Command Allowlist",
+        "description": "Commit an allowlist file (e.g., .subprocess-allowlist.json) enumerating repo-owned non-literal subprocess commands. A guardrail script verifies every subprocess call is either a string literal or appears in the allowlist. Compensates for globally-disabled subprocess-safety lint rules.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["python"]
+        }
+      },
+      {
+        "id": "sec-helper-enforcement",
+        "label": "Helper-Over-Primitive Enforcement",
+        "description": "CI gate blocks direct use of primitives where a safer helper exists — for example, pagination tokens must route through a helper function rather than being string-concatenated, or crypto primitives must go through a project wrapper. The helper's existence alone is not enough; the underlying primitive must be blocked.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "doc-cli-reference-drift",
+        "label": "CLI Reference Drift Guard",
+        "description": "Auto-generate the CLI reference doc (e.g., docs/reference/cli-reference.md) and commit a golden SHA of the expected output. CI regenerates and compares. Use a canonical runtime only (argparse and equivalent CLI formatters render differently across language/runtime versions); --check mode returns [SKIP] on non-canonical runtimes; fail-close in write mode.",
+        "maturity": "documented",
+        "conditions": ["has-cli"],
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "doc-help-snapshots",
+        "label": "Per-Subcommand Help Snapshots",
+        "description": "Commit per-subcommand help-output snapshots so any accidental change to --help text is visible in PR diff. Paired with the CLI reference drift guard to give full CLI documentation coverage — drift guard catches added/removed commands; snapshots catch wording changes on existing commands.",
+        "maturity": "documented",
+        "conditions": ["has-cli"],
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "ci-pr",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
+      },
+      {
+        "id": "ai-claude-hook-dispatch",
+        "label": "Claude Code Hook Dispatch",
+        "description": ".claude/settings.json wires pre/post/session hooks to a single orchestrator binary or stack-native dispatcher. Centralizes agent-invoked checks so they don't drift from human-invoked pre-commit / pre-push hooks or CI. Keeps the agent, the developer, and CI on the same verification path.",
+        "maturity": "documented",
+        "enforcement": "optional",
+        "severity": "info",
+        "executionStage": "pre-commit",
+        "appliesTo": {
+          "stacks": ["typescript-js", "csharp-dotnet", "python", "rust", "go"]
+        }
       }
     ]
   }

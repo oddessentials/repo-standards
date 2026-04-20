@@ -4,8 +4,28 @@
 import type {
   VerifyResult,
   Finding,
+  Tier,
   RemediationClass,
 } from "../schemas/index.js";
+
+/**
+ * Tier ordering for sorting findings.
+ * Core findings surface first so consumers see must-fix items before nice-to-haves.
+ */
+const TIER_ORDER: Record<Tier, number> = {
+  core: 0,
+  recommended: 1,
+  optional: 2,
+};
+
+/**
+ * Sort findings by tier so Core surfaces first, then Recommended, then Optional.
+ * Applied within each remediation-class group so Core-first ordering is
+ * preserved regardless of which group a consumer looks at.
+ */
+function sortByTier(findings: Finding[]): Finding[] {
+  return [...findings].sort((a, b) => TIER_ORDER[a.tier] - TIER_ORDER[b.tier]);
+}
 
 /**
  * Options for the doctor command.
@@ -148,12 +168,14 @@ export async function doctor(
 ): Promise<DoctorReport> {
   const { findings } = verifyResult;
 
-  // Group findings by remediation class
-  const mechanical = findings.filter(
-    (f) => f.remediation_class === "mechanical",
+  // Group findings by remediation class, with Core tier surfaced first within each group
+  const mechanical = sortByTier(
+    findings.filter((f) => f.remediation_class === "mechanical"),
   );
-  const ai = findings.filter((f) => f.remediation_class === "ai");
-  const human = findings.filter((f) => f.remediation_class === "human");
+  const ai = sortByTier(findings.filter((f) => f.remediation_class === "ai"));
+  const human = sortByTier(
+    findings.filter((f) => f.remediation_class === "human"),
+  );
 
   const groups: RemediationGroup[] = [];
 

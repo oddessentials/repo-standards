@@ -18,12 +18,36 @@ interface StackHints {
   requiredScripts?: string[];
 }
 
+type Maturity = "documented" | "template-planned" | "template-available";
+
 interface ChecklistItem {
   id: string;
   label: string;
   description: string;
+  maturity: Maturity;
+  conditions?: string[];
   ciHints?: Record<string, { job?: string; stage?: string }>;
   stack?: StackHints;
+}
+
+/**
+ * Consumer-facing explanation for each maturity value.
+ * Kept terse so the rendered line stays scannable next to dozens of items.
+ */
+const MATURITY_EXPLANATIONS: Record<Maturity, string> = {
+  documented: "described here; no ready-to-copy template yet",
+  "template-planned": "template scheduled; not yet ready to copy",
+  "template-available":
+    "template at `templates/patterns/<id>/` — ready to copy-and-adapt",
+};
+
+/**
+ * Render the maturity signal as a one-line blockquote to surface inline
+ * beneath each item heading. Required on every item (schema-enforced).
+ */
+function formatMaturity(item: ChecklistItem): string {
+  const explanation = MATURITY_EXPLANATIONS[item.maturity];
+  return `> **Maturity:** \`${item.maturity}\` — ${explanation}`;
 }
 
 interface StackChecklistJson {
@@ -85,6 +109,8 @@ function generateSection(title: string, items: ChecklistItem[]): string {
 
   for (const item of items) {
     lines.push(`### ${item.label}`);
+    lines.push("");
+    lines.push(formatMaturity(item));
     lines.push("");
 
     const bullets = generateBullets(item);

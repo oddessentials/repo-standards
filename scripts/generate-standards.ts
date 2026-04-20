@@ -70,10 +70,14 @@ interface StackHints {
   bazelHints?: BazelHints;
 }
 
+type Maturity = "documented" | "template-planned" | "template-available";
+
 interface ChecklistItemMaster {
   id: string;
   label: string;
   description: string;
+  maturity: Maturity;
+  conditions?: string[];
   appliesTo: {
     stacks: StackId[];
     ciSystems?: CiSystem[];
@@ -121,6 +125,8 @@ interface StackItem {
   id: string;
   label: string;
   description: string;
+  maturity: Maturity;
+  conditions?: string[];
   ciHints?: CiHints;
   // For the filtered file, this is the single stack’s hints including verification
   stack?: StackHints;
@@ -160,7 +166,12 @@ function filterSectionForStackAndCi(
         id: item.id,
         label: item.label,
         description: item.description,
+        maturity: item.maturity,
       };
+
+      if (item.conditions?.length) {
+        result.conditions = item.conditions;
+      }
 
       if (item.ciHints) {
         if (ciSystem) {

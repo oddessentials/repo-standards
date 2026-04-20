@@ -40,6 +40,13 @@ export interface StandardsConfig {
   /** Custom exclusions */
   exclude?: string[];
 
+  /**
+   * Explicit condition overrides keyed by condition name (e.g., "has-database").
+   * When present, overrides the rule engine's auto-detection for that
+   * condition. Undefined values fall through to auto-detection.
+   */
+  conditions?: Record<string, boolean>;
+
   /** Raw TOML content hash for determinism */
   config_hash: string;
 }
@@ -101,12 +108,24 @@ export function loadStandardsConfig(repoPath: string): StandardsConfig {
       }))
     : DEFAULT_CONFIG.packs;
 
+  // Parse [conditions] override table. Values are coerced to booleans so
+  // non-boolean TOML values (e.g., strings) don't silently pass through.
+  const conditionsRaw = parsed.conditions as
+    | Record<string, unknown>
+    | undefined;
+  const conditions: Record<string, boolean> | undefined = conditionsRaw
+    ? Object.fromEntries(
+        Object.entries(conditionsRaw).map(([k, v]) => [k, Boolean(v)]),
+      )
+    : undefined;
+
   return {
     version,
     stack,
     ci_system,
     packs,
     exclude,
+    conditions,
     config_hash,
   };
 }

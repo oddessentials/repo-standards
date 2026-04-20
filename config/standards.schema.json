@@ -62,6 +62,11 @@
       "enum": ["error", "warn", "info"],
       "description": "Severity level for violations."
     },
+    "Maturity": {
+      "type": "string",
+      "enum": ["documented", "template-planned", "template-available"],
+      "description": "Implementation maturity of a checklist item. 'documented' = described only; 'template-planned' = template scheduled; 'template-available' = template exists under templates/patterns/<id>/."
+    },
     "Meta": {
       "type": "object",
       "additionalProperties": false,
@@ -282,7 +287,14 @@
     "ChecklistItem": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "label", "description", "appliesTo", "executionStage"],
+      "required": [
+        "id",
+        "label",
+        "description",
+        "maturity",
+        "appliesTo",
+        "executionStage"
+      ],
       "properties": {
         "id": {
           "type": "string",
@@ -294,6 +306,16 @@
         },
         "description": {
           "type": "string"
+        },
+        "maturity": {
+          "$ref": "#/$defs/Maturity"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Condition predicates (e.g., 'has-database', 'has-cli') that gate applicability. If any condition is unmet, the item evaluates as N/A in verify output."
         },
         "enforcement": {
           "$ref": "#/$defs/Enforcement",

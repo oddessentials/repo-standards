@@ -52,6 +52,9 @@ Desktop.ini
 *.swp
 *.swo
 
+# Claude Code local state
+.claude/
+
 # JetBrains IDEs (WebStorm, IntelliJ)
 *.iml
 *.ipr
@@ -69,6 +72,16 @@ out/
 # -----------------------------------------------------
 *.tsbuildinfo
 *.tsbuildinfo.*
+
+# -----------------------------------------------------
+# Python (pattern templates ship Python reference impls)
+# -----------------------------------------------------
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
 # -----------------------------------------------------
 # Docker / Containers
