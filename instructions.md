@@ -233,6 +233,54 @@ This document provides high-level guidance for an autonomous coding agent to bri
 
 - Three-value exit-code contract shared across all hook scripts and CI preflight runners: 1 = quality regression (fatal), 2 = missing tool (fatal, setup issue), 3 = network or infra degraded (skippable with --allow-local-degraded). Inconsistent exit semantics across hooks mask real failures and undermine local/CI parity.
 
+### Package Manager Exclusivity
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- Enforce a single package manager per repo via a preinstall script that exits non-zero if the wrong one is invoked. Combined with engine-strict, prevents lockfile drift and npm/pnpm mixed installs that break reproducibility.
+
+### Lockfile Discipline
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- CI gate fails on the presence of any unauthorized lockfile — e.g., a package-lock.json in a pnpm repo, or a yarn.lock in an npm repo. Companion to package-manager exclusivity; catches wrong-tool installs that slip past the preinstall guard.
+
+### packageManager Field
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- package.json declares a pinned `packageManager` field (e.g., "pnpm@9.15.0") that Corepack and CI can use to auto-select the correct tool + version. Keeps the package-manager exclusivity guard and engine pins aligned with one authoritative source.
+
+### EditorConfig
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- Ship an .editorconfig at the repo root pinning UTF-8 charset, LF line endings, trimmed trailing whitespace, and inserted final newline. Overrides by extension for language-specific indent widths and any Windows-only exceptions (e.g., CRLF for .bat). Eliminates an entire class of cross-platform whitespace drift before linters run.
+
+### engine-strict Enforcement
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- Set engine-strict=true in .npmrc (or equivalent) so the engines field in package.json becomes a hard install-time constraint, not advisory. Prevents 'works on my machine' drift from mismatched Node or package-manager versions.
+
+### Zero-Warnings Lint Discipline
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- Run the linter with --max-warnings=0 (or equivalent) so any warning becomes a failure. Complements the generic linting requirement by forcing warnings to be resolved at authorship time rather than accumulating as background noise.
+
+### Full-History Secret Scan in CI
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- Run a secret scanner (e.g., gitleaks) in CI against the full git history on every PR — fetch-depth: 0. Complements pre-commit secret scanning by catching anything that slipped in via force-push, rebase, or a developer without hooks installed.
+
+### semantic-release Integration
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- Use semantic-release (or equivalent) on the main branch only, with a git plugin that commits version and changelog files and a [skip ci] convention on the release commit. Complements the unified release workflow with a specific, deterministic tool stack that enforces conventional-commit-driven versioning.
+
 ## Recommended Practices
 
 ### Dependency Update Automation
@@ -378,6 +426,72 @@ This document provides high-level guidance for an autonomous coding agent to bri
 > **Maturity:** `documented` — described here; no ready-to-copy template yet
 
 - Every registered migration has at least one test exercising it on a blank DB AND on the prior schema version. Enforced by a coverage check over the migration registry. Blocks untested migrations from shipping.
+
+### Justified Lint Ignores
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- Every linter ignore or suppression comment includes an inline justification explaining why the rule doesn't apply in that specific case. Zero silent suppressions; reviewers can audit the trade-off directly at the call site.
+
+### Coverage Ratchet (Raise-Only)
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- Coverage threshold computed as floor(actual - 2.0); CI fails on regression below the ratchet but allows raises. Makes coverage monotonically improve over time without requiring human-maintained magic numbers.
+
+### Tiered Coverage Thresholds
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- Global coverage baseline supplemented by per-file Tier 2 thresholds for critical paths — schemas, parsers, auth boundaries, security-sensitive surfaces. Keeps high-risk code at a higher bar without demanding the same bar of every file.
+
+### Coverage Delta Guard
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- CI gate fails when the PR's coverage drops by more than a small delta (e.g., 2%) vs. main, even if the absolute number still sits above the ratchet. Catches silent coverage erosion that ratchets alone miss.
+
+### Test Floor Contract
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- Commit a machine-readable contract file (e.g., .test-floor-contract.json) that pins the minimum collected test count. CI reads this authoritatively — no hardcoded integers in workflow files. Catches silent test removal that coverage alone wouldn't flag.
+
+### Ratchet Bump Equality Guard
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- Per-commit gate asserting collected test count equals the floor exactly after any floor bump. Walks the first-parent commit range in subprocess-isolated pytest (or equivalent) so the check matches CI's collection exactly. Prevents 'bumped the floor but tests changed' drift.
+
+### Threshold Change Marker Guard
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- CI gate blocks coverage-threshold changes unless the commit subject contains a [threshold-update] marker. Keeps accidental threshold drift from slipping through reviews while still allowing intentional adjustments with a clear audit trail.
+
+### Commit-Subject Marker Bypass Convention
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- Subject-line-only markers (e.g., [threshold-update], [ratchet-realignment], [version-override-acknowledged]) document cases where a strict gate is intentionally bypassed. Scanned via git log --oneline with shallow-clone determinism checks. Only meaningful once ratchet/threshold/version guards exist; adopt alongside them.
+
+### Package-Manager Command Guard
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- CI gate scans workflows, scripts, and configs for forbidden package-manager commands — e.g., 'npm install' or 'npm ci' in a pnpm-exclusive repo. Catches drift that the preinstall guard alone won't: workflow-file edits that bypass installs entirely.
+
+### Rule-Disable Proof Artifact
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- For every globally disabled lint rule, ship a committed proof artifact (e.g., .rule-disable-audit-<rule>.json) listing every affected call-site and the compensating control. Verified by an exact-match check on every run so new call-sites can't silently inherit the disable.
+
+### Suppression Audit with Baseline
+
+> **Maturity:** `documented` — described here; no ready-to-copy template yet
+
+- Scope-based suppression baseline (e.g., .suppression-baseline.json) with zero-tolerance scope policy: any new suppression outside the baseline blocks the commit. Baseline is regenerated and staleness-checked on every run so it can't silently grow stale.
 
 ## Optional Enhancements
 

@@ -236,3 +236,44 @@ P2 follows with templates (Python + TS first) under `templates/patterns/<id>/`. 
 ---
 
 **Document status:** approved with P1 hardening (2026-04-20). P1 may begin.
+
+---
+
+## Appendix A — P1.4/P1.4b cross-reference outcomes
+
+Resolution of each catalog item against existing `config/standards.json` entries, recorded as items landed. Kept as a traceability record so the DUPLICATE classifications can be revisited if future evidence changes the judgment.
+
+### Added as new items (P1.4 / P1.4b)
+
+**P1.4 — 1 Core + 11 Recommended:**
+
+- `hook-exit-code-contract` (Core)
+- `lcp-parity-doc`, `lcp-parity-doc-coverage-test` (Rec)
+- `hook-tiered-model`, `hook-dispatcher-script`, `hook-preflight-script`, `hook-fail-fast-setup-check` (Rec)
+- `p-schema-migration-parity`, `p-migration-ddl-parity`, `p-required-tables-runtime-check`, `p-schema-version-monotonic`, `p-migration-test-coverage` (Rec, conditional on `has-database`)
+
+**P1.4b — 8 Core + 11 Recommended:**
+
+- Net-new Core: `ci-package-manager-exclusivity`, `ci-lockfile-discipline`, `de-packagemanager-field`, `de-editorconfig`, `de-engine-strict`
+- Complement Core (adds distinct discipline over an existing item): `qg-zero-warnings`, `sec-secret-scan-ci`, `cr-semantic-release`
+- Net-new Recommended: `qg-justified-ignores`, `td-coverage-ratchet`, `td-coverage-tiered`, `td-coverage-delta-guard`, `td-test-floor-contract`, `td-ratchet-bump-guard`, `cr-threshold-change-guard`, `cr-marker-bypass-convention`, `ci-package-manager-command-guard`, `sec-rule-disable-proof-artifact`, `sec-suppression-audit`
+
+### Deferred as DUPLICATE of an existing item
+
+Classified as fully covered by the listed existing item. Not added in P1.4/P1.4b. Revisit if a concrete distinction emerges during template work in P2.
+
+| Catalog ID                   | Covered by existing item                                          | Notes                                                                                                  |
+| ---------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `qg-strict-types`            | `type-checking`                                                   | Existing item already calls out strictness on new code.                                                |
+| `td-coverage-threshold`      | `unit-test-reporter`                                              | Existing item sets an ~80% threshold. The ratchet + tiered + delta patterns were added as complements. |
+| `cr-conventional-commits`    | `commit-linting`                                                  | Existing item explicitly names Conventional Commits.                                                   |
+| `ci-line-ending-guard`       | `crlf-detection` + `gitattributes-eol`                            | Existing two items cover CI CRLF detection and source-layer EOL enforcement.                           |
+| `sec-dependency-audit`       | `dependency-security`                                             | Existing item covers lockfile + vuln scanning + CI fail-on-high.                                       |
+| `de-engines-pinned`          | `runtime-version`                                                 | Existing item covers `engines` field and runtime pins.                                                 |
+| `cr-version-guard`           | `version-guard`                                                   | Existing item is essentially the same pattern.                                                         |
+| `ai-agent-safety-invariants` | `agent-invariants` (+ `agent-phase-gates`, `agent-victory-gates`) | Existing trio already covers INVARIANTS.md + phase/victory gates.                                      |
+
+### Not yet processed — deferred to P1.5 (Optional tier)
+
+18 Optional-tier catalog items remain untouched. Scheduled for P1.5 in one batch:
+`qg-split-ts-configs`, `qg-no-any-types`, `td-patch-coverage`, `td-zero-skips`, `td-platform-conditional-collection`, `td-canonical-runtime`, `td-subprocess-isolated-collection`, `td-partial-branch-ratchet`, `cr-shallow-clone-determinism`, `ci-generated-artifact-byte-parity`, `ci-breaking-change-marker`, `ci-cross-platform-test-count-parity`, `sec-rule-disable-guardrail`, `sec-subprocess-allowlist`, `sec-helper-enforcement`, `doc-cli-reference-drift` (conditional on has-cli), `doc-help-snapshots` (conditional on has-cli), `ai-claude-hook-dispatch`.

@@ -811,6 +811,30 @@
         "id": "hook-exit-code-contract",
         "label": "Hook Exit-Code Contract",
         "maturity": "documented"
+      },
+      {
+        "description": "Ship an .editorconfig at the repo root pinning UTF-8 charset, LF line endings, trimmed trailing whitespace, and inserted final newline. Overrides by extension for language-specific indent widths and any Windows-only exceptions (e.g., CRLF for .bat). Eliminates an entire class of cross-platform whitespace drift before linters run.",
+        "id": "de-editorconfig",
+        "label": "EditorConfig",
+        "maturity": "documented"
+      },
+      {
+        "description": "Run the linter with --max-warnings=0 (or equivalent) so any warning becomes a failure. Complements the generic linting requirement by forcing warnings to be resolved at authorship time rather than accumulating as background noise.",
+        "id": "qg-zero-warnings",
+        "label": "Zero-Warnings Lint Discipline",
+        "maturity": "documented"
+      },
+      {
+        "description": "Run a secret scanner (e.g., gitleaks) in CI against the full git history on every PR — fetch-depth: 0. Complements pre-commit secret scanning by catching anything that slipped in via force-push, rebase, or a developer without hooks installed.",
+        "id": "sec-secret-scan-ci",
+        "label": "Full-History Secret Scan in CI",
+        "maturity": "documented"
+      },
+      {
+        "description": "Use semantic-release (or equivalent) on the main branch only, with a git plugin that commits version and changelog files and a [skip ci] convention on the release commit. Complements the unified release workflow with a specific, deterministic tool stack that enforces conventional-commit-driven versioning.",
+        "id": "cr-semantic-release",
+        "label": "semantic-release Integration",
+        "maturity": "documented"
       }
     ],
     "optionalEnhancements": [
@@ -1237,6 +1261,66 @@
         "description": "Every registered migration has at least one test exercising it on a blank DB AND on the prior schema version. Enforced by a coverage check over the migration registry. Blocks untested migrations from shipping.",
         "id": "p-migration-test-coverage",
         "label": "Per-Migration Test Coverage",
+        "maturity": "documented"
+      },
+      {
+        "description": "Every linter ignore or suppression comment includes an inline justification explaining why the rule doesn't apply in that specific case. Zero silent suppressions; reviewers can audit the trade-off directly at the call site.",
+        "id": "qg-justified-ignores",
+        "label": "Justified Lint Ignores",
+        "maturity": "documented"
+      },
+      {
+        "description": "Coverage threshold computed as floor(actual - 2.0); CI fails on regression below the ratchet but allows raises. Makes coverage monotonically improve over time without requiring human-maintained magic numbers.",
+        "id": "td-coverage-ratchet",
+        "label": "Coverage Ratchet (Raise-Only)",
+        "maturity": "documented"
+      },
+      {
+        "description": "Global coverage baseline supplemented by per-file Tier 2 thresholds for critical paths — schemas, parsers, auth boundaries, security-sensitive surfaces. Keeps high-risk code at a higher bar without demanding the same bar of every file.",
+        "id": "td-coverage-tiered",
+        "label": "Tiered Coverage Thresholds",
+        "maturity": "documented"
+      },
+      {
+        "description": "CI gate fails when the PR's coverage drops by more than a small delta (e.g., 2%) vs. main, even if the absolute number still sits above the ratchet. Catches silent coverage erosion that ratchets alone miss.",
+        "id": "td-coverage-delta-guard",
+        "label": "Coverage Delta Guard",
+        "maturity": "documented"
+      },
+      {
+        "description": "Commit a machine-readable contract file (e.g., .test-floor-contract.json) that pins the minimum collected test count. CI reads this authoritatively — no hardcoded integers in workflow files. Catches silent test removal that coverage alone wouldn't flag.",
+        "id": "td-test-floor-contract",
+        "label": "Test Floor Contract",
+        "maturity": "documented"
+      },
+      {
+        "description": "Per-commit gate asserting collected test count equals the floor exactly after any floor bump. Walks the first-parent commit range in subprocess-isolated pytest (or equivalent) so the check matches CI's collection exactly. Prevents 'bumped the floor but tests changed' drift.",
+        "id": "td-ratchet-bump-guard",
+        "label": "Ratchet Bump Equality Guard",
+        "maturity": "documented"
+      },
+      {
+        "description": "CI gate blocks coverage-threshold changes unless the commit subject contains a [threshold-update] marker. Keeps accidental threshold drift from slipping through reviews while still allowing intentional adjustments with a clear audit trail.",
+        "id": "cr-threshold-change-guard",
+        "label": "Threshold Change Marker Guard",
+        "maturity": "documented"
+      },
+      {
+        "description": "Subject-line-only markers (e.g., [threshold-update], [ratchet-realignment], [version-override-acknowledged]) document cases where a strict gate is intentionally bypassed. Scanned via git log --oneline with shallow-clone determinism checks. Only meaningful once ratchet/threshold/version guards exist; adopt alongside them.",
+        "id": "cr-marker-bypass-convention",
+        "label": "Commit-Subject Marker Bypass Convention",
+        "maturity": "documented"
+      },
+      {
+        "description": "For every globally disabled lint rule, ship a committed proof artifact (e.g., .rule-disable-audit-<rule>.json) listing every affected call-site and the compensating control. Verified by an exact-match check on every run so new call-sites can't silently inherit the disable.",
+        "id": "sec-rule-disable-proof-artifact",
+        "label": "Rule-Disable Proof Artifact",
+        "maturity": "documented"
+      },
+      {
+        "description": "Scope-based suppression baseline (e.g., .suppression-baseline.json) with zero-tolerance scope policy: any new suppression outside the baseline blocks the commit. Baseline is regenerated and staleness-checked on every run so it can't silently grow stale.",
+        "id": "sec-suppression-audit",
+        "label": "Suppression Audit with Baseline",
         "maturity": "documented"
       }
     ]
